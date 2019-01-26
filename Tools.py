@@ -26,20 +26,20 @@ class Tools(CamObject):
         
     def save_default(self):
         import cPickle
-        f = open(wx.GetApp().heekscnc_path + "/default_tools.txt", "w")
+        f = open(wx.GetApp().cam_dir + "/default_tools.txt", "w")
         for tool in self.children:
             cPickle.dump(tool, f)
         f.close()        
 
     def load_default(self):
-        self.ClearChildren()
+        self.Clear()
         
         try:
-            f = open(wx.GetApp().heekscnc_path + "/default_tools.txt")
+            f = open(wx.GetApp().cam_dir + "/default_tools.txt")
         except:
             # no default file found, add 2 tools
-            self.Add(Tool(diameter = 3.0, type = TOOL_TYPE_SLOTCUTTER, tool_number = 1))
-            self.Add(Tool(diameter = 6.0, type = TOOL_TYPE_SLOTCUTTER, tool_number = 2))
+            cad.AddUndoably(Tool(diameter = 3.0, type = TOOL_TYPE_SLOTCUTTER, tool_number = 1), self, None)
+            cad.AddUndoably(Tool(diameter = 6.0, type = TOOL_TYPE_SLOTCUTTER, tool_number = 2), self, None)
             return
     
         import cPickle

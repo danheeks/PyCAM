@@ -18,3 +18,6 @@ class CamObject(Object):
         
     def GetIconFilePath(self):
         return cam_dir + '/icons/' + self.icon() + '.png'
+    
+    def HasColor(self):
+        return False

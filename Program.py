@@ -7,6 +7,8 @@ from CNCConfig import CNCConfig
 from consts import *
 import wx
 from CamObject import CamObject
+import cad
+from Object import PyProperty
 
 class Program(CamObject):
     def __init__(self):
@@ -18,13 +20,13 @@ class Program(CamObject):
         machine_name = config.Read("ProgramMachine", "LinuxCNC")
         self.machine = self.GetMachine(machine_name)
         import wx
-        default_output_file = (wx.StandardPaths.Get().GetTempDir() + "/test.tap").replace('\\', '/')
+        default_output_file = str((wx.StandardPaths.Get().GetTempDir() + "/test.tap").replace('\\', '/'))
         self.output_file = config.Read("ProgramOutputFile", default_output_file)  #  // NOTE: Only relevant if the filename does NOT follow the data file's name.
         self.output_file_name_follows_data_file_name = config.ReadBool("OutputFileNameFollowsDataFileName", True) #    // Just change the extension to determine the NC file name
         self.python_program = ""
         self.path_control_mode = config.ReadInt("ProgramPathControlMode", PATH_CONTROL_UNDEFINED)
-        self.motion_blending_tolerance = config.ReadFloat("ProgramMotionBlendingTolerance", 0.0)    # Only valid if m_path_control_mode == eBestPossibleSpeed
-        self.naive_cam_tolerance = config.ReadFloat("ProgramNaiveCamTolerance", 0.0)        # Only valid if m_path_control_mode == eBestPossibleSpeed
+        self.motion_blending_tolerance = config.ReadFloat("ProgramMotionBlendingTolerance", 0.0001)    # Only valid if m_path_control_mode == eBestPossibleSpeed
+        self.naive_cam_tolerance = config.ReadFloat("ProgramNaiveCamTolerance", 0.0001)        # Only valid if m_path_control_mode == eBestPossibleSpeed
         
     def TypeName(self):
         return "Program"
@@ -41,11 +43,11 @@ class Program(CamObject):
         self.children = []
         self.tools = Tools()
         self.tools.load_default()
-        self.Add(self.tools)
+        cad.AddUndoably(self.tools, self, None)
         self.operations = Operations()
-        self.Add(self.operations)
+        cad.AddUndoably(self.operations, self, None)
         self.nccode = NCCode()
-        self.Add(self.nccode)
+        cad.AddUndoably(self.nccode, self, None)
         
     def LanguageCorrection(self):
         '''
@@ -222,8 +224,6 @@ class Program(CamObject):
         machines_file = self.alternative_machines_file
         if machines_file == "":
             machines_file = wx.GetApp().cam_dir + "/nc/machines.xml"
-            
-        print('machines_file = ' + machines_file)
                 
         import re
         import xml.etree.ElementTree as ET
@@ -259,4 +259,145 @@ class Program(CamObject):
         import wx
         dlg = ProgramDlg(self)
         return dlg.ShowModal() == wx.ID_OK
+    
+    def GetProperties(self):
+        properties = []
+        properties.append(PropertyMachine(self))
+        properties.append(PyProperty("output file name follows data file name", "output_file_name_follows_data_file_name", self))
+        properties.append(PropertyOutputFile(self))    
+        properties.append(PropertyProgramUnits(self))
+        properties += CamObject.GetBaseProperties(self)
+        return properties
+        
+    def WriteXML(self):
+        cad.SetXmlValue('machine', self.machine.description)
+        cad.SetXmlValue('output_file', self.output_file)
+        cad.SetXmlValue('output_file_name_follows_data_file_name', str(self.output_file_name_follows_data_file_name))
+        cad.SetXmlValue('program', self.python_program)
+        cad.SetXmlValue('units', str(self.units))
+        cad.SetXmlValue('ProgramPathControlMode', str(self.path_control_mode))
+        cad.SetXmlValue('ProgramMotionBlendingTolerance', str(self.motion_blending_tolerance))
+        cad.SetXmlValue('ProgramNaiveCamTolerance', str(self.naive_cam_tolerance))
+        
+class PropertyMachine(cad.Property):
+    def __init__(self, program):
+        self.program = program
+        cad.Property.__init__(self, cad.PROPERTY_TYPE_CHOICE, 'Machine', program)
+        self.choices = []
+        machines = self.program.GetMachines()
+        for machine in machines:
+            self.choices.append(machine.description)
+        
+    def GetType(self):
+        return cad.PROPERTY_TYPE_CHOICE
+        
+    def GetTitle(self):
+        # why is this not using base class?
+        return 'Machine'
+        
+    def editable(self):
+        # why is this not using base class?
+        return True
+    
+    def SetInt(self, value):
+        self.program.machine = self.program.GetMachine(self.choices[value])
+    
+    def GetChoices(self):
+        return self.choices
+    
+    def GetInt(self):
+        index = 0
+        for choice in self.choices:
+            if choice == self.program.machine.description:
+                return index
+            index += 1
+        return 0
+    
+class PropertyProgramUnits(cad.Property):
+    def __init__(self, program):
+        self.program = program
+        cad.Property.__init__(self, cad.PROPERTY_TYPE_CHOICE, '', program)
+        
+    def GetType(self):
+        return cad.PROPERTY_TYPE_CHOICE
+        
+    def GetTitle(self):
+        # why is this not using base class?
+        return 'units for nc output'
+        
+    def editable(self):
+        # why is this not using base class?
+        return True
+    
+    def SetInt(self, value):
+        self.program.units = 25.4 if value == 1 else 1.0
+    
+    def GetChoices(self):
+        return ['mm', 'inch']
+    
+    def GetInt(self):
+        return 1 if self.program.units > 25.0 else 0
+    
+    
+class PropertyPathControlMode(cad.Property):
+    def __init__(self, program):
+        self.program = program
+        cad.Property.__init__(self, cad.PROPERTY_TYPE_CHOICE, '', program)
+        
+    def GetType(self):
+        return cad.PROPERTY_TYPE_CHOICE
+        
+    def GetTitle(self):
+        # why is this not using base class?
+        return 'path control mode'
+        
+    def editable(self):
+        # why is this not using base class?
+        return True
+    
+    def SetInt(self, value):
+        self.program.path_control_mode = value
+    
+    def GetChoices(self):
+        return ['Exact Path Mode', 'Exact Stop Mode', 'Best Possible Speed', 'Undefined']
+    
+    def GetInt(self):
+        return self.program.path_control_mode
+    
+    
+class PropertyOutputFile(cad.Property):
+    def __init__(self, program):
+        self.program = program
+        cad.Property.__init__(self, cad.PROPERTY_TYPE_FILE, 'output file', program)
+        
+    def GetType(self):
+        return cad.PROPERTY_TYPE_FILE
+        
+    def GetTitle(self):
+        # why is this not using base class?
+        return 'output file'
+        
+    def editable(self):
+        # why is this not using base class?
+        return True
+    
+    def GetString(self):
+        return self.program.output_file
+        
+    def SetString(self, value):
+        self.program.output_file = str(value)
+        
+
+def XMLRead():
+    new_object = Program()
+    new_object.machine = new_object.GetMachine( cad.GetXmlValue('machine') )
+    new_object.output_file = cad.GetXmlValue('output_file')
+    new_object.output_file_name_follows_data_file_name = bool(cad.GetXmlValue('output_file'))
+    new_object.python_program = cad.GetXmlValue('program')
+    new_object.units = float(cad.GetXmlValue('units'))
+    new_object.path_control_mode = int(cad.GetXmlValue('ProgramPathControlMode'))
+    new_object.motion_blending_tolerance = float(cad.GetXmlValue('ProgramMotionBlendingTolerance'))
+    new_object.naive_cam_tolerance = float(cad.GetXmlValue('ProgramNaiveCamTolerance'))
+    
+    return new_object
         

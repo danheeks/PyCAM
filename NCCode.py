@@ -1,11 +1,10 @@
-from Object import Object
-
+from CamObject import CamObject
 
 # to do, if at all
 
-class NCCode(Object):
+class NCCode(CamObject):
     def __init__(self):
-        Object.__init__(self)
+        CamObject.__init__(self)
         self.blocks = [] # for now, just strings, but later to be NCCodeBlock objects
         
     def icon(self):

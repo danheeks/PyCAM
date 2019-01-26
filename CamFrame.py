@@ -6,6 +6,7 @@ pycad_dir = os.path.realpath(cam_dir + '/../../PyCAD/trunk')
 sys.path.append(pycad_dir)
 
 from Frame import Frame # from CAD
+import Profile
 
 class CamFrame(Frame):
     def __init__(self, parent, id=-1, title='CAM ( Computer Aided Manufacturing )', pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.DEFAULT_FRAME_STYLE, name=wx.FrameNameStr):
@@ -42,11 +43,24 @@ class CamFrame(Frame):
         self.AddMenuItem('Simulate', self.NewProfileOpMenuCallback, None, 'simulate')        
         self.AddMenuItem('Open NC File', self.NewProfileOpMenuCallback, None, 'opennc')        
         self.AddMenuItem('Save NC File As', self.NewProfileOpMenuCallback, None, 'savenc')        
+        self.EndMenu()      
         
         self.bitmap_path = save_bitmap_path
 
     def NewProfileOpMenuCallback(self, e):
-        wx.MessageBox("prof")
+        
+        # to do find selected sketches
+        
+        new_object = Profile.Profile()
+        #new_object->SetID(heeksCAD->GetNextID(ProfileType));
+        #new_object->AddMissingChildren(); // add the tags container
+        if new_object.Edit():
+            cad.StartHistory()
+            cad.AddUndoably(new_object, wx.GetApp().program.operations, None)
+            
+            # to do, add a copy of the operation for each of the sketches found
+            
+            cad.EndHistory()
 
     def on_post_process(self):
         import wx
