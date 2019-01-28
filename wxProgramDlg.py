@@ -1,5 +1,4 @@
 import wx
-import HeeksCNC
 from Program import Program
 from wxHDialog import HDialog
 from wxPictureWindow import PictureWindow
@@ -63,20 +62,20 @@ class ProgramDlg(HDialog):
         if self.ignore_event_functions: return
         self.EnableControls()
 
-    def GetData(self):
+    def GetData(self, object):
         if self.ignore_event_functions: return
         self.ignore_event_functions = True
         
         if self.cmbMachine.GetSelection() != wx.NOT_FOUND:
-            self.program.machine = self.machines[self.cmbMachine.GetSelection()]
+            object.machine = self.machines[self.cmbMachine.GetSelection()]
             
-        self.program.output_file_name_follows_data_file_name = self.chkOutputSame.GetValue()
-        self.program.output_file = self.txtOutputFile.GetValue()
+        object.output_file_name_follows_data_file_name = self.chkOutputSame.GetValue()
+        object.output_file = self.txtOutputFile.GetValue()
             
         if self.cmbUnits.GetValue() == "inch":
-            self.program.units = 25.4
+            object.units = 25.4
         else:
-            self.program.units = 1.0
+            object.units = 1.0
         self.ignore_event_functions = False
 
     def SetFromData(self):

@@ -253,12 +253,18 @@ class Program(CamObject):
         if len(machines):
             return machines[0]
         return None
+    
+    def HasEdit(self):
+        return True
         
     def Edit(self):
         from wxProgramDlg import ProgramDlg
         import wx
         dlg = ProgramDlg(self)
-        return dlg.ShowModal() == wx.ID_OK
+        if dlg.ShowModal() == wx.ID_OK:
+            dlg.GetData(self)
+            return True
+        return False
     
     def GetProperties(self):
         properties = []
@@ -278,6 +284,21 @@ class Program(CamObject):
         cad.SetXmlValue('ProgramPathControlMode', str(self.path_control_mode))
         cad.SetXmlValue('ProgramMotionBlendingTolerance', str(self.motion_blending_tolerance))
         cad.SetXmlValue('ProgramNaiveCamTolerance', str(self.naive_cam_tolerance))
+        
+    def MakeACopy(self):
+        copy = Program()
+        copy.CopyFrom(self)
+        return copy
+    
+    def CopyFrom(self, o):
+        self.units = o.units
+        self.alternative_machines_file = o.alternative_machines_file
+        self.machine = o.machine
+        self.output_file = o.output_file
+        self.output_file_name_follows_data_file_name = o.output_file_name_follows_data_file_name
+        self.path_control_mode = o.path_control_mode
+        self.motion_blending_tolerance = o.motion_blending_tolerance
+        self.naive_cam_tolerance = o.naive_cam_tolerance
         
 class PropertyMachine(cad.Property):
     def __init__(self, program):
