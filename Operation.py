@@ -1,14 +1,18 @@
 from CamObject import CamObject
 from consts import *
 from CNCConfig import CNCConfig
+import cad
 
 class Operation(CamObject):
-    def __init__(self):
+    def __init__(self, tool_number = -1, operation_type = cad.OBJECT_TYPE_UNKNOWN):
         CamObject.__init__(self)
         self.active = True
         self.comment = ''
         self.title = self.TypeName()
-        self.tool_number = 0
+        self.tool_number = tool_number
+        self.operation_type = operation_type
+        self.pattern = 1
+        self.surface = 0
         
     def TypeName(self):
         return "Operation"
@@ -62,4 +66,12 @@ class Operation(CamObject):
 
         if self.UsesTool():
             wx.GetApp().machine_state.AppendToolChangeText(self.tool_number) # Select the correct  tool.
-            
+           
+    def CopyFrom(self, object):
+        self.active = object.active
+        self.comment = object.comment
+        self.title = object.title
+        self.tool_number = object.tool_number
+        self.operation_type = object.operation_type
+        self.pattern = object.pattern
+        self.surface = object.surface

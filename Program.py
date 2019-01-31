@@ -1,5 +1,8 @@
 from Tools import Tools
 from Operations import Operations
+from Patterns import Patterns
+from Surfaces import Surfaces
+from Stocks import Stocks
 from RawMaterial import RawMaterial
 from Machine import Machine
 from NCCode import NCCode
@@ -27,6 +30,7 @@ class Program(CamObject):
         self.path_control_mode = config.ReadInt("ProgramPathControlMode", PATH_CONTROL_UNDEFINED)
         self.motion_blending_tolerance = config.ReadFloat("ProgramMotionBlendingTolerance", 0.0001)    # Only valid if m_path_control_mode == eBestPossibleSpeed
         self.naive_cam_tolerance = config.ReadFloat("ProgramNaiveCamTolerance", 0.0001)        # Only valid if m_path_control_mode == eBestPossibleSpeed
+        self.tools = None
         
     def TypeName(self):
         return "Program"
@@ -43,11 +47,17 @@ class Program(CamObject):
         self.children = []
         self.tools = Tools()
         self.tools.load_default()
-        cad.AddUndoably(self.tools, self, None)
+        self.Add(self.tools)
+        self.patterns = Patterns()
+        self.Add(self.patterns)
+        self.surfaces = Surfaces()
+        self.Add(self.surfaces)
+        self.stocks = Stocks()
+        self.Add(self.stocks)
         self.operations = Operations()
-        cad.AddUndoably(self.operations, self, None)
+        self.Add(self.operations)
         self.nccode = NCCode()
-        cad.AddUndoably(self.nccode, self, None)
+        self.Add(self.nccode)
         
     def LanguageCorrection(self):
         '''
@@ -299,6 +309,9 @@ class Program(CamObject):
         self.path_control_mode = o.path_control_mode
         self.motion_blending_tolerance = o.motion_blending_tolerance
         self.naive_cam_tolerance = o.naive_cam_tolerance
+    
+    def AutoExpand(self):
+        return True
         
 class PropertyMachine(cad.Property):
     def __init__(self, program):

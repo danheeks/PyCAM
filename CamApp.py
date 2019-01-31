@@ -17,8 +17,8 @@ programs = []
 class CamApp(App):
     def __init__(self):
         self.cam_dir = cam_dir
-        App.__init__(self)
         self.program = None
+        App.__init__(self)
         
     def OnInit(self):
         result = super().OnInit()
@@ -35,7 +35,7 @@ class CamApp(App):
         while object != None:
             if object.GetType() == cad.OBJECT_TYPE_PYTHON:
                 if object.GetTypeString() == "Program":
-                    print("Program found")
+                    self.program = object
                     return
             object = doc.GetNextChild()
         

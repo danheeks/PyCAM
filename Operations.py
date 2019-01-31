@@ -16,6 +16,9 @@ class Operations(CamObject):
     def CanBeDeleted(self):
         return False
     
+    def AutoExpand(self):
+        return True
+    
 def AddOperationMenuItems(CAM_menu):
     wx.GetApp().heekscnc.cad.add_menu_item(CAM_menu, 'Profile Operation', on_profile_operation, HeeksCNC.heekscnc_path + '/bitmaps/opprofile.png')
     wx.GetApp().heekscnc.cad.add_menu_item(CAM_menu, 'Pocket Operation', on_pocket_operation, HeeksCNC.heekscnc_path + '/bitmaps/pocket.png')

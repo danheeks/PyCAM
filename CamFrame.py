@@ -1,6 +1,7 @@
 import sys
 import os
 import wx
+import cad
 cam_dir = os.path.dirname(os.path.realpath(__file__))
 pycad_dir = os.path.realpath(cam_dir + '/../../PyCAD/trunk')
 sys.path.append(pycad_dir)
@@ -50,8 +51,8 @@ class CamFrame(Frame):
     def NewProfileOpMenuCallback(self, e):
         
         # to do find selected sketches
-        
-        new_object = Profile.Profile()
+        sketch = 0
+        new_object = Profile.Profile(sketch)
         #new_object->SetID(heeksCAD->GetNextID(ProfileType));
         #new_object->AddMissingChildren(); // add the tags container
         if new_object.Edit():
