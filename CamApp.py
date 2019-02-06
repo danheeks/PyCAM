@@ -10,6 +10,7 @@ import cad
 from App import App # from CAD
 from CamFrame import CamFrame
 import Program
+import Tool
 from Operations import AddOperationMenuItems
 
 programs = []
@@ -22,7 +23,8 @@ class CamApp(App):
         
     def OnInit(self):
         result = super().OnInit()
-        cad.RegisterXMLRead("Program", Program.XMLRead)
+        Program.type = cad.RegisterXMLRead("Program", Program.XMLRead)
+        Tool.type = cad.RegisterXMLRead("Tool", Tool.XMLRead)
         return result
     
     def NewFrame(self):

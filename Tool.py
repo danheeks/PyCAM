@@ -2,9 +2,11 @@ from CamObject import CamObject
 from consts import *
 import wx
 
+type = 0
+
 class Tool(CamObject):
     def __init__(self, diameter = 3.0, title = None, tool_number = 0, type = TOOL_TYPE_SLOTCUTTER):
-        CamObject.__init__(self)
+        CamObject.__init__(self, type)
         self.tool_number = tool_number
         self.type = type
         self.diameter = diameter
@@ -314,3 +316,27 @@ class Tool(CamObject):
         wx.GetApp().program.python_program += "gradient=" + str(self.gradient)
 
         wx.GetApp().program.python_program += ")\n"
+
+def XMLRead():
+    new_object = Tool()
+    new_object.machine = new_object.GetMachine( cad.GetXmlValue('machine') )
+    new_object.output_file = cad.GetXmlValue('output_file')
+    new_object.output_file_name_follows_data_file_name = bool(cad.GetXmlValue('output_file'))
+    new_object.python_program = cad.GetXmlValue('program')
+    new_object.units = float(cad.GetXmlValue('units'))
+    new_object.path_control_mode = int(cad.GetXmlValue('ProgramPathControlMode'))
+    new_object.motion_blending_tolerance = float(cad.GetXmlValue('ProgramMotionBlendingTolerance'))
+    new_object.naive_cam_tolerance = float(cad.GetXmlValue('ProgramNaiveCamTolerance'))
+        self.tool_number = tool_number
+        self.type = type
+        self.diameter = diameter
+        self.material = TOOL_MATERIAL_UNDEFINED
+        self.tool_length_offset = 0.0
+        self.x_offset = 0.0
+        self.front_angle = 0.0
+        self.tool_angle = 0.0
+        self.back_angle = 0.0
+        self.orientation = 0
+    
+    return new_object
+        

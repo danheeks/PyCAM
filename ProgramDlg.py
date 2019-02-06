@@ -1,56 +1,35 @@
 import wx
 from Program import Program
-from wxHDialog import HDialog
-from wxPictureWindow import PictureWindow
-from wxNiceTextCtrl import LengthCtrl
-from wxNiceTextCtrl import DoubleCtrl
-from wxNiceTextCtrl import GeomCtrl
-from consts import *
+from HeeksObjDlg import HeeksObjDlg
+from HDialog import HControl
 
-class ProgramDlg(HDialog):
-    def __init__(self, program):
-        HDialog.__init__(self, "Program")
-        self.program = program
+class ProgramDlg(HeeksObjDlg):
+    def __init__(self, object, title = "Program"):
+        HeeksObjDlg.__init__(self, object, title, add_picture = False)
         
-        self.ignore_event_functions = True
-        sizerMain = wx.BoxSizer(wx.VERTICAL)
-        
+    def AddLeftControls(self):
         # add the controls in one column
-        self.machines = program.GetMachines()
+        self.machines = self.object.GetMachines()
         choices = []
         for machine in self.machines:
             choices.append(machine.description)
         self.cmbMachine = wx.ComboBox(self, choices = choices)
-        self.AddLabelAndControl(sizerMain, "machine", self.cmbMachine)
+        self.MakeLabelAndControl('Machine', self.cmbMachine).AddToSizer(self.sizerLeft)
         
         self.chkOutputSame = wx.CheckBox( self, label = "output file name follows data file name" )
-        sizerMain.Add( self.chkOutputSame, 0, wx.ALL, self.control_border )
+        HControl(wx.ALL, self.chkOutputSame).AddToSizer(self.sizerLeft)
+        self.Bind(wx.EVT_CHECKBOX, self.OnCheckOutputSame, self.chkOutputSame)
 
         self.txtOutputFile = wx.TextCtrl(self)
-        self.lblOutputFile, self.btnOutputFile = self.AddFileNameControl(sizerMain, "output file", self.txtOutputFile)
+        self.lblOutputFile, self.btnOutputFile = self.AddFileNameControl(self.sizerLeft, "output file", self.txtOutputFile)
 
         self.cmbUnits = wx.ComboBox(self, choices = ["mm", "inch"])
-        self.AddLabelAndControl(sizerMain, "units", self.cmbUnits)
+        self.MakeLabelAndControl('Units', self.cmbUnits).AddToSizer(self.sizerLeft)
         
         # to do "Raw Material" and "Brinell Hardness of raw material"
 
-        # add OK and Cancel
-        sizerOKCancel = self.MakeOkAndCancel(wx.HORIZONTAL)
-        sizerMain.Add( sizerOKCancel, 0, wx.ALL + wx.ALIGN_RIGHT + wx.ALIGN_BOTTOM, self.control_border )
-
-        self.SetFromData()
-        
-        self.EnableControls()
-
-        self.SetSizer( sizerMain )
-        sizerMain.SetSizeHints(self)
-        sizerMain.Fit(self)
-
+    def SetDefaultFocus(self):
         self.cmbMachine.SetFocus()
-
-        self.ignore_event_functions = False
-
-        self.Bind(wx.EVT_CHECKBOX, self.OnCheckOutputSame, self.chkOutputSame)
         
     def EnableControls(self):
         output_same = self.chkOutputSame.GetValue()
@@ -62,35 +41,26 @@ class ProgramDlg(HDialog):
         if self.ignore_event_functions: return
         self.EnableControls()
 
-    def GetData(self, object):
-        if self.ignore_event_functions: return
-        self.ignore_event_functions = True
-        
+    def GetDataRaw(self):
         if self.cmbMachine.GetSelection() != wx.NOT_FOUND:
-            object.machine = self.machines[self.cmbMachine.GetSelection()]
+            self.object.machine = self.machines[self.cmbMachine.GetSelection()]
             
-        object.output_file_name_follows_data_file_name = self.chkOutputSame.GetValue()
-        object.output_file = self.txtOutputFile.GetValue()
+        self.object.output_file_name_follows_data_file_name = self.chkOutputSame.GetValue()
+        self.object.output_file = self.txtOutputFile.GetValue()
             
         if self.cmbUnits.GetValue() == "inch":
-            object.units = 25.4
+            self.object.units = 25.4
         else:
-            object.units = 1.0
-        self.ignore_event_functions = False
+            self.object.units = 1.0
 
-    def SetFromData(self):
-        self.ignore_event_functions = True
+    def SetFromDataRaw(self):
+        self.cmbMachine.SetValue(self.object.machine.description)
         
-        self.cmbMachine.SetValue(self.program.machine.description)
-        
-        self.chkOutputSame.SetValue(self.program.output_file_name_follows_data_file_name)
+        self.chkOutputSame.SetValue(self.object.output_file_name_follows_data_file_name)
 
-        self.txtOutputFile.SetValue(self.program.output_file)
+        self.txtOutputFile.SetValue(self.object.output_file)
             
-        if self.program.units == 25.4:
+        if self.object.units == 25.4:
             self.cmbUnits.SetValue("inch")
         else:
             self.cmbUnits.SetValue("mm")
-
-        self.ignore_event_functions = False
-        

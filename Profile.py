@@ -50,8 +50,6 @@ class Profile(SketchOp):
         return True
 
     def Edit(self):
-        #if HeeksCNC.widgets == HeeksCNC.WIDGETS_WX:
-            #from wxProfile import Profiledlg
         import ProfileDlg
         return ProfileDlg.Do(self)
         

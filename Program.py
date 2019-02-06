@@ -13,9 +13,11 @@ from CamObject import CamObject
 import cad
 from Object import PyProperty
 
+type = 0
+
 class Program(CamObject):
     def __init__(self):
-        CamObject.__init__(self)
+        CamObject.__init__(self, type)
         config = CNCConfig()
         self.units = config.ReadFloat("ProgramUnits", 1.0) # set to 25.4 for inches
         self.alternative_machines_file = config.Read("ProgramAlternativeMachinesFile", "")
@@ -268,11 +270,11 @@ class Program(CamObject):
         return True
         
     def Edit(self):
-        from wxProgramDlg import ProgramDlg
+        from ProgramDlg import ProgramDlg
         import wx
         dlg = ProgramDlg(self)
         if dlg.ShowModal() == wx.ID_OK:
-            dlg.GetData(self)
+            dlg.GetData()
             return True
         return False
     

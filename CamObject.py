@@ -4,8 +4,8 @@ import os
 cam_dir = os.path.dirname(os.path.realpath(__file__))
 
 class CamObject(Object):
-    def __init__(self):
-        Object.__init__(self)
+    def __init__(self, type = 0):
+        Object.__init__(self, type)
         
     def icon(self):
         return "unknown"

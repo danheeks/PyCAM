@@ -4,60 +4,66 @@ from HDialog import HControl
 import wx
 
 class OpDlg(HeeksObjDlg):
-    def __init__(self, parent, op, title = "", top_level = True, want_tool_control = True, picture = True):
-        HeeksObjDlg.__init__(self, op, title, top_level, picture)
-        self.cmbTool = None
-        if want_tool_control:
-            # to think about
-            ToolType = 0
-
-            self.cmbTool = HTypeObjectDropDown(self, ToolType, wx.GetApp().program.tools, self.OnComboOrCheck)
-            self.leftControls.append(self.MakeLabelAndControl('Tool', self.cmbTool))
+    def __init__(self, op, title = "", want_tool_control = True, picture = True):
+        self.want_tool_control = want_tool_control
+        HeeksObjDlg.__init__(self, op, title, picture)
+            
+    def AddLeftControls(self):
+#        self.cmbTool = None
+#        if self.want_tool_control:
+#            # to think about
+#            ToolType = 0
+#            self.cmbTool = HTypeObjectDropDown(self, ToolType, wx.GetApp().program.tools, self.OnComboOrCheck)
+#            self.MakeLabelAndControl('Tool', self.cmbTool).AddToSizer(self.sizerLeft)
             
         #temporary code
         PatternType = 0
         SurfaceType = 0
             
         self.cmbPattern = HTypeObjectDropDown(self, PatternType, wx.GetApp().program.patterns, self.OnComboOrCheck)
-        self.leftControls.append(self.MakeLabelAndControl('Pattern', self.cmbPattern))
+        self.MakeLabelAndControl('Pattern', self.cmbPattern).AddToSizer(self.sizerLeft)
         self.cmbSurface = HTypeObjectDropDown(self, SurfaceType, wx.GetApp().program.surfaces, self.OnComboOrCheck)
-        self.leftControls.append(self.MakeLabelAndControl('Surface', self.cmbSurface))
-
-        self.txtComment = wx.TextCtrl(self, wx.ID_ANY)
-        self.rightControls.append(self.MakeLabelAndControl('Comment', self.txtComment))
-        self.chkActive = wx.CheckBox(self, wx.ID_ANY, 'Active')
-        self.rightControls.append(HControl(wx.ALL, self.chkActive))
-        self.txtTitle = wx.TextCtrl(self, wx.ID_ANY)
-        self.rightControls.append(self.MakeLabelAndControl('Title', self.txtTitle))
-
-        if top_level:
-            self.AddControlsAndCreate()
-            if self.cmbTool: self.cmbTool.SetFocus()
-            else: self.cmbPattern.SetFocus
-            
-    def GetDataRaw(self, object):
-        object.comment = self.txtComment.GetValue()
-        object.active = self.chkActive.GetValue()
-        object.title = self.txtTitle.GetValue()
-        if object.title != object.GetTitle():
-            object.title_made_from_id = False
-        if self.cmbTool:
-            object.tool_number = self.cmbTool.GetSelectedId()
-        else:
-            object.tool_number = 0
-        object.pattern = self.cmbPattern.GetSelectedId()
-        object.surface = self.cmbSurface.GetSelectedId()
-        HeeksObjDlg.GetDataRaw(self, object)
+        self.MakeLabelAndControl('Surface', self.cmbSurface).AddToSizer(self.sizerLeft)
         
-    def SetFromDataRaw(self, object):
-        self.txtComment.SetValue(object.comment)
-        self.chkActive.SetValue(object.active)
-        self.txtTitle.SetValue(object.GetTitle())
-        if self.cmbTool:
-            self.cmbTool.SelectById(object.tool_number)
-        self.cmbPattern.SelectById(object.pattern)
-        self.cmbSurface.SelectById(object.surface)
-        HeeksObjDlg.SetFromDataRaw(self, object)
+        HeeksObjDlg.AddLeftControls(self)
+
+    def AddRightControls(self):            
+        self.txtComment = wx.TextCtrl(self, wx.ID_ANY)
+        self.MakeLabelAndControl('Comment', self.txtComment).AddToSizer(self.sizerRight)
+        self.chkActive = wx.CheckBox(self, wx.ID_ANY, 'Active')
+        HControl(wx.ALL, self.chkActive).AddToSizer(self.sizerRight)
+        self.txtTitle = wx.TextCtrl(self, wx.ID_ANY)
+        self.MakeLabelAndControl('Title', self.txtTitle).AddToSizer(self.sizerRight)
+        
+        HeeksObjDlg.AddRightControls(self)
+
+    def SetDefaultFocus(self):
+        if self.cmbTool: self.cmbTool.SetFocus()
+        else: self.cmbPattern.SetFocus()
+            
+    def GetDataRaw(self):
+        self.object.comment = self.txtComment.GetValue()
+        self.object.active = self.chkActive.GetValue()
+        self.object.title = self.txtTitle.GetValue()
+        if self.object.title != self.object.GetTitle():
+            self.object.title_made_from_id = False
+#        if self.cmbTool:
+#            self.object.tool_number = self.cmbTool.GetSelectedId()
+#        else:
+#            self.object.tool_number = 0
+        self.object.pattern = self.cmbPattern.GetSelectedId()
+        self.object.surface = self.cmbSurface.GetSelectedId()
+        HeeksObjDlg.GetDataRaw(self)
+        
+    def SetFromDataRaw(self):
+        self.txtComment.SetValue(self.object.comment)
+        self.chkActive.SetValue(self.object.active)
+        self.txtTitle.SetValue(self.object.GetTitle())
+#        if self.cmbTool:
+#            self.cmbTool.SelectById(self.object.tool_number)
+        self.cmbPattern.SelectById(self.object.pattern)
+        self.cmbSurface.SelectById(self.object.surface)
+        HeeksObjDlg.SetFromDataRaw(self)
     
     def SetPictureByName(self, name):
         self.SetPictureByNameAndFolder(name, "op")

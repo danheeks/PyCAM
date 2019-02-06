@@ -2,25 +2,29 @@ from DepthOpDlg import DepthOpDlg
 from HDialog import HTypeObjectDropDown
 import wx
 import cad
+from HDialog import ComboBoxBinded
 
 class SketchOpDlg(DepthOpDlg):
-    def __init__(self, parent, object, title = 'Sketch Operation', top_level = True):
-        DepthOpDlg.__init__(self, parent, object, False, title, False)
+    def __init__(self, object, title = 'Sketch Operation'):
+        DepthOpDlg.__init__(self, object, False, title)
+
+    def AddLeftControls(self):
         self.cmbSketch = HTypeObjectDropDown(self, cad.OBJECT_TYPE_SKETCH, cad.GetApp())
         self.btnSketchPick = wx.Button(self, wx.ID_ANY, 'Pick')
-        self.leftControls.append(self.MakeLabelAndControl('Sketches', self.cmbSketch, self.btnSketchPick))
+        self.MakeLabelAndControl('Sketches', self.cmbSketch, self.btnSketchPick).AddToSizer(self.sizerLeft)
+    
+        DepthOpDlg.AddLeftControls(self)
         
-        if top_level:
-            HeeksObjDlg.AddControlsAndCreate(self)
-            self.cmbSketch.SetFocus()
+    def SetDefaultFocus(self):
+        self.cmbSketch.SetFocus()
             
-    def GetDataRaw(self, object):
-        object.sketch = self.cmbSketch.GetSelectedId()
-        DepthOpDlg.GetDataRaw(self, object)
+    def GetDataRaw(self):
+        self.object.sketch = self.cmbSketch.GetSelectedId()
+        DepthOpDlg.GetDataRaw(self)
         
-    def SetFromDataRaw(self, object):
-        self.cmbSketch.SelectById(object.sketch)
-        DepthOpDlg.SetFromDataRaw(self, object)
+    def SetFromDataRaw(self):
+        self.cmbSketch.SelectById(self.object.sketch)
+        DepthOpDlg.SetFromDataRaw(self)
         
     def OnSketchPick(self, event):
         self.EndModal(self.btnSketchPick.GetId())
