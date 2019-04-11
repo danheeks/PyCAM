@@ -2,6 +2,7 @@ from SpeedOp import SpeedOp
 from consts import *
 from CNCConfig import CNCConfig
 import cad
+import depth_params
 
 class DepthOp(SpeedOp):
     def __init__(self, tool_number = -1, operation_type = cad.OBJECT_TYPE_UNKNOWN):
@@ -62,4 +63,23 @@ class DepthOp(SpeedOp):
         self.z_finish_depth = object.z_finish_depth
         self.z_thru_depth = object.z_thru_depth
         self.user_depths = object.user_depths
+        
+    def ReadXml(self):
+        child_element = cad.GetFirstXmlChild()
+        while child_element != None:
+            if child_element == 'depthop':
+                self.clearance_height = cad.GetXmlFloat('clear', self.clearance_height)
+                self.step_down = cad.GetXmlFloat('down', self.step_down)
+                self.z_finish_depth = cad.GetXmlFloat('zfinish', self.z_finish_depth)
+                self.z_thru_depth = cad.GetXmlFloat('zthru', self.z_thru_depth)
+                self.user_depths = cad.GetXmlValue('userdepths', self.user_depths)
+                self.start_depth = cad.GetXmlFloat('startdepth', self.start_depth)
+                self.final_depth = cad.GetXmlFloat('depth', self.final_depth)
+                self.rapid_safety_space = cad.GetXmlFloat('r', self.rapid_safety_space)
+            child_element = cad.GetNextXmlChild()
+            
+    def GetDepthParams(self):
+        # returns a depth_params object used in the older heekscnc code, and which can be modified for finishing pass
+        return depth_params.depth_params(self.clearance_height, self.rapid_safety_space, self.start_depth, self.step_down, self.z_finish_depth, self.z_thru_depth, self.final_depth, self.user_depths)
+
 

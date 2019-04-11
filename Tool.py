@@ -1,8 +1,22 @@
 from CamObject import CamObject
 from consts import *
 import wx
+import cad
+from Object import PyChoiceProperty
+from Object import PyProperty
+from Object import PyPropertyLength
+from nc.nc import *
 
 type = 0
+
+tool_types_for_choices = [
+                          [TOOL_TYPE_DRILL, 'Drill Bit'],
+                          [TOOL_TYPE_CENTREDRILL, 'Centre Drill Bit'],
+                          [TOOL_TYPE_ENDMILL, 'End Mill'],
+                          [TOOL_TYPE_SLOTCUTTER, 'Slot Cutter'],
+                          [TOOL_TYPE_BALLENDMILL, 'Ball End Mill'],
+                          [TOOL_TYPE_CHAMFER, 'Chamfer'],
+                          ]
 
 class Tool(CamObject):
     def __init__(self, diameter = 3.0, title = None, tool_number = 0, type = TOOL_TYPE_SLOTCUTTER):
@@ -127,9 +141,9 @@ class Tool(CamObject):
     def TypeName(self):
         return "Tool"
     
-    def name(self):
+    def GetTitle(self):
         return self.title
-    
+
     def icon(self):
         # the name of the PNG file in the HeeksCNC icons folder
         return "tool"
@@ -250,7 +264,7 @@ class Tool(CamObject):
                 name_str = name_str + "PLA "
             elif self.extrusion_material == EXTRUSION_MATERIAL_HDPE:
                 name_str = name_str + "HDPE "
-                
+
         if self.type == TOOL_TYPE_DRILL:
             name_str = name_str + "Drill Bit"
         elif self.type == TOOL_TYPE_CENTREDRILL:
@@ -275,6 +289,9 @@ class Tool(CamObject):
         elif self.type == TOOL_TYPE_TAPTOOL:
             # to do, copy code from CTool.cpp
             name_str = name_str + "Tap Tool"
+            
+        if self.type == 0:
+            raise NameError('tool type is 0')
         
         return name_str
     
@@ -316,27 +333,151 @@ class Tool(CamObject):
         wx.GetApp().program.python_program += "gradient=" + str(self.gradient)
 
         wx.GetApp().program.python_program += ")\n"
-
-def XMLRead():
-    new_object = Tool()
-    new_object.machine = new_object.GetMachine( cad.GetXmlValue('machine') )
-    new_object.output_file = cad.GetXmlValue('output_file')
-    new_object.output_file_name_follows_data_file_name = bool(cad.GetXmlValue('output_file'))
-    new_object.python_program = cad.GetXmlValue('program')
-    new_object.units = float(cad.GetXmlValue('units'))
-    new_object.path_control_mode = int(cad.GetXmlValue('ProgramPathControlMode'))
-    new_object.motion_blending_tolerance = float(cad.GetXmlValue('ProgramMotionBlendingTolerance'))
-    new_object.naive_cam_tolerance = float(cad.GetXmlValue('ProgramNaiveCamTolerance'))
-        self.tool_number = tool_number
-        self.type = type
-        self.diameter = diameter
-        self.material = TOOL_MATERIAL_UNDEFINED
-        self.tool_length_offset = 0.0
-        self.x_offset = 0.0
-        self.front_angle = 0.0
-        self.tool_angle = 0.0
-        self.back_angle = 0.0
-        self.orientation = 0
-    
-    return new_object
         
+    def GetProperties(self):
+        properties = []
+        properties.append(PyChoiceProperty("Automatic Title", 'automatically_generate_title', ['Leave manually assigned title', 'Automatically generate title'], self))
+        properties.append(PyChoiceProperty("Material", 'material', ['High Speed Steel', 'Carbide'], self))
+        properties.append(PyChoiceProperty("Type", 'type', GetToolTypeNames(), self, GetToolTypeValues()))
+        properties.append(PyPropertyLength("Diameter", 'diameter', self))
+        properties.append(PyPropertyLength("Tool Length Offset", 'tool_length_offset', self))
+        properties.append(PyPropertyLength("Flat Radius", 'flat_radius', self))
+        properties.append(PyPropertyLength("Corner Radius", 'corner_radius', self))
+        properties.append(PyProperty("Cutting Edge Angle", 'cutting_edge_angle', self))
+        properties.append(PyPropertyLength("Cutting Edge Height", 'cutting_edge_height', self))
+        properties += CamObject.GetBaseProperties(self)
+        return properties
+        
+    def ReadXml(self):
+        self.tool_number = cad.GetXmlInt('tool_number')
+        
+        child_element = cad.GetFirstXmlChild()
+        while child_element != None:
+            if child_element == 'params':
+                self.diameter = cad.GetXmlFloat('diameter', self.diameter)
+                self.tool_length_offset = cad.GetXmlFloat('tool_length_offset', self.tool_length_offset)
+                self.automatically_generate_title = cad.GetXmlBool('automatically_generate_title', self.automatically_generate_title)
+                self.material = cad.GetXmlInt('material', self.material)
+                type_str = GetToolTypeXMLString(self.type)
+                xml_value = cad.GetXmlValue('type', type_str)
+                self.type = GetToolTypeFromString(xml_value)
+                self.corner_radius = cad.GetXmlFloat('corner_radius', self.corner_radius)
+                self.flat_radius = cad.GetXmlFloat('flat_radius', self.flat_radius)
+                self.cutting_edge_angle = cad.GetXmlFloat('cutting_edge_angle', self.cutting_edge_angle)
+                self.cutting_edge_height = cad.GetXmlFloat('cutting_edge_height', self.cutting_edge_height)
+            child_element = cad.GetNextXmlChild()
+            
+        self.ResetTitle()
+            
+    def DoGCodeCalls(self):
+        params = {
+                  'corner_radius':self.corner_radius,
+                  'cutting edge angle':self.cutting_edge_angle,
+                  'cutting edge height':self.cutting_edge_height,
+                  'diameter':self.diameter,
+                  'flat radius':self.flat_radius,
+                  'material':self.material,
+                  'tool length offset':self.tool_length_offset,
+                  'type':self.type,
+                  'name':self.GenerateMeaningfulName(),
+                  }
+                  
+        tool_defn(self.tool_number, self.GetTitle(), params)
+
+
+#	The CuttingRadius is almost always the same as half the tool's diameter.
+#	The exception to this is if it's a chamfering bit.  In this case we
+#	want to use the flat_radius plus a little bit.  i.e. if we're chamfering the edge
+#	then we want to use the part of the cutting surface just a little way from
+#	the flat radius.  If it has a flat radius of zero (i.e. it has a pointed end)
+#	then it will be a small number.  If it is a carbide tipped bit then the
+#	flat radius will allow for the area below the bit that doesn't cut.  In this
+#	case we want to cut around the middle of the carbide tip.  In this case
+#	the carbide tip should represent the full cutting edge height.  We can
+#	use this method to make all these adjustments based on the tool's
+#	geometry and return a reasonable value.
+
+#	If express_in_program_units is true then we need to divide by the program
+#	units value.  We use metric (mm) internally and convert to inches only
+#	if we need to and only as the last step in the process.  By default, return
+#	the value in internal (metric) units.
+
+#	If the depth value is passed in as a positive number then the radius is given
+#	for the corresponding depth (from the bottom-most tip of the tool).  This is
+#	only relevant for chamfering (angled) bits.
+
+    def CuttingRadius( self, express_in_program_units = False, depth = -1 ):
+        if self.type == TOOL_TYPE_CHAMFER:
+            if depth < 0.0:
+#                We want to decide where, along the cutting edge, we want
+#                to machine.  Let's start with 1/3 of the way from the inside
+#                cutting edge so that, as we plunge it into the material, it
+#                cuts towards the outside.  We don't want to run right on
+#                the edge because we don't want to break the top off.
+
+                # one third from the centre-most point.
+                proportion_near_centre = 0.3
+                radius = (((self.diameter/2) - self.flat_radius) * proportion_near_centre) + self.flat_radius
+            else:
+                radius = self.flat_radius + (depth * math.tan((self.cutting_edge_angle / 360.0 * 2 * math.pi)))
+                if radius > (self.diameter / 2.0):
+                    # The angle and depth would have us cutting larger than our largest diameter.
+                    radius = self.diameter / 2.0
+        else:
+            radius = self.diameter/2
+
+        if express_in_program_units:
+            return radius / wx.GetApp().program.units
+        else:
+            return radius
+
+def GetToolTypeNames():
+    choices = []
+    for type in tool_types_for_choices:
+        choices.append(type[1])
+    return choices
+        
+def GetToolTypeValues():
+    choices = []
+    for type in tool_types_for_choices:
+        choices.append(type[0])
+    return choices
+        
+XML_STRING_DRILL = 'drill'
+XML_STRING_CENTRE_DRILL = 'centre_drill'
+XML_STRING_END_MILL = 'end_mill'
+XML_STRING_SLOT_CUTTER = 'slot_cutter'
+XML_STRING_BALL_END_MILL = 'ball_end_mill'
+XML_STRING_CHAMFER = 'chamfer'
+XML_STRING_ENGRAVER = 'engraver'
+XML_STRING_UNDEFINED = 'undefined'
+
+def GetToolTypeFromString(s):
+    s = s.lower()
+    if s == XML_STRING_DRILL: return TOOL_TYPE_DRILL
+    elif s == XML_STRING_CENTRE_DRILL: return TOOL_TYPE_CENTREDRILL
+    elif s == XML_STRING_END_MILL: return TOOL_TYPE_ENDMILL
+    elif s == XML_STRING_SLOT_CUTTER: return TOOL_TYPE_SLOTCUTTER
+    elif s == XML_STRING_BALL_END_MILL: return TOOL_TYPE_BALLENDMILL
+    elif s == XML_STRING_CHAMFER: return TOOL_TYPE_CHAMFER
+    return TOOL_TYPE_UNDEFINED
+
+def GetToolTypeXMLString(type):
+    if type == TOOL_TYPE_DRILL: return XML_STRING_DRILL
+    elif type == TOOL_TYPE_CENTREDRILL: return XML_STRING_CENTRE_DRILL
+    elif type == TOOL_TYPE_CENTREDRILL: return XML_STRING_END_MILL
+    elif type == TOOL_TYPE_CENTREDRILL: return XML_STRING_SLOT_CUTTER
+    elif type == TOOL_TYPE_CENTREDRILL: return XML_STRING_BALL_END_MILL
+    elif type == TOOL_TYPE_CENTREDRILL: return XML_STRING_CHAMFER
+    return XML_STRING_UNDEFINED
+
+def FindToolType(tool_number):
+    tool = FindTool(tool_number)
+    if tool: return tool.type
+    return TOOL_TYPE_UNDEFINED
+
+def FindTool(tool_number):
+    for tool in wx.GetApp().program.tools.GetChildren():
+        if tool.tool_number == tool_number:
+            return tool
+    return None

@@ -1,6 +1,8 @@
 from Operation import Operation
 from CNCConfig import CNCConfig
 import cad
+from nc.nc import *
+import wx
 
 ABS_MODE_ABSOLUTE = 1
 ABS_MODE_INCREMENTAL = 2
@@ -41,3 +43,19 @@ class SpeedOp(Operation):
         self.horizontal_feed_rate = object.horizontal_feed_rate
         self.vertical_feed_rate = object.vertical_feed_rate
         self.spindle_speed = object.spindle_speed
+        
+    def ReadXml(self):
+        child_element = cad.GetFirstXmlChild()
+        while child_element != None:
+            if child_element == 'speedop':
+                self.horizontal_feed_rate = cad.GetXmlFloat('hfeed', self.horizontal_feed_rate)
+                self.vertical_feed_rate = cad.GetXmlFloat('vfeed', self.vertical_feed_rate)
+                self.spindle_speed = cad.GetXmlFloat('spin', self.spindle_speed)
+            child_element = cad.GetNextXmlChild()
+            
+    def DoGCodeCalls(self):
+        Operation.DoGCodeCalls(self)
+        if self.spindle_speed != 0:
+            spindle(self.spindle_speed)
+        feedrate_hv(self.horizontal_feed_rate / wx.GetApp().program.units, self.vertical_feed_rate / wx.GetApp().program.units)
+        flush_nc()

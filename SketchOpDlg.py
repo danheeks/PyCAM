@@ -12,7 +12,7 @@ class SketchOpDlg(DepthOpDlg):
         self.cmbSketch = HTypeObjectDropDown(self, cad.OBJECT_TYPE_SKETCH, cad.GetApp())
         self.btnSketchPick = wx.Button(self, wx.ID_ANY, 'Pick')
         self.MakeLabelAndControl('Sketches', self.cmbSketch, self.btnSketchPick).AddToSizer(self.sizerLeft)
-    
+                
         DepthOpDlg.AddLeftControls(self)
         
     def SetDefaultFocus(self):

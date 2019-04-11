@@ -1,17 +1,19 @@
-from Tools import Tools
-from Operations import Operations
-from Patterns import Patterns
-from Surfaces import Surfaces
-from Stocks import Stocks
+import Tools
+import Operations
+import Patterns
+import Surfaces
+import Stocks
 from RawMaterial import RawMaterial
 from Machine import Machine
-from NCCode import NCCode
+import NcCode
 from CNCConfig import CNCConfig
 from consts import *
 import wx
 from CamObject import CamObject
 import cad
 from Object import PyProperty
+from nc.nc import *
+import Surface
 
 type = 0
 
@@ -33,9 +35,17 @@ class Program(CamObject):
         self.motion_blending_tolerance = config.ReadFloat("ProgramMotionBlendingTolerance", 0.0001)    # Only valid if m_path_control_mode == eBestPossibleSpeed
         self.naive_cam_tolerance = config.ReadFloat("ProgramNaiveCamTolerance", 0.0001)        # Only valid if m_path_control_mode == eBestPossibleSpeed
         self.tools = None
+        self.patterns = None
+        self.surfaces = None
+        self.stocks = None
+        self.operations = None
+        self.nccode = None
         
     def TypeName(self):
         return "Program"
+    
+    def GetType(self):
+        return type
     
     def icon(self):
         # the name of the PNG file in the HeeksCNC icons folder
@@ -46,19 +56,18 @@ class Program(CamObject):
     
     def add_initial_children(self):
         # add tools, operations, etc.
-        self.children = []
-        self.tools = Tools()
+        self.tools = Tools.Tools()
         self.tools.load_default()
         self.Add(self.tools)
-        self.patterns = Patterns()
+        self.patterns = Patterns.Patterns()
         self.Add(self.patterns)
-        self.surfaces = Surfaces()
+        self.surfaces = Surfaces.Surfaces()
         self.Add(self.surfaces)
-        self.stocks = Stocks()
+        self.stocks = Stocks.Stocks()
         self.Add(self.stocks)
-        self.operations = Operations()
+        self.operations = Operations.Operations()
         self.Add(self.operations)
-        self.nccode = NCCode()
+        self.nccode = NcCode.NcCode()
         self.Add(self.nccode)
         
     def LanguageCorrection(self):
@@ -220,7 +229,7 @@ class Program(CamObject):
         if self.output_file_name_follows_data_file_name == False:
             return self.output_file
         
-        filepath = wx.GetApp().cad.GetFileFullPath()
+        filepath = wx.GetApp().filepath
         if filepath == None:
             # The user hasn't assigned a filename yet.  Use the default.
             return self.output_file
@@ -287,7 +296,7 @@ class Program(CamObject):
         properties += CamObject.GetBaseProperties(self)
         return properties
         
-    def WriteXML(self):
+    def WriteXml(self):
         cad.SetXmlValue('machine', self.machine.description)
         cad.SetXmlValue('output_file', self.output_file)
         cad.SetXmlValue('output_file_name_follows_data_file_name', str(self.output_file_name_follows_data_file_name))
@@ -296,7 +305,33 @@ class Program(CamObject):
         cad.SetXmlValue('ProgramPathControlMode', str(self.path_control_mode))
         cad.SetXmlValue('ProgramMotionBlendingTolerance', str(self.motion_blending_tolerance))
         cad.SetXmlValue('ProgramNaiveCamTolerance', str(self.naive_cam_tolerance))
+
+    def ReadXml(self):
+        self.machine = self.GetMachine( cad.GetXmlValue('machine') )
+        self.output_file = cad.GetXmlValue('output_file')
+        self.output_file_name_follows_data_file_name = bool(cad.GetXmlValue('output_file'))
+        self.python_program = cad.GetXmlValue('program')
+        self.units = float(cad.GetXmlValue('units'))
+        self.path_control_mode = int(cad.GetXmlValue('ProgramPathControlMode'))
+        self.motion_blending_tolerance = float(cad.GetXmlValue('ProgramMotionBlendingTolerance'))
+        self.naive_cam_tolerance = float(cad.GetXmlValue('ProgramNaiveCamTolerance'))
         
+        cad.ObjList.ReadXml(self)
+        
+        self.SetChildPointers()
+        
+    def SetChildPointers(self):
+        object = self.GetFirstChild()
+        while object:
+            if object.GetType() == Tools.type:self.tools = object
+            if object.GetType() == Patterns.type:self.patterns = object
+            if object.GetType() == Surfaces.type:self.surfaces = object
+            if object.GetType() == Stocks.type:self.stocks = object
+            if object.GetType() == Operations.type:self.operations = object
+            if object.GetType() == NcCode.type:self.nccode = object
+            object = self.GetNextChild()
+
+                
     def MakeACopy(self):
         copy = Program()
         copy.CopyFrom(self)
@@ -314,6 +349,45 @@ class Program(CamObject):
     
     def AutoExpand(self):
         return True
+    
+    def DoGCodeCalls(self):
+        wx.GetApp().attached_to_surface = None
+        wx.GetApp().number_for_stl_file = 1
+        wx.GetApp().tool_number = 0
+        
+        exec('import nc.emc2b', globals())
+        output(self.GetOutputFileName())
+        program_begin(self.GetID(), self.GetTitle())
+
+        absolute()
+        
+        if self.units > 25.0:
+            imperial()
+        else:
+            metric()
+
+        set_plane(0)
+        
+        if self.path_control_mode != PATH_CONTROL_UNDEFINED:
+            set_path_control_mode(self.path_control_mode, self.motion_blending_tolerance, self.naive_cam_tolerance)
+        
+        for tool in self.tools.GetChildren():
+            tool.DoGCodeCalls()
+
+        for op in self.operations.GetChildren():
+            if op.active:
+                # to do          surface = cad.GetObjectFromId(Surface.type, op.surface)
+                # to do          if(surface && !surface->m_same_for_each_pattern_position)ApplySurfaceToText(python, surface, surfaces_written);
+                # to do          ApplyPatternToText(python, op->m_pattern, patterns_written);
+                # to do          if(surface && surface->m_same_for_each_pattern_position)ApplySurfaceToText(python, surface, surfaces_written);
+                op.DoGCodeCalls()
+                # to do          if(surface && surface->m_same_for_each_pattern_position)python << _T("attach.attach_end()\n");
+                # to do          if(op->m_pattern != 0)python << _T("transform.transform_end()\n");
+                # to do          if(surface && !surface->m_same_for_each_pattern_position)python << _T("attach.attach_end()\n");
+                # to do          theApp.m_attached_to_surface = NULL;
+            print('op = ' + str(op))
+        
+        program_end()
         
 class PropertyMachine(cad.Property):
     def __init__(self, program):
@@ -422,18 +496,4 @@ class PropertyOutputFile(cad.Property):
         
     def SetString(self, value):
         self.program.output_file = str(value)
-        
-
-def XMLRead():
-    new_object = Program()
-    new_object.machine = new_object.GetMachine( cad.GetXmlValue('machine') )
-    new_object.output_file = cad.GetXmlValue('output_file')
-    new_object.output_file_name_follows_data_file_name = bool(cad.GetXmlValue('output_file'))
-    new_object.python_program = cad.GetXmlValue('program')
-    new_object.units = float(cad.GetXmlValue('units'))
-    new_object.path_control_mode = int(cad.GetXmlValue('ProgramPathControlMode'))
-    new_object.motion_blending_tolerance = float(cad.GetXmlValue('ProgramMotionBlendingTolerance'))
-    new_object.naive_cam_tolerance = float(cad.GetXmlValue('ProgramNaiveCamTolerance'))
-    
-    return new_object
         

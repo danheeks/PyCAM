@@ -2,6 +2,7 @@ from CamObject import CamObject
 from consts import *
 from CNCConfig import CNCConfig
 import cad
+import wx
 
 class Operation(CamObject):
     def __init__(self, tool_number = -1, operation_type = cad.OBJECT_TYPE_UNKNOWN):
@@ -9,6 +10,7 @@ class Operation(CamObject):
         self.active = True
         self.comment = ''
         self.title = self.TypeName()
+        self.title_made_from_id = True
         self.tool_number = tool_number
         self.operation_type = operation_type
         self.pattern = 1
@@ -17,6 +19,12 @@ class Operation(CamObject):
     def TypeName(self):
         return "Operation"
     
+    def GetTitle(self):
+        if self.title_made_from_id:
+            return self.TypeName() + ' ' + str(self.GetID())
+        else:
+            return self.title
+        
     def icon(self):
         # the name of the PNG file in the HeeksCNC icons folder
         if self.active:
@@ -60,17 +68,18 @@ class Operation(CamObject):
         if self.tool_number != 0:
             config.WriteInt("OpTool", self.tool_number)
         
-    def AppendTextToProgram(self):
+    def DoGCodeCalls(self):
         if len(self.comment) > 0:
-            wx.GetApp().program.python_program += "comment(" + self.comment + ")\n"        
+            comment(self.comment)        
 
         if self.UsesTool():
-            wx.GetApp().machine_state.AppendToolChangeText(self.tool_number) # Select the correct  tool.
+            wx.GetApp().SetTool(self.tool_number) # Select the correct  tool.
            
     def CopyFrom(self, object):
         self.active = object.active
         self.comment = object.comment
         self.title = object.title
+        self.title_made_from_id = object.title_made_from_id
         self.tool_number = object.tool_number
         self.operation_type = object.operation_type
         self.pattern = object.pattern

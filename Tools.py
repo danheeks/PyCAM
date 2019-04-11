@@ -4,12 +4,17 @@ import cad
 from CamObject import CamObject
 import wx
 
+type = 0
+
 class Tools(CamObject):
     def __init__(self):
         CamObject.__init__(self)
         
     def TypeName(self):
         return "Tools"
+    
+    def GetType(self):
+        return type
     
     def icon(self):
         # the name of the PNG file in the HeeksCNC icons folder
@@ -25,34 +30,22 @@ class Tools(CamObject):
         self.save_default()
         
     def save_default(self):
-        import cPickle
-        f = open(wx.GetApp().cam_dir + "/default_tools.txt", "w")
+        import pickle
+        f = open(wx.GetApp().cam_dir + "/default_tools.txt", "wb")
         for tool in self.children:
-            cPickle.dump(tool, f)
+            pickle.dump(tool, f)
         f.close()        
 
     def load_default(self):
         self.Clear()
         
         try:
-            f = open(wx.GetApp().cam_dir + "/default_tools.txt")
+            cad.OpenXmlFile(wx.GetApp().cam_dir + "/default.tooltable", self)
         except:
             # no default file found, add 2 tools
             cad.AddUndoably(Tool(diameter = 3.0, type = TOOL_TYPE_SLOTCUTTER, tool_number = 1), self, None)
             cad.AddUndoably(Tool(diameter = 6.0, type = TOOL_TYPE_SLOTCUTTER, tool_number = 2), self, None)
             return
-    
-        import cPickle
-        from Object import next_object_index
-        while True:
-            try:
-                tool = cPickle.load(f)
-            except:
-                break # end of file
-            tool.index = next_object_index
-            next_object_index = next_object_index + 1
-            self.Add(tool)
-        f.close()
         
     def FindAllTools(self):
         tools = []

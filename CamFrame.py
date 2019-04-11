@@ -40,7 +40,7 @@ class CamFrame(Frame):
         self.AddMenuItem('Chamfer Mill...', self.NewProfileOpMenuCallback, None, 'chamfmill')        
         self.EndMenu()      
         self.AddMenuItem('Run Python Script', self.NewProfileOpMenuCallback, None, 'runpython')        
-        self.AddMenuItem('Post-Process', self.NewProfileOpMenuCallback, None, 'postprocess')        
+        self.AddMenuItem('Post-Process', self.PostProcessMenuCallback, None, 'postprocess')        
         self.AddMenuItem('Simulate', self.NewProfileOpMenuCallback, None, 'simulate')        
         self.AddMenuItem('Open NC File', self.NewProfileOpMenuCallback, None, 'opennc')        
         self.AddMenuItem('Save NC File As', self.NewProfileOpMenuCallback, None, 'savenc')        
@@ -66,6 +66,9 @@ class CamFrame(Frame):
     def on_post_process(self):
         import wx
         wx.MessageBox("post process")
+        
+    def PostProcessMenuCallback(self, e):
+        wx.GetApp().program.DoGCodeCalls()
         
     def RunPythonScript(self):
         # clear the output file

@@ -1,8 +1,8 @@
 from CamObject import CamObject
 
-# to do, if at all
+type = 0
 
-class NCCode(CamObject):
+class NcCode(CamObject):
     def __init__(self):
         CamObject.__init__(self)
         self.blocks = [] # for now, just strings, but later to be NCCodeBlock objects
@@ -12,6 +12,9 @@ class NCCode(CamObject):
     
     def TypeName(self):
         return "NC Code"
+    
+    def GetType(self):
+        return type
     
     def CanBeDeleted(self):
         return False

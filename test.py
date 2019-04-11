@@ -9,4 +9,3 @@ sys.path.append(pycad_dir)
 from CamApp import CamApp
 app = CamApp()
 app.MainLoop()
-
