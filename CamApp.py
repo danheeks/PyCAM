@@ -49,6 +49,9 @@ class CamApp(App):
         Stocks.type = cad.RegisterObjectType("Stocks", CreateStocks)
         NcCode.type = cad.RegisterObjectType("nccode", CreateNcCode)
         Profile.type = cad.RegisterObjectType("Profile", CreateProfile)
+        
+        NcCode.ReadColorsFromConfig()
+
     
     def NewFrame(self, pos=wx.DefaultPosition, size=wx.DefaultSize):
         return CamFrame(None, pos = pos, size = size)

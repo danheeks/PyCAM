@@ -6,7 +6,7 @@ import Stocks
 from RawMaterial import RawMaterial
 from Machine import Machine
 import NcCode
-from CNCConfig import CNCConfig
+from HeeksConfig import HeeksConfig
 from consts import *
 import wx
 from CamObject import CamObject
@@ -20,7 +20,7 @@ type = 0
 class Program(CamObject):
     def __init__(self):
         CamObject.__init__(self, type)
-        config = CNCConfig()
+        config = HeeksConfig()
         self.units = config.ReadFloat("ProgramUnits", 1.0) # set to 25.4 for inches
         self.alternative_machines_file = config.Read("ProgramAlternativeMachinesFile", "")
         self.raw_material = RawMaterial()    #// for material hardness - to determine feeds and speeds.
@@ -40,6 +40,7 @@ class Program(CamObject):
         self.stocks = None
         self.operations = None
         self.nccode = None
+        self.SetUsesLights(False)
         
     def TypeName(self):
         return "Program"
@@ -69,162 +70,7 @@ class Program(CamObject):
         self.Add(self.operations)
         self.nccode = NcCode.NcCode()
         self.Add(self.nccode)
-        
-    def LanguageCorrection(self):
-        '''
-        // Language and Windows codepage detection and correction
-        #ifndef WIN32
-            python << _T("# coding=UTF8\n");
-            python << _T("# No troubled Microsoft Windows detected\n");
-        #else
-            switch((wxLocale::GetSystemLanguage()))
-            {
-                case wxLANGUAGE_SLOVAK :
-                    python << _T("# coding=CP1250\n");
-                    python << _T("# Slovak language detected in Microsoft Windows\n");
-                    break;
-                case wxLANGUAGE_GERMAN:
-                case wxLANGUAGE_GERMAN_AUSTRIAN:
-                case wxLANGUAGE_GERMAN_BELGIUM:
-                case wxLANGUAGE_GERMAN_LIECHTENSTEIN:
-                case wxLANGUAGE_GERMAN_LUXEMBOURG:
-                case wxLANGUAGE_GERMAN_SWISS  :
-                    python << _T("# coding=CP1252\n");
-                    python << _T("# German language or it's variant detected in Microsoft Windows\n");
-                    break;
-                case wxLANGUAGE_FRENCH:
-                case wxLANGUAGE_FRENCH_BELGIAN:
-                case wxLANGUAGE_FRENCH_CANADIAN:
-                case wxLANGUAGE_FRENCH_LUXEMBOURG:
-                case wxLANGUAGE_FRENCH_MONACO:
-                case wxLANGUAGE_FRENCH_SWISS:
-                    python << _T("# coding=CP1252\n");
-                    python << _T("# French language or it's variant detected in Microsoft Windows\n");
-                    break;
-                case wxLANGUAGE_ITALIAN:
-                case wxLANGUAGE_ITALIAN_SWISS :
-                    python << _T("# coding=CP1252\n");
-                    python << _T("#Italian language or it's variant detected in Microsoft Windows\n");
-                    break;
-                case wxLANGUAGE_ENGLISH:
-                case wxLANGUAGE_ENGLISH_UK:
-                case wxLANGUAGE_ENGLISH_US:
-                case wxLANGUAGE_ENGLISH_AUSTRALIA:
-                case wxLANGUAGE_ENGLISH_BELIZE:
-                case wxLANGUAGE_ENGLISH_BOTSWANA:
-                case wxLANGUAGE_ENGLISH_CANADA:
-                case wxLANGUAGE_ENGLISH_CARIBBEAN:
-                case wxLANGUAGE_ENGLISH_DENMARK:
-                case wxLANGUAGE_ENGLISH_EIRE:
-                case wxLANGUAGE_ENGLISH_JAMAICA:
-                case wxLANGUAGE_ENGLISH_NEW_ZEALAND:
-                case wxLANGUAGE_ENGLISH_PHILIPPINES:
-                case wxLANGUAGE_ENGLISH_SOUTH_AFRICA:
-                case wxLANGUAGE_ENGLISH_TRINIDAD:
-                case wxLANGUAGE_ENGLISH_ZIMBABWE:
-                    python << _T("# coding=CP1252\n");
-                    python << _T("#English language or it's variant detected in Microsoft Windows\n");
-                    break;
-                default:
-                    python << _T("# coding=CP1252\n");
-                    python << _T("#Not supported language detected in Microsoft Windows. Assuming English alphabet\n");
-                    break;
-            }
-        #endif
-        '''
-        pass
-    
-    def RewritePythonProgram(self):
-        wx.GetApp().program_window.Clear()
-        self.python_program = ""
 
-        kurve_module_needed = False
-        kurve_funcs_needed = False
-        area_module_needed = False
-        area_funcs_needed = False
-
-        active_operations = []
-        
-        for operation in self.operations.children:
-            if operation.active:
-                active_operations.append(operation)
-
-                if operation.__class__.__name__ == "Profile":
-                    kurve_module_needed = True
-                    kurve_funcs_needed = True
-                elif operation.__class__.__name__ == "Pocket":
-                    area_module_needed = True
-                    area_funcs_needed = True
-                    
-        self.LanguageCorrection()
-
-        # add standard stuff at the top
-        self.python_program += "import sys\n"
-        
-        self.python_program += "sys.path.insert(0,'" + wx.GetApp().cam_dir + "')\n"
-        self.python_program += "import math\n"
-
-        if kurve_module_needed: self.python_program += "import kurve\n"
-        if kurve_funcs_needed: self.python_program += "import kurve_funcs\n"
-        if area_module_needed:
-            self.python_program += "import area\n"
-            self.python_program += "area.set_units(" + str(self.units) + ")\n"
-        if area_funcs_needed: self.python_program += "import area_funcs\n"
-
-        # machine general stuff
-        self.python_program += "from nc.nc import *\n"
-
-        # specific machine
-        if self.machine.file_name == "not found":
-            import wx
-            wx.MessageBox("Machine name not set")
-        else :
-            self.python_program += "import nc." + self.machine.file_name + "\n"
-            self.python_program += "\n"
-
-        # output file
-        self.python_program += "output('" + self.GetOutputFileName() + "')\n"
-
-        # begin program
-        self.python_program += "program_begin(123, 'Test program')\n"
-        self.python_program += "absolute()\n"
-        if self.units > 25.0:
-            self.python_program += "imperial()\n"
-        else:
-            self.python_program += "metric()\n"
-        self.python_program += "set_plane(0)\n"
-        self.python_program += "\n"
-
-        #self.python_program += self.raw_material.AppendTextToProgram()
-
-        # write the tools setup code.
-        for tool in self.tools.children:
-            tool.AppendTextToProgram()
-
-        for operation in active_operations:
-            operation.AppendTextToProgram()
-
-        self.python_program += "program_end()\n"
-        self.python_program += "from nc.nc import creator\n"
-        self.python_program += "creator.file_close()\n"
-        
-        wx.GetApp().program_window.AppendText(self.python_program)
-        if len(self.python_program) > len(wx.GetApp().program_window.textCtrl.GetValue()):
-            # The python program is longer than the text control object can handle.  The maximum
-            # length of the text control objects changes depending on the operating system (and its
-            # implementation of wxWidgets).  Rather than showing the truncated program, tell the
-            # user that it has been truncated and where to find it.
-
-            import wx
-            standard_paths = wx.StandardPaths.Get()
-            file_str = (standard_paths.GetTempDir() + "/post.py").replace('\\', '/')
-
-            wx.GetApp().program_window.Clear();
-            wx.GetApp().program_window.AppendText("The Python program is too long \n")
-            wx.GetApp().program_window.AppendText("to display in this window.\n")
-            wx.GetApp().program_window.AppendText("Please edit the python program directly at \n")
-            wx.GetApp().program_window.AppendText(file_str)
-    
     def GetOutputFileName(self):
         if self.output_file_name_follows_data_file_name == False:
             return self.output_file
@@ -306,6 +152,9 @@ class Program(CamObject):
         cad.SetXmlValue('ProgramMotionBlendingTolerance', str(self.motion_blending_tolerance))
         cad.SetXmlValue('ProgramNaiveCamTolerance', str(self.naive_cam_tolerance))
 
+    def CallsObjListReadXml(self):
+        return False
+    
     def ReadXml(self):
         self.machine = self.GetMachine( cad.GetXmlValue('machine') )
         self.output_file = cad.GetXmlValue('output_file')
@@ -318,9 +167,9 @@ class Program(CamObject):
         
         cad.ObjList.ReadXml(self)
         
-        self.SetChildPointers()
+        self.ReloadPointers()
         
-    def SetChildPointers(self):
+    def ReloadPointers(self):
         object = self.GetFirstChild()
         while object:
             if object.GetType() == Tools.type:self.tools = object
@@ -330,7 +179,6 @@ class Program(CamObject):
             if object.GetType() == Operations.type:self.operations = object
             if object.GetType() == NcCode.type:self.nccode = object
             object = self.GetNextChild()
-
                 
     def MakeACopy(self):
         copy = Program()
@@ -350,7 +198,11 @@ class Program(CamObject):
     def AutoExpand(self):
         return True
     
-    def DoGCodeCalls(self):
+    def OnRenderTriangles(self):
+        if self.nccode:
+            self.nccode.OnRenderTriangles()
+    
+    def MakeGCode(self):
         wx.GetApp().attached_to_surface = None
         wx.GetApp().number_for_stl_file = 1
         wx.GetApp().tool_number = 0
@@ -385,9 +237,22 @@ class Program(CamObject):
                 # to do          if(op->m_pattern != 0)python << _T("transform.transform_end()\n");
                 # to do          if(surface && !surface->m_same_for_each_pattern_position)python << _T("attach.attach_end()\n");
                 # to do          theApp.m_attached_to_surface = NULL;
-            print('op = ' + str(op))
         
         program_end()
+        
+    def GetBackplotFilePath(self):
+        return str((wx.StandardPaths.Get().GetTempDir() + "/backplot.xml").replace('\\', '/'))   
+        
+    def CreateBackplotFile(self):
+        from nc.hxml_writer import HxmlWriter
+        machine_module = __import__('nc.' + self.machine.reader, fromlist = ['dummy'])
+        parser = machine_module.Parser(HxmlWriter())
+        parser.Parse(self.GetOutputFileName())
+        
+    def BackPlot(self):
+        self.CreateBackplotFile()
+        cad.OpenXmlFile(self.GetBackplotFilePath(), self)
+        cad.Repaint()
         
 class PropertyMachine(cad.Property):
     def __init__(self, program):

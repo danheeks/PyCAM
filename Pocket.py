@@ -1,7 +1,7 @@
 from DepthOp import DepthOp
 from consts import *
 import wx
-from CNCConfig import CNCConfig
+from HeeksConfig import HeeksConfig
 
 class Pocket(DepthOp):
     def __init__(self):
@@ -10,7 +10,7 @@ class Pocket(DepthOp):
         
     def ReadDefaultValues(self):
         DepthOp.ReadDefaultValues(self)
-        config = CNCConfig()
+        config = HeeksConfig()
         self.step_over = config.ReadFloat("PocketStepover", 1.0)
         self.material_allowance = config.ReadFloat("PocketMaterialAllowance", 0.0)
         self.starting_place = config.ReadBool("PocketStartingPlace", True)
@@ -22,7 +22,7 @@ class Pocket(DepthOp):
         
     def WriteDefaultValues(self):
         DepthOp.WriteDefaultValues(self)
-        config = CNCConfig()
+        config = HeeksConfig()
         config.WriteFloat("PocketStepover", self.step_over)
         config.WriteFloat("PocketMaterialAllowance", self.material_allowance)
         config.WriteBool("PocketStartingPlace", self.starting_place)

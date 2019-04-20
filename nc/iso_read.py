@@ -5,7 +5,7 @@
 #
 # Hirutso Enni, 2009-01-13
 
-import nc_read as nc
+import nc.nc_read as nc
 import re
 import sys
 

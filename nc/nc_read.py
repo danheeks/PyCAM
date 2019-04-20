@@ -4,7 +4,7 @@
 # Base class for NC code parsing
 
 ################################################################################
-import area
+import geom
 import math
 import re
 count = 0
@@ -154,13 +154,13 @@ class Parser:
 
                                 #fix centre point
                                 r = math.sqrt(i*i + j*j)
-                                p0 = area.Point(self.oldx, self.oldy)
-                                p1 = area.Point(x, y)
+                                p0 = geom.Point(self.oldx, self.oldy)
+                                p1 = geom.Point(x, y)
                                 v = p1 - p0
                                 l = v.length()
                                 h = l/2
                                 d = math.sqrt(r*r - h*h)
-                                n = area.Point(-v.y, v.x)
+                                n = geom.Point(-v.y, v.x)
                                 n.normalize()
                                 if self.arc == -1: d = -d
                                 c = p0 + (v * 0.5) + (n * d)
@@ -168,8 +168,8 @@ class Parser:
                                 j = c.y
 
                             else:
-                                i = i + self.oldx
-                                j = j + self.oldy
+                                if self.oldx != None: i = i + self.oldx
+                                if self.oldy != None: j = j + self.oldy
                         if self.arc == -1:
                             self.writer.arc_cw(self.x, self.y, self.z, i, j, k)
                         else:

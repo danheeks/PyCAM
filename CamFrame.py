@@ -8,12 +8,12 @@ sys.path.append(pycad_dir)
 
 from Frame import Frame # from CAD
 import Profile
+from OutputWindow import OutputWindow
 
 class CamFrame(Frame):
     def __init__(self, parent, id=-1, title='CAM ( Computer Aided Manufacturing )', pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.DEFAULT_FRAME_STYLE, name=wx.FrameNameStr):
         Frame.__init__(self, parent, id, title, pos, size, style, name)
         self.program_window = None
-        self.output_window = None
         
     def AddExtraMenus(self):
         save_bitmap_path = self.bitmap_path
@@ -46,8 +46,14 @@ class CamFrame(Frame):
         self.AddMenuItem('Save NC File As', self.NewProfileOpMenuCallback, None, 'savenc')        
         self.EndMenu()      
         
+        self.AddMenuItem('Output', self.OnViewOutput, self.OnUpdateViewOutput, check_item = True, menu = self.window_menu)
+        
         self.bitmap_path = save_bitmap_path
 
+    def AddExtraWindows(self):
+        self.output_window = OutputWindow(self)
+        self.aui_manager.AddPane(self.output_window, wx.aui.AuiPaneInfo().Name('Output').Caption('Output').Left().Bottom().BestSize(wx.Size(600, 200)))
+    
     def NewProfileOpMenuCallback(self, e):
         
         # to do find selected sketches
@@ -68,7 +74,10 @@ class CamFrame(Frame):
         wx.MessageBox("post process")
         
     def PostProcessMenuCallback(self, e):
-        wx.GetApp().program.DoGCodeCalls()
+        wx.GetApp().frame.output_window.textCtrl.Clear()
+        wx.GetApp().program.MakeGCode()
+        wx.GetApp().program.BackPlot()
+        
         
     def RunPythonScript(self):
         # clear the output file
@@ -196,3 +205,12 @@ class CamFrame(Frame):
     def add_program_with_children(self):
         self.program = Program()
         self.program.add_initial_children()
+
+    def OnViewOutput(self, e):
+        pane_info = self.aui_manager.GetPane(self.output_window)
+        if pane_info.IsOk():
+            pane_info.Show(e.IsChecked())
+            self.aui_manager.Update()
+        
+    def OnUpdateViewOutput(self, e):
+        e.Check(self.aui_manager.GetPane(self.output_window).IsShown())

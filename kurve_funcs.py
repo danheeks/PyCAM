@@ -250,7 +250,6 @@ def profile(curve, direction = "on", radius = 1.0, offset_extra = 0.0, roll_radi
     if direction == "on":
         use_CRC() == False 
         
-    print('direction = ' + str(direction))
     if direction != "on":
         if direction != "left" and direction != "right":
             raise NameError("direction must be left or right" + str(direction))
@@ -258,8 +257,6 @@ def profile(curve, direction = "on", radius = 1.0, offset_extra = 0.0, roll_radi
         # get tool diameter
         offset = radius + offset_extra
         if use_CRC() == False or (use_CRC()==True and CRC_nominal_path()==True):
-            
-            print('offset = ' + str(offset))
             
             if math.fabs(offset) > 0.00005:
                 if direction == "right":
@@ -273,8 +270,6 @@ def profile(curve, direction = "on", radius = 1.0, offset_extra = 0.0, roll_radi
                         a = geom.Area()
                         a.Append(curve)
                         a.Offset(-offset)
-                        
-                        print('a.getCurves() = ' + str(a.getCurves()))
                         
                         for curve in a.getCurves():
                             curve_cw = curve.IsClockwise()

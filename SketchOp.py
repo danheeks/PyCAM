@@ -13,7 +13,6 @@ class SketchOp(DepthOp):
         
     def ReadXml(self):
         self.sketch = cad.GetXmlInt('sketch')        
-        print('sketch = ' + str(sketch))
         DepthOp.ReadXml(self)
 
     def GetProperties(self):

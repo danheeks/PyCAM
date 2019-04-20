@@ -140,6 +140,9 @@ class Tool(CamObject):
         
     def TypeName(self):
         return "Tool"
+
+    def GetType(self):
+        return type
     
     def GetTitle(self):
         return self.title

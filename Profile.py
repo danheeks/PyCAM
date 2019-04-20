@@ -49,6 +49,9 @@ class Profile(SketchOp):
         
     def TypeName(self):
         return "Profile"
+
+    def GetType(self):
+        return type
     
     def op_icon(self):
         # the name of the PNG file in the HeeksCNC icons folder
@@ -134,8 +137,6 @@ class Profile(SketchOp):
                 self.lead_in_line_len = cad.GetXmlFloat('lead_in_line_len', self.lead_in_line_len)
                 self.lead_out_line_len = cad.GetXmlFloat('lead_out_line_len', self.lead_out_line_len)
             child_element = cad.GetNextXmlChild()
-        
-        print('in ReadXml')    
 
         SketchOp.ReadXml(self)
         

@@ -1,18 +1,18 @@
 import wx
-import HeeksCNC
+import cad
 
 class OutputTextCtrl(wx.TextCtrl):
     def __init__(self, parent):
         wx.TextCtrl.__init__(self, parent, style = wx.TE_MULTILINE + wx.TE_DONTWRAP + wx.TE_RICH + wx.TE_RICH2)
         self.painting = False
-        #self.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouse)
-        #self.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouse)
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
         
     def OnMouse(self, event):
         if event.LeftUp():
             pos = self.GetInsertionPoint()
-            HeeksCNC.program.nccode.HighlightBlock(pos)
-            HeeksCNC.cad.repaint()
+            wx.GetApp().program.nccode.HighlightBlock(pos)
+            cad.Repaint()
         event.Skip()
     
     def OnPaint(self, event):
@@ -28,7 +28,8 @@ class OutputTextCtrl(wx.TextCtrl):
             pos0 = self.XYToPosition(0, row0)
             pos1 = self.XYToPosition(1, row1)
             
-            HeeksCNC.program.nccode.FormatBlocks(self, pos0, pos1)
+            if wx.GetApp().program.nccode:
+                wx.GetApp().program.nccode.FormatBlocks(self, pos0, pos1)
             
             self.SetScrollPos(wx.VERTICAL, scrollpos)
             

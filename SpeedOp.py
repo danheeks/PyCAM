@@ -1,8 +1,10 @@
 from Operation import Operation
-from CNCConfig import CNCConfig
+from HeeksConfig import HeeksConfig
 import cad
 from nc.nc import *
 import wx
+from Object import PyProperty
+from Object import PyPropertyLength
 
 ABS_MODE_ABSOLUTE = 1
 ABS_MODE_INCREMENTAL = 2
@@ -16,14 +18,14 @@ class SpeedOp(Operation):
         
     def ReadDefaultValues(self):
         Operation.ReadDefaultValues(self)
-        config = CNCConfig()
+        config = HeeksConfig()
         self.horizontal_feed_rate = config.ReadFloat("SpeedOpHFeedrate", 200.0)
         self.vertical_feed_rate = config.ReadFloat("SpeedOpVFeedrate", 50.0)
         self.spindle_speed = config.ReadFloat("SpeedOpSpindleSpeed", 7000.0)
 
     def WriteDefaultValues(self):
         Operation.WriteDefaultValues(self)
-        config = CNCConfig()
+        config = HeeksConfig()
         config.WriteFloat("SpeedOpHFeedrate", self.horizontal_feed_rate)
         config.WriteFloat("SpeedOpVFeedrate", self.vertical_feed_rate)
         config.WriteFloat("SpeedOpSpindleSpeed", self.spindle_speed)
@@ -52,6 +54,18 @@ class SpeedOp(Operation):
                 self.vertical_feed_rate = cad.GetXmlFloat('vfeed', self.vertical_feed_rate)
                 self.spindle_speed = cad.GetXmlFloat('spin', self.spindle_speed)
             child_element = cad.GetNextXmlChild()
+        Operation.ReadXml(self)
+            
+    def GetProperties(self):
+        properties = []
+
+        properties.append(PyPropertyLength("Horizontal Feed Rate", 'horizontal_feed_rate', self))
+        properties.append(PyPropertyLength("Vertical Feed Rate", 'vertical_feed_rate', self))
+        properties.append(PyProperty("Spindle Speed", 'spindle_speed', self))
+        
+        properties += Operation.GetProperties(self)
+
+        return properties
             
     def DoGCodeCalls(self):
         Operation.DoGCodeCalls(self)

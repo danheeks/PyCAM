@@ -1,8 +1,10 @@
 from SpeedOp import SpeedOp
 from consts import *
-from CNCConfig import CNCConfig
+from HeeksConfig import HeeksConfig
 import cad
 import depth_params
+from Object import PyProperty
+from Object import PyPropertyLength
 
 class DepthOp(SpeedOp):
     def __init__(self, tool_number = -1, operation_type = cad.OBJECT_TYPE_UNKNOWN):
@@ -18,7 +20,7 @@ class DepthOp(SpeedOp):
         
     def ReadDefaultValues(self):
         SpeedOp.ReadDefaultValues(self)
-        config = CNCConfig()
+        config = HeeksConfig()
         self.clearance_height = config.ReadFloat("ClearanceHeight", 5.0)
         self.start_depth = config.ReadFloat("StartDepth", 0.0)
         self.step_down = config.ReadFloat("StepDown", 1.0)
@@ -27,7 +29,7 @@ class DepthOp(SpeedOp):
 
     def WriteDefaultValues(self):
         SpeedOp.WriteDefaultValues(self)
-        config = CNCConfig()
+        config = HeeksConfig()
         config.WriteFloat("ClearanceHeight", self.clearance_height)
         config.WriteFloat("StartDepth", self.start_depth)
         config.WriteFloat("StepDown", self.step_down)
@@ -77,6 +79,23 @@ class DepthOp(SpeedOp):
                 self.final_depth = cad.GetXmlFloat('depth', self.final_depth)
                 self.rapid_safety_space = cad.GetXmlFloat('r', self.rapid_safety_space)
             child_element = cad.GetNextXmlChild()
+        SpeedOp.ReadXml(self)
+            
+    def GetProperties(self):
+        properties = []
+
+        properties.append(PyPropertyLength("Clearance Height", 'clearance_height', self))
+        properties.append(PyPropertyLength("Start Depth", 'start_depth', self))
+        properties.append(PyPropertyLength("Final Depth", 'final_depth', self))
+        properties.append(PyPropertyLength("Maximum Step Down", 'step_down', self))
+        properties.append(PyPropertyLength("Rapid Safety Space", 'rapid_safety_space', self))
+        properties.append(PyPropertyLength("Z Finish Depth", 'z_finish_depth', self))
+        properties.append(PyPropertyLength("Z Thru Depth", 'z_thru_depth', self))
+        properties.append(PyProperty("User Depths", 'user_depths', self))
+        
+        properties += SpeedOp.GetProperties(self)
+
+        return properties
             
     def GetDepthParams(self):
         # returns a depth_params object used in the older heekscnc code, and which can be modified for finishing pass

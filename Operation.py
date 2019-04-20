@@ -1,8 +1,10 @@
 from CamObject import CamObject
 from consts import *
-from CNCConfig import CNCConfig
+from HeeksConfig import HeeksConfig
 import cad
 import wx
+from Object import PyProperty
+from Object import PyPropertyLength
 
 class Operation(CamObject):
     def __init__(self, tool_number = -1, operation_type = cad.OBJECT_TYPE_UNKNOWN):
@@ -39,7 +41,7 @@ class Operation(CamObject):
         return True
     
     def ReadDefaultValues(self):
-        config = CNCConfig()
+        config = HeeksConfig()
         
         self.tool_number = config.ReadInt("OpTool", 0)
         
@@ -64,7 +66,7 @@ class Operation(CamObject):
                         self.tool_number = first_tool.tool_number
 
     def WriteDefaultValues(self):
-        config = CNCConfig()
+        config = HeeksConfig()
         if self.tool_number != 0:
             config.WriteInt("OpTool", self.tool_number)
         
@@ -84,3 +86,22 @@ class Operation(CamObject):
         self.operation_type = object.operation_type
         self.pattern = object.pattern
         self.surface = object.surface
+        
+    def ReadXml(self):
+        self.comment = cad.GetXmlValue('comment', self.comment)
+        self.active = cad.GetXmlBool('active', self.active)
+        self.tool_number = cad.GetXmlInt('tool_number', self.tool_number)
+        self.pattern = cad.GetXmlInt('pattern', self.pattern)
+        self.surface = cad.GetXmlInt('surface', self.surface)
+        CamObject.ReadXml(self)
+            
+    def GetProperties(self):
+        properties = []
+
+        properties.append(PyPropertyLength("Horizontal Feed Rate", 'horizontal_feed_rate', self))
+        properties.append(PyPropertyLength("Vertical Feed Rate", 'vertical_feed_rate', self))
+        properties.append(PyProperty("Spindle Speed", 'spindle_speed', self))
+        
+        properties += CamObject.GetProperties(self)
+
+        return properties
