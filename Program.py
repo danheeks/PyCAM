@@ -207,7 +207,10 @@ class Program(CamObject):
         wx.GetApp().number_for_stl_file = 1
         wx.GetApp().tool_number = 0
         
-        exec('import nc.emc2b', globals())
+        #exec('import nc.emc2b', globals())
+        machine_module = __import__('nc.' + self.machine.post, fromlist = ['dummy'])
+        import importlib
+        importlib.reload(machine_module)
         output(self.GetOutputFileName())
         program_begin(self.GetID(), self.GetTitle())
 

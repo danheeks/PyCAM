@@ -24,7 +24,6 @@ MaxColorTypes = 11
 PathObjectTypeLine = 0
 PathObjectTypeArc = 1
 
-PathObjectCurrentPoint = geom.Point3D(0,0,0)
 PathObjectPrevPoint = geom.Point3D(0,0,0)
 
 NcCode_pos = 0
@@ -98,27 +97,26 @@ class PathObject:
         self.point = geom.Point3D(0,0,0)
         self.tool_number = 0
         
-    def GetBox(self, box, prev_po):
+    def GetBox(self, box):
         box.InsertPoint(self.point.x, self.point.y, self.point.z)
         
     def WriteBaseXML(self):
         pass # to do
     
     def CopyFrom(self, object):
-        self.str = object.str
-        self.color_type = object.color_type
+        self.point = object.point
+        self.tool_number = object.tool_number
     
     def ReadXml(self):
-        global PathObjectCurrentPoint
         global PathObjectPrevPoint
         global NcCodeBlock_multiplier
-        
-        PathObjectPrevPoint = PathObjectCurrentPoint
 
-        self.point.x = cad.GetXmlFloat('x') * NcCodeBlock_multiplier
-        self.point.y = cad.GetXmlFloat('y') * NcCodeBlock_multiplier
-        self.point.z = cad.GetXmlFloat('z') * NcCodeBlock_multiplier
+        self.point.x = cad.GetXmlFloat('x', PathObjectPrevPoint.x) * NcCodeBlock_multiplier
+        self.point.y = cad.GetXmlFloat('y', PathObjectPrevPoint.y) * NcCodeBlock_multiplier
+        self.point.z = cad.GetXmlFloat('z', PathObjectPrevPoint.z) * NcCodeBlock_multiplier
         self.tool_number = cad.GetXmlInt('tool_number')
+        
+        PathObjectPrevPoint = self.point
         
 class PathLine(PathObject):
     def __init__(self):
@@ -135,8 +133,9 @@ class PathLine(PathObject):
         object.CopyFrom(self)
         return object
     
-    def glVertices(self, prev_po):
-        if prev_po: cad.GlVertex(prev_po.point)
+    def glVertices(self):
+        global NcCode_prev_po
+        if NcCode_prev_po: cad.GlVertex(NcCode_prev_po.point)
         cad.GlVertex(self.point)
         
 class PathArc(PathObject):
@@ -149,23 +148,26 @@ class PathArc(PathObject):
     def GetType():
         return PathObjectTypeArc
         
-    def GetBox(self, box, prev_po):
-        PathObject.GetBox(self, box, prev_po)
+    def GetBox(self, box):
+        PathObject.GetBox(self, box)
         
-        if self.IsIncluded(geom.Point3D(0,1,0), prev_po):
-            box.InsertPoint(prev_po.point.x + self.centre.x, prev_po.point.y + self.centre.y + self.radius, 0)
-        if self.IsIncluded(geom.Point3D(0,-1,0), prev_po):
-            box.InsertPoint(prev_po.point.x + self.centre.x, prev_po.point.y + self.centre.y - self.radius, 0)
-        if self.IsIncluded(geom.Point3D(1,0,0), prev_po):
-            box.InsertPoint(prev_po.point.x + self.centre.x + self.radius, prev_po.point.y + self.centre.y, 0)
-        if self.IsIncluded(geom.Point3D(-1,0,0), prev_po):
-            box.InsertPoint(prev_po.point.x + self.centre.x - self.radius, prev_po.point.y + self.centre.y, 0)
+        global NcCode_prev_po
+        
+        if self.IsIncluded(geom.Point3D(0,1,0)):
+            box.InsertPoint(NcCode_prev_po.point.x + self.centre.x, NcCode_prev_po.point.y + self.centre.y + self.radius, 0)
+        if self.IsIncluded(geom.Point3D(0,-1,0)):
+            box.InsertPoint(NcCode_prev_po.point.x + self.centre.x, NcCode_prev_po.point.y + self.centre.y - self.radius, 0)
+        if self.IsIncluded(geom.Point3D(1,0,0)):
+            box.InsertPoint(NcCode_prev_po.point.x + self.centre.x + self.radius, NcCode_prev_po.point.y + self.centre.y, 0)
+        if self.IsIncluded(geom.Point3D(-1,0,0)):
+            box.InsertPoint(NcCode_prev_po.point.x + self.centre.x - self.radius, NcCode_prev_po.point.y + self.centre.y, 0)
             
-    def IsIncluded(self, point, prev_po):
+    def IsIncluded(self, point):
+        global NcCode_prev_po
         sx = -self.centre.x
         sy = -self.centre.y
-        ex = -self.centre.x + self.point.x - prev_po.point.x
-        ey = -self.centre.y + self.point.y - prev_po.point.y
+        ex = -self.centre.x + self.point.x - NcCode_prev_po.point.x
+        ey = -self.centre.y + self.point.y - NcCode_prev_po.point.y
         rs = math.sqrt(sx * sx + sy * sy)
         self.radius = rs  # really! to do, remove this once it's working
         
@@ -212,21 +214,23 @@ class PathArc(PathObject):
         object.CopyFrom(self)
         return object
     
-    def glVertices(self, prev_po):
-        if prev_po == None:
+    def glVertices(self):
+        global NcCode_prev_po
+
+        if NcCode_prev_po == None:
             return
         
-        vertices = self.Interpolate( prev_po, s_arc_interpolation_count )
-        cad.GlVertex(prev_po.point)
+        vertices = self.Interpolate( s_arc_interpolation_count )
+        cad.GlVertex(NcCode_prev_po.point)
         
         for vertex in vertices:
             cad.GlVertex(vertex)
             
-    def Interpolate(self, prev_po, number_of_points):
+    def Interpolate(self, number_of_points):
         points = []
         
         global NcCode_prev_po
-        
+
         sx = -self.centre.x
         sy = -self.centre.y
         ex = -self.centre.x + self.point.x - NcCode_prev_po.point.x
@@ -309,14 +313,14 @@ class ColouredPath:
         cad.DrawColor(col)
         cad.BeginLines()
         for path_object in self.points:
-            path_object.glVertices(NcCode_prev_po)
+            path_object.glVertices()
             NcCode_prev_po = path_object
         cad.EndLinesOrTriangles()
         
     def GetBox(self, box):
         global NcCode_prev_po
         for point in self.points:
-            point.GetBox(box, NcCode_prev_po)
+            point.GetBox(box)
             NcCode_prev_po = point
         
     def WriteXML(self):
@@ -352,7 +356,7 @@ class NcCodeBlock(CamObject):
     def MakeACopy(self):
         new_object = NcCodeBlock()
         for text in self.text:
-            new_text = ColoredText()
+            new_text = ColouredText()
             new_text.str = text.str
             new_text.color_type = text.color_type
             new_object.text.append(new_text)
@@ -360,10 +364,12 @@ class NcCodeBlock(CamObject):
             new_path = ColouredPath()
             new_path.color_type = line_strip.color_type
             for point in line_strip.points:
-                new_path.points.append( point.MakeACopy(point) )
+                new_path.points.append(point.MakeACopy())
+            new_object.line_strips.append(new_path)
         new_object.from_pos = self.from_pos
         new_object.to_pos = self.to_pos
         new_object.formatted = self.formatted
+        return new_object
 
     def GetBox(self, box):
         for line_strip in self.line_strips:
@@ -393,6 +399,7 @@ class NcCodeBlock(CamObject):
     def ReadXml(self):
         global NcCode_pos
         self.from_pos = NcCode_pos
+        print('NcCode_pos = ' + str(NcCode_pos))
         
         child_element = cad.GetFirstXmlChild()
         while child_element != None:
@@ -495,7 +502,7 @@ class NcCode(CamObject):
             if block == object.highlighted_block:
                 self.highlighted_block = new_block
             self.blocks.append(new_block)
-        CamObject.CopyFrom(self, object)
+        cad.ObjList.CopyFrom(self, object)
         
     def WriteXML(self):
         pass # to do
@@ -504,7 +511,8 @@ class NcCode(CamObject):
         return False
     
     def ReadXml(self):
-        PathObjectCurrentPoint = geom.Point3D(0,0,0)
+        global NcCode_pos
+        global NcCodeBlock_multiplier
         NcCode_pos = 0
         NcCodeBlock_multiplier = 1.0
 

@@ -98,9 +98,11 @@ class Operation(CamObject):
     def GetProperties(self):
         properties = []
 
-        properties.append(PyPropertyLength("Horizontal Feed Rate", 'horizontal_feed_rate', self))
-        properties.append(PyPropertyLength("Vertical Feed Rate", 'vertical_feed_rate', self))
-        properties.append(PyProperty("Spindle Speed", 'spindle_speed', self))
+        properties.append(PyProperty("Comment", 'comment', self))
+        properties.append(PyProperty("Active", 'active', self))
+        properties.append(PyProperty("Tool Number", 'tool_number', self))
+        properties.append(PyProperty("Pattern", 'pattern', self))
+        properties.append(PyProperty("Surface", 'surface', self))
         
         properties += CamObject.GetProperties(self)
 

@@ -256,6 +256,7 @@ def profile(curve, direction = "on", radius = 1.0, offset_extra = 0.0, roll_radi
 
         # get tool diameter
         offset = radius + offset_extra
+        
         if use_CRC() == False or (use_CRC()==True and CRC_nominal_path()==True):
             
             if math.fabs(offset) > 0.00005:

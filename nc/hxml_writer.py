@@ -90,6 +90,8 @@ class HxmlWriter:
         pass
 
     def add_line(self, x, y, z, a = None, b = None, c = None):
+        if x == None and y == None and z == None:
+            return
         self.file_out.write('\t\t\t<line')
         if (x != None) :
             self.file_out.write(' x="%.6f"' % x)

@@ -2,6 +2,7 @@ from HeeksObjDlg import HeeksObjDlg
 from HDialog import HTypeObjectDropDown
 from HDialog import HControl
 import wx
+import Tool
 
 class OpDlg(HeeksObjDlg):
     def __init__(self, op, title = "", want_tool_control = True, picture = True):
@@ -9,12 +10,10 @@ class OpDlg(HeeksObjDlg):
         HeeksObjDlg.__init__(self, op, title, picture)
             
     def AddLeftControls(self):
-#        self.cmbTool = None
-#        if self.want_tool_control:
-#            # to think about
-#            ToolType = 0
-#            self.cmbTool = HTypeObjectDropDown(self, ToolType, wx.GetApp().program.tools, self.OnComboOrCheck)
-#            self.MakeLabelAndControl('Tool', self.cmbTool).AddToSizer(self.sizerLeft)
+        self.cmbTool = None
+        if self.want_tool_control:
+            self.cmbTool = HTypeObjectDropDown(self, Tool.type, wx.GetApp().program.tools, self.OnComboOrCheck)
+            self.MakeLabelAndControl('Tool', self.cmbTool).AddToSizer(self.sizerLeft)
             
         #temporary code
         PatternType = 0
@@ -47,10 +46,10 @@ class OpDlg(HeeksObjDlg):
         self.object.title = self.txtTitle.GetValue()
         if self.object.title != self.object.GetTitle():
             self.object.title_made_from_id = False
-#        if self.cmbTool:
-#            self.object.tool_number = self.cmbTool.GetSelectedId()
-#        else:
-#            self.object.tool_number = 0
+        if self.cmbTool:
+            self.object.tool_number = self.cmbTool.GetSelectedId()
+        else:
+            self.object.tool_number = 0
         self.object.pattern = self.cmbPattern.GetSelectedId()
         self.object.surface = self.cmbSurface.GetSelectedId()
         HeeksObjDlg.GetDataRaw(self)
@@ -59,8 +58,8 @@ class OpDlg(HeeksObjDlg):
         self.txtComment.SetValue(self.object.comment)
         self.chkActive.SetValue(self.object.active)
         self.txtTitle.SetValue(self.object.GetTitle())
-#        if self.cmbTool:
-#            self.cmbTool.SelectById(self.object.tool_number)
+        if self.cmbTool:
+            self.cmbTool.SelectById(self.object.tool_number)
         self.cmbPattern.SelectById(self.object.pattern)
         self.cmbSurface.SelectById(self.object.surface)
         HeeksObjDlg.SetFromDataRaw(self)
