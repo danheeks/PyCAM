@@ -399,7 +399,6 @@ class NcCodeBlock(CamObject):
     def ReadXml(self):
         global NcCode_pos
         self.from_pos = NcCode_pos
-        print('NcCode_pos = ' + str(NcCode_pos))
         
         child_element = cad.GetFirstXmlChild()
         while child_element != None:

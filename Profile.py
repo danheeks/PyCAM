@@ -140,6 +140,9 @@ class Profile(SketchOp):
 
         SketchOp.ReadXml(self)
         
+    def CallsObjListReadXml(self):
+        return False
+            
     def GetProperties(self):
         properties = []
 

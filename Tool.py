@@ -301,44 +301,10 @@ class Tool(CamObject):
     def ResetTitle(self):
         if self.automatically_generate_title:
             self.title = self.GenerateMeaningfulName()
-
-    def AppendTextToProgram(self):
-        # The G10 command can be used (within EMC2) to add a tool to the tool
-        # table from within a program.
-        # G10 L1 P[tool number] R[radius] X[offset] Z[offset] Q[orientation]
-        #
-        # The radius value must be expressed in MACHINE CONFIGURATION UNITS.  This may be different
-        # to this model's drawing units.  The value is interpreted, at lease for EMC2, in terms
-        # of the units setup for the machine's configuration (something.ini in EMC2 parlence).  At
-        # the moment we don't have a MACHINE CONFIGURATION UNITS parameter so we've got a 50%
-        # chance of getting it right.
-
-        if len(self.title) > 0:
-            wx.GetApp().program.python_program += "#('" + self.title + "')\n"
-
-        wx.GetApp().program.python_program += "tool_defn( id=" + str(self.tool_number) + ", "
-
-        if len(self.title) > 0:
-            wx.GetApp().program.python_program += "name='" + self.title + "', "
-        else:
-            wx.GetApp().program.python_program += "name=None, "
-
-        if self.diameter > 0.0:
-            wx.GetApp().program.python_program += "radius=" + str(self.diameter / 2 / wx.GetApp().program.units) + ", "
-        else:
-            wx.GetApp().program.python_program += "radius=None, "
-
-        if self.tool_length_offset > 0.0:
-            wx.GetApp().program.python_program += "length=" + str(self.tool_length_offset / wx.GetApp().program.units) + ", "
-        else:
-            wx.GetApp().program.python_program += "length=None, "
-
-        wx.GetApp().program.python_program += "gradient=" + str(self.gradient)
-
-        wx.GetApp().program.python_program += ")\n"
         
     def GetProperties(self):
         properties = []
+        properties.append(PyProperty("Tool Number", 'tool_number', self))
         properties.append(PyChoiceProperty("Automatic Title", 'automatically_generate_title', ['Leave manually assigned title', 'Automatically generate title'], self))
         properties.append(PyChoiceProperty("Material", 'material', ['High Speed Steel', 'Carbide'], self))
         properties.append(PyChoiceProperty("Type", 'type', GetToolTypeNames(), self, GetToolTypeValues()))
@@ -370,7 +336,12 @@ class Tool(CamObject):
                 self.cutting_edge_height = cad.GetXmlFloat('cutting_edge_height', self.cutting_edge_height)
             child_element = cad.GetNextXmlChild()
             
+        CamObject.ReadXml(self)
+            
         self.ResetTitle()
+        
+    def CallsObjListReadXml(self):
+        return False
             
     def DoGCodeCalls(self):
         params = {

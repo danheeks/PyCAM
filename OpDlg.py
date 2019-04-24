@@ -4,6 +4,9 @@ from HDialog import HControl
 import wx
 import Tool
 
+def GetToolNumber(object):
+    return object.tool_number
+
 class OpDlg(HeeksObjDlg):
     def __init__(self, op, title = "", want_tool_control = True, picture = True):
         self.want_tool_control = want_tool_control
@@ -12,7 +15,7 @@ class OpDlg(HeeksObjDlg):
     def AddLeftControls(self):
         self.cmbTool = None
         if self.want_tool_control:
-            self.cmbTool = HTypeObjectDropDown(self, Tool.type, wx.GetApp().program.tools, self.OnComboOrCheck)
+            self.cmbTool = HTypeObjectDropDown(self, Tool.type, wx.GetApp().program.tools, self.OnComboOrCheck, GetToolNumber)
             self.MakeLabelAndControl('Tool', self.cmbTool).AddToSizer(self.sizerLeft)
             
         #temporary code
