@@ -9,14 +9,8 @@ from Object import PyPropertyLength
 class DepthOp(SpeedOp):
     def __init__(self, tool_number = -1, operation_type = cad.OBJECT_TYPE_UNKNOWN):
         SpeedOp.__init__(self, tool_number, operation_type)
-        self.clearance_height = 5.0
-        self.start_depth = 0.0
-        self.step_down = 1.0
-        self.final_depth = -1.0
-        self.rapid_safety_space = 2.0
-        self.z_finish_depth = 0.0
-        self.z_thru_depth = 0.0
         self.user_depths = ''
+        self.ReadDefaultValues()
         
     def ReadDefaultValues(self):
         SpeedOp.ReadDefaultValues(self)
@@ -26,6 +20,8 @@ class DepthOp(SpeedOp):
         self.step_down = config.ReadFloat("StepDown", 1.0)
         self.final_depth = config.ReadFloat("FinalDepth", -1.0)
         self.rapid_safety_space = config.ReadFloat("RapidSpace", 2.0)
+        self.z_finish_depth = config.ReadFloat("ZFinish", 0.0)
+        self.z_thru_depth = config.ReadFloat("ZThru", 0.0)
 
     def WriteDefaultValues(self):
         SpeedOp.WriteDefaultValues(self)
@@ -35,6 +31,8 @@ class DepthOp(SpeedOp):
         config.WriteFloat("StepDown", self.step_down)
         config.WriteFloat("FinalDepth", self.final_depth)
         config.WriteFloat("RapidSpace", self.rapid_safety_space)
+        config.WriteFloat("ZFinish", self.z_finish_depth)
+        config.WriteFloat("ZThru", self.z_thru_depth)
         
     def AppendTextToProgram(self):
         SpeedOp.AppendTextToProgram(self)
@@ -65,6 +63,19 @@ class DepthOp(SpeedOp):
         self.z_finish_depth = object.z_finish_depth
         self.z_thru_depth = object.z_thru_depth
         self.user_depths = object.user_depths
+        
+    def WriteXml(self):
+        cad.BeginXmlChild('depthop')
+        cad.SetXmlValue('clear', self.clearance_height)
+        cad.SetXmlValue('down', self.step_down)
+        cad.SetXmlValue('zfinish', self.z_finish_depth)
+        cad.SetXmlValue('zthru', self.z_thru_depth)
+        cad.SetXmlValue('userdepths', self.user_depths)
+        cad.SetXmlValue('startdepth', self.start_depth)
+        cad.SetXmlValue('depth', self.final_depth)
+        cad.SetXmlValue('r', self.rapid_safety_space)
+        cad.EndXmlChild()
+        SpeedOp.WriteXml(self)
         
     def ReadXml(self):
         child_element = cad.GetFirstXmlChild()

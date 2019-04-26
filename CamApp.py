@@ -19,6 +19,10 @@ import Surfaces
 import Stocks
 import NcCode
 import Profile
+import Pocket
+#import Drilling
+import Tags
+import Tag
 
 programs = []
 
@@ -31,6 +35,10 @@ def CreateSurfaces(): return Surfaces.Surfaces()
 def CreateStocks(): return Stocks.Stocks()
 def CreateNcCode(): return NcCode.NcCode()
 def CreateProfile(): return Profile.Profile()
+def CreatePocket(): return Pocket.Pocket()
+#def CreateDrilling(): return Drilling.Drilling()
+def CreateTags(): return Tags.Tags()
+def CreateTag(): return Tag.Tag()
 
 class CamApp(App):
     def __init__(self):
@@ -49,6 +57,10 @@ class CamApp(App):
         Stocks.type = cad.RegisterObjectType("Stocks", CreateStocks)
         NcCode.type = cad.RegisterObjectType("nccode", CreateNcCode)
         Profile.type = cad.RegisterObjectType("Profile", CreateProfile)
+        Pocket.type = cad.RegisterObjectType("Pocket", CreatePocket)
+        #Profile.type = cad.RegisterObjectType("Drilling", CreateDrilling)
+        Tags.type = cad.RegisterObjectType("Tags", CreateTags)
+        Tag.type = cad.RegisterObjectType("Tag", CreateTag)
         
         NcCode.ReadColorsFromConfig()
 
@@ -74,10 +86,10 @@ class CamApp(App):
 
     def OnNewOrOpen(self, open):
         App.OnNewOrOpen(self, open)
+
         self.AddProgramIfThereIsntOne()
-        
-        if open == False:
-            self.frame.OnOpenFilepath('c:/users/dan heeks/downloads/profile.heeks', False)
+#        if open == False:
+#            self.frame.OnOpenFilepath('c:/users/dan heeks/downloads/pocket2.heeks', False)
             
     def SetTool(self, tool_number):
         tool = Tool.FindTool(tool_number)

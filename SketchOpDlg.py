@@ -9,7 +9,7 @@ class SketchOpDlg(DepthOpDlg):
         DepthOpDlg.__init__(self, object, False, title)
 
     def AddLeftControls(self):
-        self.cmbSketch = HTypeObjectDropDown(self, cad.OBJECT_TYPE_SKETCH, cad.GetApp())
+        self.cmbSketch = HTypeObjectDropDown(self, cad.OBJECT_TYPE_SKETCH, cad.GetApp(), self.OnSketchCombo)
         self.btnSketchPick = wx.Button(self, wx.ID_ANY, 'Pick')
         self.MakeLabelAndControl('Sketches', self.cmbSketch, self.btnSketchPick).AddToSizer(self.sizerLeft)
                 
@@ -39,3 +39,6 @@ class SketchOpDlg(DepthOpDlg):
         id = 0
         if cad.GetNumSelected() > 0: id = cad.GetSelectedObjects()[0].GetID()
         self.cmbSketch.SelectById(id)
+        
+    def OnSketchCombo(self, event):
+        print('SketchOpDlg.OnSketchCombo')

@@ -84,7 +84,10 @@ class ColouredText:
         self.color_type = ColorDefaultType
 
     def WriteXML(self):
-        pass # to do
+        cad.BeginXmlChild('text')
+        cad.SetXmlValue('col', GetColorName(self.color_type))
+        cad.SetXmlText(self.str)
+        cad.EndXmlChild()
     
     def ReadXml(self):
         self.color_type = GetColor(cad.GetXmlValue('col'), ColorRapidType)
@@ -101,7 +104,10 @@ class PathObject:
         box.InsertPoint(self.point.x, self.point.y, self.point.z)
         
     def WriteBaseXML(self):
-        pass # to do
+        cad.SetXmlValue('tool_number', self.tool_number)
+        cad.SetXmlValue('x', self.point.x)
+        cad.SetXmlValue('y', self.point.y)
+        cad.SetXmlValue('z', self.point.z)
     
     def CopyFrom(self, object):
         self.point = object.point
@@ -126,7 +132,9 @@ class PathLine(PathObject):
         return PathObjectTypeLine
 
     def WriteXML(self):
-        pass # to do
+        cad.BeginXmlChild('line')
+        self.WriteBaseXML()
+        cad.EndXmlChild()
     
     def MakeACopy(self):
         object = PathLine()
@@ -188,7 +196,13 @@ class PathArc(PathObject):
         return ((the_angle >= start_angle) and (the_angle <= end_angle)) or ((the_angle2 >= start_angle) and (the_angle2 <= end_angle))
         
     def WriteXML(self):
-        pass # to do
+        cad.BeginXmlChild('arc')
+        cad.SetXmlValue('i', self.centre.x)
+        cad.SetXmlValue('j', self.centre.y)
+        cad.SetXmlValue('k', self.centre.z)
+        cad.SetXmlValue('d', self.dir)
+        self.WriteBaseXML()
+        cad.EndXmlChild()
     
     def ReadXml(self):
         self.radius = cad.GetXmlValue('r')
@@ -324,7 +338,11 @@ class ColouredPath:
             NcCode_prev_po = point
         
     def WriteXML(self):
-        pass # to do
+        cad.BeginXmlChild('path')
+        cad.SetXmlValue('col', GetColorName(self.color_type))
+        for path_object in self.points:
+            path_object.WriteXML()
+        cad.EndXmlChild()
     
     def ReadXml(self):
         self.color_type = GetColor(cad.GetXmlValue('col'), ColorRapidType)
@@ -394,7 +412,12 @@ class NcCodeBlock(CamObject):
         if marked: cad.GlLineWidth(1)
         
     def WriteXML(self):
-        pass # to do
+        cad.BeginXmlChild('ncblock')
+        for text in self.text:
+            text.WriteXML()
+        for path in self.line_strips:
+            path.WriteXML()
+        cad.EndXmlChild()
     
     def ReadXml(self):
         global NcCode_pos
@@ -440,7 +463,8 @@ class NcCodeBlock(CamObject):
 class NcCode(CamObject):
     def __init__(self):
         CamObject.__init__(self)
-        self.blocks = [] # for now, just strings, but later to be NCCodeBlock objects
+        self.blocks = []
+        self.edited = False
         self.highlighted_block = None
         self.box = geom.Box3D()
         self.SetUsesLights(False)
@@ -450,7 +474,10 @@ class NcCode(CamObject):
         return "nccode"
     
     def TypeName(self):
-        return "NC Code"
+        return "nccode"
+    
+    def GetTitle(self):
+        return 'NC Code'
     
     def GetType(self):
         return type
@@ -503,8 +530,10 @@ class NcCode(CamObject):
             self.blocks.append(new_block)
         cad.ObjList.CopyFrom(self, object)
         
-    def WriteXML(self):
-        pass # to do
+    def WriteXml(self):
+        cad.SetXmlValue('edited', self.edited)
+        for block in self.blocks:
+            block.WriteXML()
     
     def CallsObjListReadXml(self):
         return False
@@ -514,6 +543,8 @@ class NcCode(CamObject):
         global NcCodeBlock_multiplier
         NcCode_pos = 0
         NcCodeBlock_multiplier = 1.0
+        
+        self.edited = cad.GetXmlBool('edited', self.edited)
 
         child_element = cad.GetFirstXmlChild()
         while child_element != None:

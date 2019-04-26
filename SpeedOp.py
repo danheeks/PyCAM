@@ -46,6 +46,14 @@ class SpeedOp(Operation):
         self.vertical_feed_rate = object.vertical_feed_rate
         self.spindle_speed = object.spindle_speed
         
+    def WriteXml(self):
+        cad.BeginXmlChild('speedop')
+        cad.SetXmlValue('hfeed', self.horizontal_feed_rate)
+        cad.SetXmlValue('vfeed', self.vertical_feed_rate)
+        cad.SetXmlValue('spin', self.spindle_speed)
+        cad.EndXmlChild()
+        Operation.WriteXml(self)
+        
     def ReadXml(self):
         child_element = cad.GetFirstXmlChild()
         while child_element != None:

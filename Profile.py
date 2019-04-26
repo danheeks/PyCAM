@@ -9,6 +9,9 @@ from SpeedOp import SpeedOp
 import wx
 from nc.nc import *
 import kurve_funcs
+from HeeksConfig import HeeksConfig
+import Tags
+import math
 
 PROFILE_RIGHT_OR_INSIDE = -1
 PROFILE_ON = 0
@@ -22,9 +25,6 @@ type = 0
 class Profile(SketchOp):
     def __init__(self, sketch = 0, tool_number = -1, operation_type = cad.OBJECT_TYPE_UNKNOWN):
         SketchOp.__init__(self, sketch, tool_number, operation_type)
-        self.tool_on_side = PROFILE_ON
-        self.cut_mode = PROFILE_CONVENTIONAL
-        self.auto_roll_radius = 2.0
         self.auto_roll_on = True
         self.auto_roll_off = True
         self.roll_on_point = geom.Point3D(0,0,0)
@@ -33,18 +33,8 @@ class Profile(SketchOp):
         self.end_given = False
         self.start = geom.Point3D(0,0,0)
         self.end = geom.Point3D(0,0,0)
-        self.extend_at_start = 0.0
-        self.extend_at_end = 0.0
-        self.lead_in_line_len = 1.0
-        self.lead_out_line_len = 1.0
-        self.end_beyond_full_profile = False
         self.sort_sketches = True
-        self.offset_extra = 0.0
-        self.do_finishing_pass = False
-        self.only_finishing_pass = False
-        self.finishing_h_feed_rate = 0.0
-        self.finishing_cut_mode = PROFILE_CONVENTIONAL
-        self.finishing_step_down = 1.0
+        self.ReadDefaultValues()
         self.tags = None
         
     def TypeName(self):
@@ -56,9 +46,6 @@ class Profile(SketchOp):
     def op_icon(self):
         # the name of the PNG file in the HeeksCNC icons folder
         return "profile"
-
-    def get_selected_sketches(self):        
-        return 'hi'
     
     def HasEdit(self):
         return True
@@ -98,10 +85,44 @@ class Profile(SketchOp):
         self.finishing_h_feed_rate = object.finishing_h_feed_rate
         self.finishing_cut_mode = object.finishing_cut_mode
         self.finishing_step_down = object.finishing_step_down
-                
-    def ReadXml(self):
-        self.tool_number = cad.GetXmlInt('tool_number')
         
+    def WriteXml(self):
+        cad.BeginXmlChild('params')
+        cad.SetXmlValue('side', self.tool_on_side)
+        cad.SetXmlValue('cut_mode', self.cut_mode)
+        cad.SetXmlValue('auto_roll_on', self.auto_roll_on)
+        cad.SetXmlValue('roll_onx', self.roll_on_point.x)
+        cad.SetXmlValue('roll_ony', self.roll_on_point.y)
+        cad.SetXmlValue('roll_onz', self.roll_on_point.z)
+        cad.SetXmlValue('auto_roll_off', self.auto_roll_off)
+        cad.SetXmlValue('roll_offx', self.roll_off_point.x)
+        cad.SetXmlValue('roll_offy', self.roll_off_point.y)
+        cad.SetXmlValue('roll_offz', self.roll_off_point.z)
+        cad.SetXmlValue('roll_radius', self.auto_roll_radius)
+        cad.SetXmlValue('start_given', self.start_given)
+        cad.SetXmlValue('startx', self.start.x)
+        cad.SetXmlValue('starty', self.start.y)
+        cad.SetXmlValue('startz', self.start.z)
+        cad.SetXmlValue('end_given', self.end_given)
+        cad.SetXmlValue('endx', self.end.x)
+        cad.SetXmlValue('endy', self.end.y)
+        cad.SetXmlValue('endz', self.end.z)
+        cad.SetXmlValue('end_beyond_full_profile', self.end_beyond_full_profile)
+        cad.SetXmlValue('sort_sketches', self.sort_sketches)
+        cad.SetXmlValue('offset_extra', self.offset_extra)
+        cad.SetXmlValue('do_finishing_pass', self.do_finishing_pass)
+        cad.SetXmlValue('only_finishing_pass', self.only_finishing_pass)
+        cad.SetXmlValue('finishing_feed_rate', self.finishing_h_feed_rate)
+        cad.SetXmlValue('finishing_cut_mode', self.finishing_cut_mode)
+        cad.SetXmlValue('finishing_step_down', self.finishing_step_down)
+        cad.SetXmlValue('extend_at_start', self.extend_at_start)
+        cad.SetXmlValue('extend_at_end', self.extend_at_end)
+        cad.SetXmlValue('lead_in_line_len', self.lead_in_line_len)
+        cad.SetXmlValue('lead_out_line_len', self.lead_out_line_len)
+        cad.EndXmlChild()
+        SketchOp.WriteXml(self)
+        
+    def ReadXml(self):
         child_element = cad.GetFirstXmlChild()
         while child_element != None:
             if child_element == 'params':
@@ -111,7 +132,7 @@ class Profile(SketchOp):
                 self.roll_on_point.x = cad.GetXmlFloat('roll_onx', self.roll_on_point.x)
                 self.roll_on_point.y = cad.GetXmlFloat('roll_ony', self.roll_on_point.y)
                 self.roll_on_point.z = cad.GetXmlFloat('roll_onz', self.roll_on_point.z)
-                self.auto_roll_on = cad.GetXmlBool('auto_roll_off', self.auto_roll_on)
+                self.auto_roll_off = cad.GetXmlBool('auto_roll_off', self.auto_roll_off)
                 self.roll_off_point.x = cad.GetXmlFloat('roll_offx', self.roll_off_point.x)
                 self.roll_off_point.y = cad.GetXmlFloat('roll_offy', self.roll_off_point.y)
                 self.roll_off_point.z = cad.GetXmlFloat('roll_offz', self.roll_off_point.z)
@@ -136,9 +157,49 @@ class Profile(SketchOp):
                 self.extend_at_end = cad.GetXmlFloat('extend_at_end', self.extend_at_end)
                 self.lead_in_line_len = cad.GetXmlFloat('lead_in_line_len', self.lead_in_line_len)
                 self.lead_out_line_len = cad.GetXmlFloat('lead_out_line_len', self.lead_out_line_len)
+            if child_element == 'Tags':
+                self.tags = cad.GetXmlObject()
+                self.Add(self.tags)
+                
             child_element = cad.GetNextXmlChild()
 
         SketchOp.ReadXml(self)
+        
+    def ReadDefaultValues(self):
+        SketchOp.ReadDefaultValues(self)
+        config = HeeksConfig()
+        self.tool_on_side = config.ReadInt("ToolOnSide", PROFILE_LEFT_OR_OUTSIDE)
+        self.cut_mode = config.ReadInt("CutMode", PROFILE_CLIMB)
+        self.auto_roll_radius = config.ReadFloat("RollRadius", 2.0)
+        self.offset_extra = config.ReadFloat("OffsetExtra", 0.0)
+        self.do_finishing_pass = config.ReadBool("DoFinishPass", False)
+        self.only_finishing_pass = config.ReadBool("OnlyFinishPass", False)
+        self.finishing_h_feed_rate = config.ReadFloat("FinishFeedRate", 100.0)
+        self.finishing_cut_mode = config.ReadInt("FinishCutMode", PROFILE_CONVENTIONAL)
+        self.finishing_step_down = config.ReadFloat("FinishStepDown", 1.0)
+        self.end_beyond_full_profile = config.ReadBool("EndBeyond", False)
+        self.extend_at_start = config.ReadFloat("ExtendAtStart", 0.0)
+        self.extend_at_end = config.ReadFloat("ExtendAtEnd", 0.0)
+        self.lead_in_line_len = config.ReadFloat("LeadInLineLen", 0.0)
+        self.lead_out_line_len = config.ReadFloat("LeadOutLineLen", 0.0)
+        
+    def WriteDefaultValues(self):
+        SketchOp.WriteDefaultValues(self)
+        config = HeeksConfig()
+        config.WriteInt("ToolOnSide", self.tool_on_side)
+        config.WriteInt("CutMode", self.cut_mode)
+        config.WriteFloat("RollRadius", self.auto_roll_radius)
+        config.WriteFloat("OffsetExtra", self.offset_extra)
+        config.WriteBool("DoFinishPass", self.do_finishing_pass)
+        config.WriteBool("OnlyFinishPass", self.only_finishing_pass)
+        config.WriteFloat("FinishFeedRate", self.finishing_h_feed_rate)
+        config.WriteInt("FinishCutMode", self.finishing_cut_mode)
+        config.WriteFloat("FinishStepDown", self.finishing_step_down)
+        config.WriteBool("EndBeyond", self.end_beyond_full_profile)
+        config.WriteFloat("ExtendAtStart", self.extend_at_start)
+        config.WriteFloat("ExtendAtEnd", self.extend_at_end)
+        config.WriteFloat("LeadInLineLen", self.lead_in_line_len)
+        config.WriteFloat("LeadOutLineLen", self.lead_out_line_len)
         
     def CallsObjListReadXml(self):
         return False
@@ -194,9 +255,8 @@ class Profile(SketchOp):
 
         return properties
     
-    def DoGCodeCallsForSketch(self, object, cut_mode, depth_params, tool_diameter, roll_radius, offset_extra, cutting_edge_angle):
-        if object == None:
-            return
+    def DoGCodeCallsForSketch(self, object, data):
+        cut_mode, depth_params, tool_diameter, roll_radius, offset_extra, cutting_edge_angle = data
         
         # decide if we need to reverse the kurve
         reversed = False
@@ -297,23 +357,7 @@ class Profile(SketchOp):
             
         cut_mode = self.finishing_cut_mode if finishing_pass else self.cut_mode
         
-        object = cad.GetObjectFromId(cad.OBJECT_TYPE_SKETCH, self.sketch)
-        
-        if object != None:
-            if object.GetType() == cad.OBJECT_TYPE_SKETCH:
-                re_ordered_sketch = None
-                sketch_order = object.GetSketchOrder()
-                if sketch_order == cad.SketchOrderType.SketchOrderTypeBad:
-                    re_ordered_sketch = object.MakeACopy()
-                    re_ordered_sketch.ReOrderSketch(cad.SketchOrderType.SketchOrderTypeReOrder)
-                    object = re_ordered_sketch
-                
-                if (sketch_order == cad.SketchOrderType.SketchOrderTypeMultipleCurves) or (sketch_order == cad.SketchOrderType.SketchOrderHasCircles):
-                    new_separate_sketches = object.ExtractSeparateSketches(False)
-                    for one_curve_sketch in new_separate_sketches:
-                        self.DoGCodeCallsForSketch(one_curve_sketch, cut_mode, depth_params, tool_diameter, roll_radius, offset_extra, cutting_edge_angle)
-                else:
-                    self.DoGCodeCallsForSketch(object, cut_mode, depth_params, tool_diameter, roll_radius, offset_extra, cutting_edge_angle)
+        self.DoEachSketch(self.DoGCodeCallsForSketch, (cut_mode, depth_params, tool_diameter, roll_radius, offset_extra, cutting_edge_angle))
                     
     def GetTags(self):
         if self.tags == None:
@@ -329,3 +373,9 @@ class Profile(SketchOp):
         # finishing pass
         if self.do_finishing_pass:
             self.DoGCodeCallsForPass(True)
+            
+    def AddMissingChildren(self):
+        # add tags
+        self.tags = Tags.Tags()
+        self.Add(self.tags)
+            

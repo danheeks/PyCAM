@@ -42,33 +42,15 @@ class Operation(CamObject):
     
     def ReadDefaultValues(self):
         config = HeeksConfig()
-        
-        self.tool_number = config.ReadInt("OpTool", 0)
-        
-        if self.tool_number != 0:
-            default_tool = wx.GetApp().program.tools.FindTool(self.tool_number)
-            if default_tool == None:
-                self.tool_number = 0
-            else:
-                self.tool_number = default_tool.tool_number
-        
-        if self.tool_number == 0:
-            first_tool = wx.GetApp().program.tools.FindFirstTool(TOOL_TYPE_SLOTCUTTER)
-            if first_tool:
-                self.tool_number = first_tool.tool_number
-            else:
-                first_tool = wx.GetApp().program.tools.FindFirstTool(TOOL_TYPE_ENDMILL)
-                if first_tool:
-                    self.tool_number = first_tool.tool_number
-                else:
-                    first_tool = wx.GetApp().program.tools.FindFirstTool(TOOL_TYPE_BALLENDMILL)
-                    if first_tool:
-                        self.tool_number = first_tool.tool_number
+        self.tool_number = config.ReadInt("Tool", 0)
+        self.pattern = config.ReadInt("Pattern", 0)
+        self.surface = config.ReadInt("Surface", 0)
 
     def WriteDefaultValues(self):
         config = HeeksConfig()
-        if self.tool_number != 0:
-            config.WriteInt("OpTool", self.tool_number)
+        config.WriteInt("Tool", self.tool_number)
+        config.WriteInt("Pattern", self.pattern)
+        config.WriteInt("Surface", self.surface)
         
     def DoGCodeCalls(self):
         if len(self.comment) > 0:
@@ -78,6 +60,7 @@ class Operation(CamObject):
             wx.GetApp().SetTool(self.tool_number) # Select the correct  tool.
            
     def CopyFrom(self, object):
+        CamObject.CopyFrom(self, object)
         self.active = object.active
         self.comment = object.comment
         self.title = object.title
@@ -87,9 +70,21 @@ class Operation(CamObject):
         self.pattern = object.pattern
         self.surface = object.surface
         
+    def WriteXml(self):
+        if len(self.comment): cad.SetXmlValue('comment', self.comment)
+        cad.SetXmlValue('active', self.active)
+        cad.SetXmlValue('title', self.title)
+        cad.SetXmlValue('title_from_id', self.title_made_from_id)
+        cad.SetXmlValue('tool_number', self.tool_number)
+        cad.SetXmlValue('pattern', self.pattern)
+        cad.SetXmlValue('surface', self.surface)
+        CamObject.WriteXml(self)
+        
     def ReadXml(self):
         self.comment = cad.GetXmlValue('comment', self.comment)
         self.active = cad.GetXmlBool('active', self.active)
+        self.title = cad.GetXmlValue('title', self.title)
+        self.title_made_from_id = cad.GetXmlBool('title_from_id', self.title_made_from_id)
         self.tool_number = cad.GetXmlInt('tool_number', self.tool_number)
         self.pattern = cad.GetXmlInt('pattern', self.pattern)
         self.surface = cad.GetXmlInt('surface', self.surface)

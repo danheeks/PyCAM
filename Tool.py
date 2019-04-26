@@ -319,6 +319,7 @@ class Tool(CamObject):
         
     def ReadXml(self):
         self.tool_number = cad.GetXmlInt('tool_number')
+        self.title = cad.GetXmlValue('title')
         
         child_element = cad.GetFirstXmlChild()
         while child_element != None:
@@ -339,6 +340,23 @@ class Tool(CamObject):
         CamObject.ReadXml(self)
             
         self.ResetTitle()
+        
+    def WriteXml(self):
+        cad.SetXmlValue('title', self.title)
+        cad.SetXmlValue('tool_number', self.tool_number)
+        cad.BeginXmlChild('params')
+        cad.SetXmlValue('diameter', self.diameter)
+        cad.SetXmlValue('tool_length_offset', self.tool_length_offset)
+        cad.SetXmlValue('automatically_generate_title', self.automatically_generate_title)
+        cad.SetXmlValue('material', self.material)
+        cad.SetXmlValue('type', GetToolTypeXMLString(self.type))
+        cad.SetXmlValue('corner_radius', self.corner_radius)
+        cad.SetXmlValue('flat_radius', self.flat_radius)
+        cad.SetXmlValue('cutting_edge_angle', self.cutting_edge_angle)
+        cad.SetXmlValue('cutting_edge_height', self.cutting_edge_height)
+        cad.EndXmlChild()
+        
+        CamObject.WriteXml(self)
         
     def CallsObjListReadXml(self):
         return False
@@ -439,10 +457,10 @@ def GetToolTypeFromString(s):
 def GetToolTypeXMLString(type):
     if type == TOOL_TYPE_DRILL: return XML_STRING_DRILL
     elif type == TOOL_TYPE_CENTREDRILL: return XML_STRING_CENTRE_DRILL
-    elif type == TOOL_TYPE_CENTREDRILL: return XML_STRING_END_MILL
-    elif type == TOOL_TYPE_CENTREDRILL: return XML_STRING_SLOT_CUTTER
-    elif type == TOOL_TYPE_CENTREDRILL: return XML_STRING_BALL_END_MILL
-    elif type == TOOL_TYPE_CENTREDRILL: return XML_STRING_CHAMFER
+    elif type == TOOL_TYPE_ENDMILL: return XML_STRING_END_MILL
+    elif type == TOOL_TYPE_SLOTCUTTER: return XML_STRING_SLOT_CUTTER
+    elif type == TOOL_TYPE_BALLENDMILL: return XML_STRING_BALL_END_MILL
+    elif type == TOOL_TYPE_CHAMFER: return XML_STRING_CHAMFER
     return XML_STRING_UNDEFINED
 
 def FindToolType(tool_number):

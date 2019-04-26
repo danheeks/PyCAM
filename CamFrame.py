@@ -8,6 +8,7 @@ sys.path.append(pycad_dir)
 
 from Frame import Frame # from CAD
 import Profile
+import Pocket
 from OutputWindow import OutputWindow
 
 class CamFrame(Frame):
@@ -21,29 +22,29 @@ class CamFrame(Frame):
         
         self.AddMenu('&Machining')
         self.AddMenu('Add New Milling Operation', 'ops')        
-        self.AddMenuItem('Profile Operation...', self.NewProfileOpMenuCallback, None, 'opprofile')        
-        self.AddMenuItem('Pocket Operation...', self.NewProfileOpMenuCallback, None, 'drilling')        
-        self.AddMenuItem('Drilling Operation...', self.NewProfileOpMenuCallback, None, 'pocket')  
+        self.AddMenuItem('Profile Operation...', self.NewProfileOp, None, 'opprofile')        
+        self.AddMenuItem('Pocket Operation...', self.NewPocketOp, None, 'pocket')        
+        self.AddMenuItem('Drilling Operation...', self.NewDrillingOp, None, 'drilling')  
         self.EndMenu()      
         self.AddMenu('Add Other Operation', 'ops')        
-        self.AddMenuItem('Script Operation...', self.NewProfileOpMenuCallback, None, 'scriptop')        
-        self.AddMenuItem('Pattern...', self.NewProfileOpMenuCallback, None, 'pattern')        
-        self.AddMenuItem('Surface...', self.NewProfileOpMenuCallback, None, 'surface')        
-        self.AddMenuItem('Stock...', self.NewProfileOpMenuCallback, None, 'stock')        
+        self.AddMenuItem('Script Operation...', self.NewProfileOp, None, 'scriptop')        
+        self.AddMenuItem('Pattern...', self.NewProfileOp, None, 'pattern')        
+        self.AddMenuItem('Surface...', self.NewProfileOp, None, 'surface')        
+        self.AddMenuItem('Stock...', self.NewProfileOp, None, 'stock')        
         self.EndMenu()      
         self.AddMenu('Add New Tool', 'tools')        
-        self.AddMenuItem('Drill...', self.NewProfileOpMenuCallback, None, 'drill')        
-        self.AddMenuItem('Centre Drill...', self.NewProfileOpMenuCallback, None, 'centredrill')        
-        self.AddMenuItem('End Mill...', self.NewProfileOpMenuCallback, None, 'endmill')        
-        self.AddMenuItem('Slot Drill...', self.NewProfileOpMenuCallback, None, 'slotdrill')        
-        self.AddMenuItem('Ball End Mill...', self.NewProfileOpMenuCallback, None, 'ballmill')        
-        self.AddMenuItem('Chamfer Mill...', self.NewProfileOpMenuCallback, None, 'chamfmill')        
+        self.AddMenuItem('Drill...', self.NewProfileOp, None, 'drill')        
+        self.AddMenuItem('Centre Drill...', self.NewProfileOp, None, 'centredrill')        
+        self.AddMenuItem('End Mill...', self.NewProfileOp, None, 'endmill')        
+        self.AddMenuItem('Slot Drill...', self.NewProfileOp, None, 'slotdrill')        
+        self.AddMenuItem('Ball End Mill...', self.NewProfileOp, None, 'ballmill')        
+        self.AddMenuItem('Chamfer Mill...', self.NewProfileOp, None, 'chamfmill')        
         self.EndMenu()      
-        self.AddMenuItem('Run Python Script', self.NewProfileOpMenuCallback, None, 'runpython')        
+        self.AddMenuItem('Run Python Script', self.NewProfileOp, None, 'runpython')        
         self.AddMenuItem('Post-Process', self.PostProcessMenuCallback, None, 'postprocess')        
-        self.AddMenuItem('Simulate', self.NewProfileOpMenuCallback, None, 'simulate')        
-        self.AddMenuItem('Open NC File', self.NewProfileOpMenuCallback, None, 'opennc')        
-        self.AddMenuItem('Save NC File As', self.NewProfileOpMenuCallback, None, 'savenc')        
+        self.AddMenuItem('Simulate', self.NewProfileOp, None, 'simulate')        
+        self.AddMenuItem('Open NC File', self.NewProfileOp, None, 'opennc')        
+        self.AddMenuItem('Save NC File As', self.NewProfileOp, None, 'savenc')        
         self.EndMenu()      
         
         self.AddMenuItem('Output', self.OnViewOutput, self.OnUpdateViewOutput, check_item = True, menu = self.window_menu)
@@ -53,21 +54,51 @@ class CamFrame(Frame):
     def AddExtraWindows(self):
         self.output_window = OutputWindow(self)
         self.aui_manager.AddPane(self.output_window, wx.aui.AuiPaneInfo().Name('Output').Caption('Output').Left().Bottom().BestSize(wx.Size(600, 200)))
-    
-    def NewProfileOpMenuCallback(self, e):
         
-        # to do find selected sketches
-        sketch = 0
-        new_object = Profile.Profile(sketch)
-        #new_object->SetID(heeksCAD->GetNextID(ProfileType));
-        #new_object->AddMissingChildren(); // add the tags container
+    def GetSelectedSketch(self):
+        sketches = []
+        for object in cad.GetSelectedObjects():
+            if object.GetIDGroupType() == cad.OBJECT_TYPE_SKETCH:
+                sketches.append(object.GetID())
+        return sketches
+    
+    def EditAndAddSketchOp(self, new_object, sketches):
         if new_object.Edit():
             cad.StartHistory()
             cad.AddUndoably(new_object, wx.GetApp().program.operations, None)
             
-            # to do, add a copy of the operation for each of the sketches found
+            first = True
+            for sketch in sketches:
+                if first:
+                    first = False
+                else:
+                    copy = new_object.MakeACopy()
+                    copy.sketch = sketch
+                    cad.AddUndoably(copy, wx.GetApp().program.operations, None)
             
             cad.EndHistory()
+    
+    def NewProfileOp(self, e):
+        sketches = self.GetSelectedSketch()
+        sketch = 0
+        if len(sketches) > 0: sketch = sketches[0]
+        new_object = Profile.Profile(sketch)
+        new_object.SetID(cad.GetNextID(Profile.type))
+        new_object.AddMissingChildren()  # add the tags container
+        
+        self.EditAndAddSketchOp(new_object, sketches)
+            
+    def NewPocketOp(self, e):
+        sketches = self.GetSelectedSketch()
+        sketch = 0
+        if len(sketches) > 0: sketch = sketches[0]
+        new_object = Pocket.Pocket(sketch)
+        new_object.SetID(cad.GetNextID(Pocket.type))
+        
+        self.EditAndAddSketchOp(new_object, sketches)
+            
+    def NewDrillingOp(self, e):
+        pass
 
     def on_post_process(self):
         import wx

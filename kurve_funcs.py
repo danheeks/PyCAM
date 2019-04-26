@@ -105,7 +105,7 @@ class Tag:
         d = curve.PointToPerim(self.p)
         p = curve.PerimToPoint(d)
         v = self.p - p
-        return v.length()
+        return v.Length()
 
 tags = []
 
@@ -302,7 +302,7 @@ def profile(curve, direction = "on", radius = 1.0, offset_extra = 0.0, roll_radi
     new_tags = []
     for tag in tags:
         if tag.dist(offset_curve) <= radius + 0.001:
-            new_tags.Append(tag)
+            new_tags.append(tag)
     tags = new_tags
 
     if offset_curve.NumVertices() <= 1:

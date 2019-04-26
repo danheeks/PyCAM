@@ -30,7 +30,6 @@ class Program(CamObject):
         default_output_file = str((wx.StandardPaths.Get().GetTempDir() + "/test.tap").replace('\\', '/'))
         self.output_file = config.Read("ProgramOutputFile", default_output_file)  #  // NOTE: Only relevant if the filename does NOT follow the data file's name.
         self.output_file_name_follows_data_file_name = config.ReadBool("OutputFileNameFollowsDataFileName", True) #    // Just change the extension to determine the NC file name
-        self.python_program = ""
         self.path_control_mode = config.ReadInt("ProgramPathControlMode", PATH_CONTROL_UNDEFINED)
         self.motion_blending_tolerance = config.ReadFloat("ProgramMotionBlendingTolerance", 0.0001)    # Only valid if m_path_control_mode == eBestPossibleSpeed
         self.naive_cam_tolerance = config.ReadFloat("ProgramNaiveCamTolerance", 0.0001)        # Only valid if m_path_control_mode == eBestPossibleSpeed
@@ -145,12 +144,12 @@ class Program(CamObject):
     def WriteXml(self):
         cad.SetXmlValue('machine', self.machine.description)
         cad.SetXmlValue('output_file', self.output_file)
-        cad.SetXmlValue('output_file_name_follows_data_file_name', str(self.output_file_name_follows_data_file_name))
-        cad.SetXmlValue('program', self.python_program)
-        cad.SetXmlValue('units', str(self.units))
-        cad.SetXmlValue('ProgramPathControlMode', str(self.path_control_mode))
-        cad.SetXmlValue('ProgramMotionBlendingTolerance', str(self.motion_blending_tolerance))
-        cad.SetXmlValue('ProgramNaiveCamTolerance', str(self.naive_cam_tolerance))
+        cad.SetXmlValue('output_file_name_follows_data_file_name', self.output_file_name_follows_data_file_name)
+        cad.SetXmlValue('units', self.units)
+        cad.SetXmlValue('ProgramPathControlMode', self.path_control_mode)
+        cad.SetXmlValue('ProgramMotionBlendingTolerance', self.motion_blending_tolerance)
+        cad.SetXmlValue('ProgramNaiveCamTolerance', self.naive_cam_tolerance)
+        CamObject.WriteXml(self)
 
     def CallsObjListReadXml(self):
         return False
@@ -159,7 +158,6 @@ class Program(CamObject):
         self.machine = self.GetMachine( cad.GetXmlValue('machine') )
         self.output_file = cad.GetXmlValue('output_file')
         self.output_file_name_follows_data_file_name = bool(cad.GetXmlValue('output_file'))
-        self.python_program = cad.GetXmlValue('program')
         self.units = float(cad.GetXmlValue('units'))
         self.path_control_mode = int(cad.GetXmlValue('ProgramPathControlMode'))
         self.motion_blending_tolerance = float(cad.GetXmlValue('ProgramMotionBlendingTolerance'))

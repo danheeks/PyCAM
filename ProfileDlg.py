@@ -17,7 +17,7 @@ class ProfileDlg(SketchOpDlg):
         self.cmbToolOnSide = ComboBoxBinded(self, choices = tool_on_side_choices)
         self.MakeLabelAndControl("Tool On Side", self.cmbToolOnSide).AddToSizer(self.sizerLeft)
         
-        self.SetSketchOrderAndCombo()
+        #self.SetSketchOrderAndCombo(self.sketch)
         
         cut_mode_choices = ["Conventional", "Climb"]
         self.cmbCutMode = ComboBoxBinded(self, choices = cut_mode_choices)
@@ -44,6 +44,11 @@ class ProfileDlg(SketchOpDlg):
         
         SketchOpDlg.AddLeftControls(self)
         
+    def OnSketchCombo(self, event):
+        choice = self.cmbToolOnSide.GetSelection()
+        self.SetSketchOrderAndCombo(self.cmbSketch.GetSelectedId())
+        self.cmbToolOnSide.SetSelection(choice)
+        
     def SetDefaultFocus(self):
         #self.cmbSketch.SetFocus()
         pass
@@ -68,11 +73,11 @@ class ProfileDlg(SketchOpDlg):
         SketchOpDlg.GetDataRaw(self)
         
     def SetFromDataRaw(self):
-        choice = Profile.PROFILE_ON
+        choice = 2
         if self.object.tool_on_side == Profile.PROFILE_RIGHT_OR_INSIDE:
             choice = 1
         elif self.object.tool_on_side == Profile.PROFILE_LEFT_OR_OUTSIDE:
-            choice = 2
+            choice = 0
         self.cmbToolOnSide.SetSelection(choice)
         
         self.cmbCutMode.SetValue("Climb" if self.object.cut_mode == Profile.PROFILE_CLIMB else "Conventional")
@@ -87,6 +92,8 @@ class ProfileDlg(SketchOpDlg):
         self.EnableControls()
         
         SketchOpDlg.SetFromDataRaw(self)
+        
+        self.SetSketchOrderAndCombo(self.cmbSketch.GetSelectedId())
         
     def EnableControls(self):
         finish = self.chkDoFinishingPass.GetValue()
@@ -137,8 +144,23 @@ class ProfileDlg(SketchOpDlg):
 #        else:
 #            SketchOpDlg.SetPictureByWindow(self, w)
         
-    def SetSketchOrderAndCombo(self):
+    def SetSketchOrderAndCombo(self, s):
         self.order = cad.SketchOrderType.SketchOrderTypeUnknown
+        
+        sketch = cad.GetObjectFromId(cad.OBJECT_TYPE_SKETCH, s)
+        if sketch and sketch.GetType() == cad.OBJECT_TYPE_SKETCH:
+            self.order = sketch.GetSketchOrder()
+            
+        if self.order == cad.SketchOrderType.SketchOrderTypeOpen:
+            self.cmbToolOnSide.SetString(0, 'Left')
+            self.cmbToolOnSide.SetString(1, 'Right')
+        elif self.order == cad.SketchOrderType.SketchOrderTypeCloseCW or self.order == cad.SketchOrderType.SketchOrderTypeCloseCCW:
+            self.cmbToolOnSide.SetString(0, 'Outside')
+            self.cmbToolOnSide.SetString(1, 'Inside')
+        else:
+            self.cmbToolOnSide.SetString(0, 'Outside or Left')
+            self.cmbToolOnSide.SetString(1, 'Inside or Right')
+            
         
 def Do(object):
     dlg = ProfileDlg(object)
