@@ -18,3 +18,11 @@ class Stocks(CamObject):
     
     def CanBeDeleted(self):
         return False
+        
+    def OneOfAKind(self):
+        return True
+        
+    def MakeACopy(self):
+        object = Stocks()
+        object.CopyFrom(self)
+        return object

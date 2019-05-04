@@ -17,7 +17,7 @@ class PocketDlg(SketchOpDlg):
         self.lgthStepOver = LengthCtrl(self)
         self.MakeLabelAndControl("Step Over", self.lgthStepOver).AddToSizer(self.sizerLeft)
         self.lgthMaterialAllowance = LengthCtrl(self)
-        self.MakeLabelAndControl("Ml Allowance", self.lgthMaterialAllowance).AddToSizer(self.sizerLeft)
+        self.MakeLabelAndControl("Materiall Allowance", self.lgthMaterialAllowance).AddToSizer(self.sizerLeft)
         self.cmbStartingPlace = ComboBoxBinded(self, choices = ["Boundary", "Center"])
         self.MakeLabelAndControl("Starting Place", self.cmbStartingPlace).AddToSizer(self.sizerLeft)
         self.cmbCutMode = ComboBoxBinded(self, choices = ["Conventional", "Climb"])
@@ -68,13 +68,10 @@ class PocketDlg(SketchOpDlg):
 
     def SetPictureByName(self, name):
         self.SetPictureByNameAndFolder( name, 'pocket')
-        
-    def SetPictureBitmap(self, bitmap, name):
-        self.picture.SetPictureBitmap(bitmap, HeeksCNC.heekscnc_path + "/bitmaps/pocket/" + name + ".png", wx.BITMAP_TYPE_PNG)
 
     def SetPictureByWindow(self, w):
         if w == self.lgthStepOver: PocketDlg.SetPictureByName(self, 'step over')
-        elif w == self.lgthMaterialAllowance: PocketDlg.SetPictureByName(self, 'step over')
+        elif w == self.lgthMaterialAllowance: PocketDlg.SetPictureByName(self, 'material allowance')
         elif w == self.cmbStartingPlace:
             if self.cmbStartingPlace.GetSelection() == 1:
                 PocketDlg.SetPictureByName(self, 'starting center')
@@ -94,8 +91,8 @@ class PocketDlg(SketchOpDlg):
                 else: PocketDlg.SetPictureByName(self, 'use zig zag')
             else: PocketDlg.SetPictureByName(self, 'general')
         elif w == self.dblZigAngle: PocketDlg.SetPictureByName(self, 'zig angle')
-#        else:
-#            SketchOpDlg.SetPictureByWindow(self, w)
+        else:
+            SketchOpDlg.SetPictureByWindow(self, w)
         
 def Do(object):
     dlg = PocketDlg(object)

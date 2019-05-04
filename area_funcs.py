@@ -237,7 +237,7 @@ def make_zig_curve(curve, y0, y, zig_unidirectional):
                 for v in vertices:
                     zig.Append(v)
 
-        curve_list_for_zigs.Append(zig)
+        curve_list_for_zigs.append(zig)
 
 def make_zig(a, y0, y, zig_unidirectional):
     for curve in a.GetCurves():
@@ -254,13 +254,13 @@ def add_reorder_zig(curve):
         last_curve = curve_list[len(curve_list) - 1]
         e = last_curve.LastVertex().p
         if math.fabs(s.x - e.x) < 0.002 * one_over_units and math.fabs(s.y - e.y) < 0.002 * one_over_units:
-            curve_list.Append(curve)
+            curve_list.append(curve)
             return
 
     # else add a new list
     curve_list = []
-    curve_list.Append(curve)
-    reorder_zig_list_list.Append(curve_list)
+    curve_list.append(curve)
+    reorder_zig_list_list.append(curve_list)
 
 def reorder_zigs():
     global curve_list_for_zigs
@@ -272,7 +272,7 @@ def reorder_zigs():
     curve_list_for_zigs = []
     for curve_list in reorder_zig_list_list:
         for curve in curve_list:
-            curve_list_for_zigs.Append(curve)
+            curve_list_for_zigs.append(curve)
 
 def rotated_point(p):
     return geom.Point(p.x * cos_angle_for_zigs - p.y * sin_angle_for_zigs, p.x * sin_angle_for_zigs + p.y * cos_angle_for_zigs)
@@ -315,8 +315,7 @@ def zigzag(a, stepover, zig_unidirectional):
 
     a = rotated_area(a)
 
-    b = geom.Box()
-    a.GetBox(b)
+    b = a.GetBox()
 
     x0 = b.MinX() - 1.0
     x1 = b.MaxX() + 1.0

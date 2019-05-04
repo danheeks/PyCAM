@@ -9,6 +9,7 @@ sys.path.append(pycad_dir)
 from Frame import Frame # from CAD
 import Profile
 import Pocket
+import Drilling
 from OutputWindow import OutputWindow
 
 class CamFrame(Frame):
@@ -55,12 +56,19 @@ class CamFrame(Frame):
         self.output_window = OutputWindow(self)
         self.aui_manager.AddPane(self.output_window, wx.aui.AuiPaneInfo().Name('Output').Caption('Output').Left().Bottom().BestSize(wx.Size(600, 200)))
         
-    def GetSelectedSketch(self):
+    def GetSelectedSketches(self):
         sketches = []
         for object in cad.GetSelectedObjects():
             if object.GetIDGroupType() == cad.OBJECT_TYPE_SKETCH:
                 sketches.append(object.GetID())
         return sketches
+        
+    def GetSelectedPoints(self):
+        points = []
+        for object in cad.GetSelectedObjects():
+            if object.GetIDGroupType() == cad.OBJECT_TYPE_POINT:
+                points.append(object.GetID())
+        return points
     
     def EditAndAddSketchOp(self, new_object, sketches):
         if new_object.Edit():
@@ -79,7 +87,7 @@ class CamFrame(Frame):
             cad.EndHistory()
     
     def NewProfileOp(self, e):
-        sketches = self.GetSelectedSketch()
+        sketches = self.GetSelectedSketches()
         sketch = 0
         if len(sketches) > 0: sketch = sketches[0]
         new_object = Profile.Profile(sketch)
@@ -89,7 +97,7 @@ class CamFrame(Frame):
         self.EditAndAddSketchOp(new_object, sketches)
             
     def NewPocketOp(self, e):
-        sketches = self.GetSelectedSketch()
+        sketches = self.GetSelectedSketches()
         sketch = 0
         if len(sketches) > 0: sketch = sketches[0]
         new_object = Pocket.Pocket(sketch)
@@ -98,7 +106,13 @@ class CamFrame(Frame):
         self.EditAndAddSketchOp(new_object, sketches)
             
     def NewDrillingOp(self, e):
-        pass
+        new_object = Drilling.Drilling()
+        new_object.points += self.GetSelectedPoints()
+        new_object.SetID(cad.GetNextID(Drilling.type))
+        if new_object.Edit():
+            cad.StartHistory()
+            cad.AddUndoably(new_object, wx.GetApp().program.operations, None)
+            cad.EndHistory()
 
     def on_post_process(self):
         import wx

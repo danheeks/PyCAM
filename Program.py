@@ -50,6 +50,9 @@ class Program(CamObject):
     def icon(self):
         # the name of the PNG file in the HeeksCNC icons folder
         return "program"
+        
+    def OneOfAKind(self):
+        return True
     
     def CanBeDeleted(self):
         return False
@@ -151,9 +154,6 @@ class Program(CamObject):
         cad.SetXmlValue('ProgramNaiveCamTolerance', self.naive_cam_tolerance)
         CamObject.WriteXml(self)
 
-    def CallsObjListReadXml(self):
-        return False
-    
     def ReadXml(self):
         self.machine = self.GetMachine( cad.GetXmlValue('machine') )
         self.output_file = cad.GetXmlValue('output_file')
@@ -163,7 +163,7 @@ class Program(CamObject):
         self.motion_blending_tolerance = float(cad.GetXmlValue('ProgramMotionBlendingTolerance'))
         self.naive_cam_tolerance = float(cad.GetXmlValue('ProgramNaiveCamTolerance'))
         
-        cad.ObjList.ReadXml(self)
+        CamObject.ReadXml(self)
         
         self.ReloadPointers()
         
@@ -192,11 +192,18 @@ class Program(CamObject):
         self.path_control_mode = o.path_control_mode
         self.motion_blending_tolerance = o.motion_blending_tolerance
         self.naive_cam_tolerance = o.naive_cam_tolerance
+        CamObject.CopyFrom(self, o)
     
     def AutoExpand(self):
         return True
     
     def OnRenderTriangles(self):
+        if self.operations:
+            object = self.operations.GetFirstChild()
+            while object:
+                object.OnRenderTriangles()
+                object = self.GetNextChild()
+
         if self.nccode:
             self.nccode.OnRenderTriangles()
     

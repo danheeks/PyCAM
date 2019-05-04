@@ -17,7 +17,6 @@ class SketchOp(DepthOp):
         
     def ReadXml(self):
         self.sketch = cad.GetXmlInt('sketch')      
-        print('self.sketch = ' + str(self.sketch))
         DepthOp.ReadXml(self)
 
     def GetProperties(self):

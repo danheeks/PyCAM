@@ -91,11 +91,30 @@ class Pocket(SketchOp):
     def op_icon(self):
         # the name of the PNG file in the HeeksCNC icons folder
         return "pocket"
+    
+    def HasEdit(self):
+        return True
         
     def Edit(self):
         import PocketDlg
         res =  PocketDlg.Do(self)
         return res
+        
+    def MakeACopy(self):
+        copy = Pocket(self.sketch)
+        copy.CopyFrom(self)
+        return copy
+    
+    def CopyFrom(self, object):
+        SketchOp.CopyFrom(self, object)
+        self.step_over = object.step_over
+        self.cut_mode = object.cut_mode
+        self.material_allowance = object.material_allowance
+        self.keep_tool_down_if_poss = object.keep_tool_down_if_poss
+        self.use_zig_zag = object.use_zig_zag
+        self.zig_angle = object.zig_angle
+        self.zig_unidirectional = object.zig_unidirectional
+        self.entry_move = object.entry_move
             
     def GetProperties(self):
         properties = []
@@ -106,7 +125,7 @@ class Pocket(SketchOp):
         properties.append(PyChoiceProperty("Starting Place", 'from_center', ['Conventional', 'Climb'], self))
         properties.append(PyChoiceProperty("Entry Move", 'entry_move', ['Plunge', 'Ramp', 'Helical'], self, [1,2,3]))
         properties.append(PyProperty("Keep Tool Down", 'keep_tool_down_if_poss', self))
-        properties.append(PyProperty("Use Zig Zag", 'keep_tool_down_if_poss', self))
+        properties.append(PyProperty("Use Zig Zag", 'use_zig_zag', self))
         properties.append(PyProperty("Zig Angle", 'zig_angle', self))
         properties.append(PyProperty("Unidirectional", 'zig_unidirectional', self))
         
@@ -132,6 +151,7 @@ class Pocket(SketchOp):
         
         depth_params = self.GetDepthParams()
         tool_diameter = tool.CuttingRadius(True) * 2.0
+        SpeedOp.DoGCodeCalls(self)
         
         self.DoEachSketch(self.DoGCodeCallsForSketch, (self.cut_mode, depth_params, tool_diameter))
 

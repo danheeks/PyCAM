@@ -11,6 +11,7 @@ from nc.nc import *
 import kurve_funcs
 from HeeksConfig import HeeksConfig
 import Tags
+import Tag
 import math
 
 PROFILE_RIGHT_OR_INSIDE = -1
@@ -378,4 +379,46 @@ class Profile(SketchOp):
         # add tags
         self.tags = Tags.Tags()
         self.Add(self.tags)
+        
+    def OnRenderTriangles(self):
+        if self.tags:
+            object = self.tags.GetFirstChild()
+            while object:
+                object.OnRenderTriangles()
+                object = self.tags.GetNextChild()
+
+class TagDrawing(cad.Drawing):
+    def __init__(self):
+        cad.Drawing.__init__(self)
+        self.profile = None
+        
+    # cad.InputMode's overridden method
+    def GetTitle(self):
+        return "Tag Drawing"
+    
+    def IsAnAddLevel(self, level):
+        return True
+    
+    def NumberOfSteps(self):
+        return 1
+        
+    def CalculateItem(self, end):
+        if end.type == cad.DigitizeType.DIGITIZE_NO_ITEM_TYPE:
+            return False
+
+        if (self.TempObject() != None) and (self.TempObject().GetType() != Tag.type):
+            self.ClearObjectsMade()
+
+        if self.TempObject() == None:
+            tag = Tag.Tag()
+            self.AddToTempObjects(tag)
+        else:
+            self.TempObject().pos.x = end.point.x
+            self.TempObject().pos.y = end.point.y
+        return True
+            
+    def GetOwnerForDrawingObjects(self):
+        return self.profile.tags
+        
+tag_drawing = TagDrawing()        
             

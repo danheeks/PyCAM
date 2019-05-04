@@ -20,9 +20,10 @@ import Stocks
 import NcCode
 import Profile
 import Pocket
-#import Drilling
+import Drilling
 import Tags
 import Tag
+import CamContextTool
 
 programs = []
 
@@ -36,7 +37,7 @@ def CreateStocks(): return Stocks.Stocks()
 def CreateNcCode(): return NcCode.NcCode()
 def CreateProfile(): return Profile.Profile()
 def CreatePocket(): return Pocket.Pocket()
-#def CreateDrilling(): return Drilling.Drilling()
+def CreateDrilling(): return Drilling.Drilling()
 def CreateTags(): return Tags.Tags()
 def CreateTag(): return Tag.Tag()
 
@@ -58,7 +59,7 @@ class CamApp(App):
         NcCode.type = cad.RegisterObjectType("nccode", CreateNcCode)
         Profile.type = cad.RegisterObjectType("Profile", CreateProfile)
         Pocket.type = cad.RegisterObjectType("Pocket", CreatePocket)
-        #Profile.type = cad.RegisterObjectType("Drilling", CreateDrilling)
+        Drilling.type = cad.RegisterObjectType("Drilling", CreateDrilling)
         Tags.type = cad.RegisterObjectType("Tags", CreateTags)
         Tag.type = cad.RegisterObjectType("Tag", CreateTag)
         
@@ -88,8 +89,8 @@ class CamApp(App):
         App.OnNewOrOpen(self, open)
 
         self.AddProgramIfThereIsntOne()
-#        if open == False:
-#            self.frame.OnOpenFilepath('c:/users/dan heeks/downloads/pocket2.heeks', False)
+#         if open == False:
+#             self.frame.OnOpenFilepath('c:/users/dan heeks/downloads/two points.heeks', False)
             
     def SetTool(self, tool_number):
         tool = Tool.FindTool(tool_number)
@@ -102,5 +103,14 @@ class CamApp(App):
 
         self.tool_number = tool_number
         
+    def AddTags(self, object):
+        Profile.tag_drawing.profile = object
+        cad.SetInputMode(Profile.tag_drawing)
+        
+    def GetObjectTools(self, object, from_tree_canvas = False):
+        tools = App.GetObjectTools(self, object, from_tree_canvas)
+        if object.GetType() == Profile.type:
+            tools.append(CamContextTool.CamObjectContextTool(object, "Add Tags", "addtag", self.AddTags))
+        return tools
         
 

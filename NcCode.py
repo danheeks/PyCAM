@@ -515,7 +515,7 @@ class NcCode(CamObject):
             return 0,0,0,0,0,0
         return self.box.MinX(), self.box.MinY(), self.box.MinZ(), self.box.MaxX(), self.box.MaxY(), self.box.MaxZ()
         
-    def MakeACopy(self):
+    def MakeACopy(self, object):
         object = NcCode()
         object.CopyFrom(self)
         return object
@@ -534,6 +534,7 @@ class NcCode(CamObject):
         cad.SetXmlValue('edited', self.edited)
         for block in self.blocks:
             block.WriteXML()
+        CamObject.WriteXml(self)
     
     def CallsObjListReadXml(self):
         return False

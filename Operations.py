@@ -23,3 +23,11 @@ class Operations(CamObject):
     
     def AutoExpand(self):
         return True
+        
+    def OneOfAKind(self):
+        return True
+        
+    def MakeACopy(self):
+        object = Operations()
+        object.CopyFrom(self)
+        return object

@@ -62,3 +62,10 @@ class Tag(CamObject):
         properties += CamObject.GetProperties(self)
 
         return properties
+        
+    def OnRenderTriangles(self):
+        cad.DrawColor(cad.Color(0,0,0))
+        cad.DrawSymbol(1, self.pos.x, self.pos.y, 0.0)
+        cad.DrawColor(cad.Color(0,0,255))
+        cad.DrawSymbol(0, self.pos.x, self.pos.y, 0.0)
+    

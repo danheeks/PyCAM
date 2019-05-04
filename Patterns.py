@@ -18,3 +18,11 @@ class Patterns(CamObject):
     
     def CanBeDeleted(self):
         return False
+        
+    def OneOfAKind(self):
+        return True
+        
+    def MakeACopy(self):
+        object = Patterns()
+        object.CopyFrom(self)
+        return object

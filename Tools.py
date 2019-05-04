@@ -22,6 +22,9 @@ class Tools(CamObject):
     
     def CanBeDeleted(self):
         return False
+        
+    def OneOfAKind(self):
+        return True
     
     def AddToPopupMenu(self, menu):
         menu.AddItem("save as default tools", self.OnSaveDefault)
@@ -46,6 +49,11 @@ class Tools(CamObject):
             cad.AddUndoably(Tool(diameter = 3.0, type = TOOL_TYPE_SLOTCUTTER, tool_number = 1), self, None)
             cad.AddUndoably(Tool(diameter = 6.0, type = TOOL_TYPE_SLOTCUTTER, tool_number = 2), self, None)
             return
+        
+    def MakeACopy(self):
+        object = Tools()
+        object.CopyFrom(self)
+        return object
         
     def FindAllTools(self):
         tools = []

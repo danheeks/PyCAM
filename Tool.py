@@ -26,11 +26,6 @@ class Tool(CamObject):
         self.diameter = diameter
         self.material = TOOL_MATERIAL_UNDEFINED
         self.tool_length_offset = 0.0
-        self.x_offset = 0.0
-        self.front_angle = 0.0
-        self.tool_angle = 0.0
-        self.back_angle = 0.0
-        self.orientation = 0
         
         '''
         // also m_corner_radius, see below, is used for turning tools and milling tools
@@ -150,6 +145,19 @@ class Tool(CamObject):
     def icon(self):
         # the name of the PNG file in the HeeksCNC icons folder
         return "tool"
+        
+    def MakeACopy(self):
+        object = Tool()
+        object.CopyFrom(self)
+        return object
+    
+    def CopyFrom(self, object):
+        self.tool_number = object.tool_number
+        self.type = object.type
+        self.diameter = object.diameter
+        self.material = object.material
+        self.tool_length_offset = object.tool_length_offset
+        CamObject.CopyFrom(self, object)
     
     def ResetParametersToReasonableValues(self):
         if self.type != TOOL_TYPE_TURNINGTOOL:
