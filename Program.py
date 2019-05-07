@@ -197,15 +197,15 @@ class Program(CamObject):
     def AutoExpand(self):
         return True
     
-    def OnRenderTriangles(self):
-        if self.operations:
-            object = self.operations.GetFirstChild()
-            while object:
-                object.OnRenderTriangles()
-                object = self.GetNextChild()
+#    def OnRenderTriangles(self):
+#        if self.operations:
+#            object = self.operations.GetFirstChild()
+#            while object:
+#                object.OnRenderTriangles()
+#                object = self.GetNextChild()
 
-        if self.nccode:
-            self.nccode.OnRenderTriangles()
+#        if self.nccode:
+#            self.nccode.OnRenderTriangles()
     
     def MakeGCode(self):
         wx.GetApp().attached_to_surface = None

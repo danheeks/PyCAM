@@ -506,14 +506,12 @@ class NcCode(CamObject):
             block.glCommands(block == self.highlighted_block)
             #glPopName()
         
-    def GetBox(self):
+    def GetBox(self, box):
         if not self.box.valid:
             for block in self.blocks:
                 block.GetBox(self.box)
                 
-        if not self.box.valid:
-            return 0,0,0,0,0,0
-        return self.box.MinX(), self.box.MinY(), self.box.MinZ(), self.box.MaxX(), self.box.MaxY(), self.box.MaxZ()
+        box.InsertBox(self.box)
         
     def MakeACopy(self, object):
         object = NcCode()
