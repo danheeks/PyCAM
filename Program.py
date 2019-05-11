@@ -39,7 +39,6 @@ class Program(CamObject):
         self.stocks = None
         self.operations = None
         self.nccode = None
-        self.SetUsesLights(False)
         
     def TypeName(self):
         return "Program"

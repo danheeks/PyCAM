@@ -7,6 +7,7 @@ cam_dir = os.path.dirname(os.path.realpath(__file__))
 pycad_dir = os.path.realpath(cam_dir + '/../../PyCAD/trunk')
 sys.path.append(pycad_dir)
 import cad
+import cam
 
 from App import App # from CAD
 from CamFrame import CamFrame
