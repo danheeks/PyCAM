@@ -9,5 +9,12 @@ extern "C" {
 #include <GL/glu.h>
 }
 
-#include "../../../PyCAD/trunk/Geom/geometry.h"
-#include "../../../PyCAD/trunk/CAD/tinyxml.h"
+#include "geometry.h"
+#include "Point.h"
+#include "Box.h"
+#include "tinyxml.h"
+#include "IPoint.h"
+
+extern std::wstring cam_dir;
+#include "App.h"
+extern CApp* theApp;

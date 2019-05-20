@@ -5,7 +5,6 @@ import Surfaces
 import Stocks
 from RawMaterial import RawMaterial
 from Machine import Machine
-import NcCode
 from HeeksConfig import HeeksConfig
 from consts import *
 import wx
@@ -14,6 +13,7 @@ import cad
 from Object import PyProperty
 from nc.nc import *
 import Surface
+import cam
 
 type = 0
 
@@ -69,7 +69,7 @@ class Program(CamObject):
         self.Add(self.stocks)
         self.operations = Operations.Operations()
         self.Add(self.operations)
-        self.nccode = NcCode.NcCode()
+        self.nccode = cam.NcCode()
         self.Add(self.nccode)
 
     def GetOutputFileName(self):
@@ -168,13 +168,15 @@ class Program(CamObject):
         
     def ReloadPointers(self):
         object = self.GetFirstChild()
+        print('Program.ReloadPointers')
         while object:
             if object.GetType() == Tools.type:self.tools = object
             if object.GetType() == Patterns.type:self.patterns = object
             if object.GetType() == Surfaces.type:self.surfaces = object
             if object.GetType() == Stocks.type:self.stocks = object
             if object.GetType() == Operations.type:self.operations = object
-            if object.GetType() == NcCode.type:self.nccode = object
+            if object.GetType() == cam.GetNcCodeType():self.nccode = object
+            
             object = self.GetNextChild()
                 
     def MakeACopy(self):

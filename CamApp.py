@@ -9,6 +9,9 @@ sys.path.append(pycad_dir)
 import cad
 import cam
 
+cam.SetResPath(cam_dir)
+cam.SetApp(cad.GetApp())
+
 from App import App # from CAD
 from CamFrame import CamFrame
 import Program
@@ -18,13 +21,15 @@ import Operations
 import Patterns
 import Surfaces
 import Stocks
-import NcCode
+#import NcCode
 import Profile
 import Pocket
 import Drilling
+import ScriptOp
 import Tags
 import Tag
 import CamContextTool
+from HeeksConfig import HeeksConfig
 
 programs = []
 
@@ -35,12 +40,13 @@ def CreateOperations(): return Operations.Operations()
 def CreatePatterns(): return Patterns.Patterns()
 def CreateSurfaces(): return Surfaces.Surfaces()
 def CreateStocks(): return Stocks.Stocks()
-def CreateNcCode(): return NcCode.NcCode()
+def CreateNcCode(): return cam.NcCode()
 def CreateProfile(): return Profile.Profile()
 def CreatePocket(): return Pocket.Pocket()
 def CreateDrilling(): return Drilling.Drilling()
 def CreateTags(): return Tags.Tags()
 def CreateTag(): return Tag.Tag()
+def CreateScriptOp(): return ScriptOp.ScriptOp()
 
 class CamApp(App):
     def __init__(self):
@@ -57,14 +63,15 @@ class CamApp(App):
         Patterns.type = cad.RegisterObjectType("Patterns", CreatePatterns)
         Surfaces.type = cad.RegisterObjectType("Surfaces", CreateSurfaces)
         Stocks.type = cad.RegisterObjectType("Stocks", CreateStocks)
-        NcCode.type = cad.RegisterObjectType("nccode", CreateNcCode)
+        cam.SetNcCodeType( cad.RegisterObjectType("nccode", CreateNcCode) )
         Profile.type = cad.RegisterObjectType("Profile", CreateProfile)
         Pocket.type = cad.RegisterObjectType("Pocket", CreatePocket)
         Drilling.type = cad.RegisterObjectType("Drilling", CreateDrilling)
         Tags.type = cad.RegisterObjectType("Tags", CreateTags)
         Tag.type = cad.RegisterObjectType("Tag", CreateTag)
+        ScriptOp.type = cad.RegisterObjectType("ScriptOp", CreateScriptOp)
         
-        NcCode.ReadColorsFromConfig()
+        ReadNCCodeColorsFromConfig()
 
     
     def NewFrame(self, pos=wx.DefaultPosition, size=wx.DefaultSize):
@@ -114,4 +121,17 @@ class CamApp(App):
             tools.append(CamContextTool.CamObjectContextTool(object, "Add Tags", "addtag", self.AddTags))
         return tools
         
-
+def ReadNCCodeColorsFromConfig():
+    config = HeeksConfig()
+    cam.ClearNcCodeColors()
+    cam.AddNcCodeColor('default', cad.Color(int(config.Read('ColorDefaultType', str(cad.Color(0,0,0).ref())))))
+    cam.AddNcCodeColor('blocknum', cad.Color(int(config.Read('ColorBlockType', str(cad.Color(0,0,222).ref())))))
+    cam.AddNcCodeColor('misc', cad.Color(int(config.Read('ColorMiscType', str(cad.Color(0,200,0).ref())))))
+    cam.AddNcCodeColor('program', cad.Color(int(config.Read('ColorProgramType', str(cad.Color(255,128,0).ref())))))
+    cam.AddNcCodeColor('tool', cad.Color(int(config.Read('ColorToolType', str(cad.Color(200,200,0).ref())))))
+    cam.AddNcCodeColor('comment', cad.Color(int(config.Read('ColorCommentType', str(cad.Color(0,200,200).ref())))))
+    cam.AddNcCodeColor('variable', cad.Color(int(config.Read('ColorVariableType', str(cad.Color(164,88,188).ref())))))
+    cam.AddNcCodeColor('prep', cad.Color(int(config.Read('ColorPrepType', str(cad.Color(255,0,175).ref())))))
+    cam.AddNcCodeColor('axis', cad.Color(int(config.Read('ColorAxisType', str(cad.Color(128,0,255).ref())))))
+    cam.AddNcCodeColor('rapid', cad.Color(int(config.Read('ColorRapidType', str(cad.Color(222,0,0).ref())))))
+    cam.AddNcCodeColor('feed', cad.Color(int(config.Read('ColorFeedType', str(cad.Color(0,179,0).ref())))))

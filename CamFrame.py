@@ -10,6 +10,7 @@ from Frame import Frame # from CAD
 import Profile
 import Pocket
 import Drilling
+import ScriptOp
 from OutputWindow import OutputWindow
 
 class CamFrame(Frame):
@@ -28,7 +29,7 @@ class CamFrame(Frame):
         self.AddMenuItem('Drilling Operation...', self.NewDrillingOp, None, 'drilling')  
         self.EndMenu()      
         self.AddMenu('Add Other Operation', 'ops')        
-        self.AddMenuItem('Script Operation...', self.NewProfileOp, None, 'scriptop')        
+        self.AddMenuItem('Script Operation...', self.NewScriptOp, None, 'scriptop')        
         self.AddMenuItem('Pattern...', self.NewProfileOp, None, 'pattern')        
         self.AddMenuItem('Surface...', self.NewProfileOp, None, 'surface')        
         self.AddMenuItem('Stock...', self.NewProfileOp, None, 'stock')        
@@ -104,15 +105,23 @@ class CamFrame(Frame):
         new_object.SetID(cad.GetNextID(Pocket.type))
         
         self.EditAndAddSketchOp(new_object, sketches)
+        
+    def EditAndAddOp(self, op):
+        if op.Edit():
+            cad.StartHistory()
+            cad.AddUndoably(op, wx.GetApp().program.operations, None)
+            cad.EndHistory()
             
     def NewDrillingOp(self, e):
         new_object = Drilling.Drilling()
         new_object.points += self.GetSelectedPoints()
         new_object.SetID(cad.GetNextID(Drilling.type))
-        if new_object.Edit():
-            cad.StartHistory()
-            cad.AddUndoably(new_object, wx.GetApp().program.operations, None)
-            cad.EndHistory()
+        self.EditAndAddOp(new_object)
+            
+    def NewScriptOp(self, e):
+        new_object = ScriptOp.ScriptOp()
+        new_object.SetID(cad.GetNextID(ScriptOp.type))
+        self.EditAndAddOp(new_object)
 
     def on_post_process(self):
         import wx

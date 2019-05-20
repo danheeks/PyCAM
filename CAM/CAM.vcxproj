@@ -61,7 +61,7 @@
       <IntrinsicFunctions>false</IntrinsicFunctions>
       <SDLCheck>
       </SDLCheck>
-      <AdditionalIncludeDirectories>$(PYTHON3_32BIT_INCLUDE);$(BOOST67_PYTHON_PATH);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./;$(PYTHON3_32BIT_INCLUDE);$(BOOST67_PYTHON_PATH);../../../PyCAD/trunk/Geom;../../../PyCAD/trunk/CAD;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WINDLL;BOOST_ALL_DYN_LINK;_WINDOWS;NOPCH;WNT;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0;USE_GENERIC_TREECTRL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>false</StringPooling>
       <BrowseInformationFile />
@@ -69,6 +69,7 @@
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -84,12 +85,52 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\PyCAD\trunk\CAD\HeeksColor.cpp" />
+    <ClCompile Include="..\..\..\PyCAD\trunk\CAD\HeeksObj.cpp" />
+    <ClCompile Include="..\..\..\PyCAD\trunk\CAD\Picking.cpp" />
+    <ClCompile Include="..\..\..\PyCAD\trunk\CAD\Property.cpp" />
+    <ClCompile Include="..\..\..\PyCAD\trunk\CAD\strconv.cpp" />
+    <ClCompile Include="..\..\..\PyCAD\trunk\CAD\tinystr.cpp" />
+    <ClCompile Include="..\..\..\PyCAD\trunk\CAD\tinyxml.cpp" />
+    <ClCompile Include="..\..\..\PyCAD\trunk\CAD\tinyxmlerror.cpp" />
+    <ClCompile Include="..\..\..\PyCAD\trunk\CAD\tinyxmlparser.cpp" />
+    <ClCompile Include="..\..\..\PyCAD\trunk\Geom\Arc.cpp" />
+    <ClCompile Include="..\..\..\PyCAD\trunk\Geom\Area.cpp" />
+    <ClCompile Include="..\..\..\PyCAD\trunk\Geom\AreaClipper.cpp" />
+    <ClCompile Include="..\..\..\PyCAD\trunk\Geom\AreaOrderer.cpp" />
+    <ClCompile Include="..\..\..\PyCAD\trunk\Geom\AreaPocket.cpp" />
+    <ClCompile Include="..\..\..\PyCAD\trunk\Geom\Circle.cpp" />
+    <ClCompile Include="..\..\..\PyCAD\trunk\Geom\clipper.cpp" />
+    <ClCompile Include="..\..\..\PyCAD\trunk\Geom\Construction.cpp" />
+    <ClCompile Include="..\..\..\PyCAD\trunk\Geom\Curve.cpp" />
+    <ClCompile Include="..\..\..\PyCAD\trunk\Geom\Finite.cpp" />
+    <ClCompile Include="..\..\..\PyCAD\trunk\Geom\Matrix.cpp" />
+    <ClCompile Include="..\..\..\PyCAD\trunk\Geom\Offset.cpp" />
+    <ClCompile Include="NCCode.cpp" />
     <ClCompile Include="PythonStuff.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\PyCAD\trunk\CAD\App.h" />
+    <ClInclude Include="..\..\..\PyCAD\trunk\CAD\HeeksColor.h" />
+    <ClInclude Include="..\..\..\PyCAD\trunk\CAD\HeeksObj.h" />
+    <ClInclude Include="..\..\..\PyCAD\trunk\CAD\IPoint.h" />
+    <ClInclude Include="..\..\..\PyCAD\trunk\CAD\Picking.h" />
+    <ClInclude Include="..\..\..\PyCAD\trunk\CAD\Property.h" />
+    <ClInclude Include="..\..\..\PyCAD\trunk\CAD\strconv.h" />
+    <ClInclude Include="..\..\..\PyCAD\trunk\CAD\tinystr.h" />
+    <ClInclude Include="..\..\..\PyCAD\trunk\CAD\tinyxml.h" />
+    <ClInclude Include="..\..\..\PyCAD\trunk\Geom\Arc.h" />
+    <ClInclude Include="..\..\..\PyCAD\trunk\Geom\Area.h" />
+    <ClInclude Include="..\..\..\PyCAD\trunk\Geom\AreaOrderer.h" />
+    <ClInclude Include="..\..\..\PyCAD\trunk\Geom\Box.h" />
+    <ClInclude Include="..\..\..\PyCAD\trunk\Geom\Circle.h" />
+    <ClInclude Include="..\..\..\PyCAD\trunk\Geom\clipper.hpp" />
+    <ClInclude Include="..\..\..\PyCAD\trunk\Geom\Curve.h" />
+    <ClInclude Include="..\..\..\PyCAD\trunk\Geom\Point.h" />
+    <ClInclude Include="NCCode.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

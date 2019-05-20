@@ -28,8 +28,8 @@ class OutputTextCtrl(wx.TextCtrl):
             pos0 = self.XYToPosition(0, row0)
             pos1 = self.XYToPosition(1, row1)
             
-            if wx.GetApp().program.nccode:
-                wx.GetApp().program.nccode.FormatBlocks(self, pos0, pos1)
+#            if wx.GetApp().program.nccode:
+#                wx.GetApp().program.nccode.FormatBlocks(self, pos0, pos1)
             
             self.SetScrollPos(wx.VERTICAL, scrollpos)
             
