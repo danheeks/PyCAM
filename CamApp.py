@@ -21,7 +21,7 @@ import Operations
 import Patterns
 import Surfaces
 import Stocks
-#import NcCode
+import NcCode
 import Profile
 import Pocket
 import Drilling
@@ -40,13 +40,33 @@ def CreateOperations(): return Operations.Operations()
 def CreatePatterns(): return Patterns.Patterns()
 def CreateSurfaces(): return Surfaces.Surfaces()
 def CreateStocks(): return Stocks.Stocks()
-def CreateNcCode(): return cam.NcCode()
+def CreateNcCode(): return NcCode.NcCode()
+def CreateNcCodeBlock(): return cam.NcCodeBlock()
 def CreateProfile(): return Profile.Profile()
 def CreatePocket(): return Pocket.Pocket()
 def CreateDrilling(): return Drilling.Drilling()
 def CreateTags(): return Tags.Tags()
 def CreateTag(): return Tag.Tag()
 def CreateScriptOp(): return ScriptOp.ScriptOp()
+
+#class CamObserver(cad.Observer):
+#    def __init__(self):
+#        cad.Observer.__init__(self)
+#        print('CamObserver __init__')
+        
+#    def OnRemoved(self, removed):
+#        for object in removed:
+#            if object.GetType() == cam.GetNcCodeType():
+#                wx.GetApp().frame.output_window.Clear()
+
+#    def OnAdded(self, added):
+#        for object in added:
+#            print('object added')
+#            if object.GetType() == cam.GetNcCodeType():
+#                wx.GetApp().program.nccode = object
+#                print('nccode added')
+#                wx.GetApp().frame.output_window.textCtrl.SetText()
+   
 
 class CamApp(App):
     def __init__(self):
@@ -63,13 +83,17 @@ class CamApp(App):
         Patterns.type = cad.RegisterObjectType("Patterns", CreatePatterns)
         Surfaces.type = cad.RegisterObjectType("Surfaces", CreateSurfaces)
         Stocks.type = cad.RegisterObjectType("Stocks", CreateStocks)
-        cam.SetNcCodeType( cad.RegisterObjectType("nccode", CreateNcCode) )
+        NcCode.type = cad.RegisterObjectType("nccode", CreateNcCode)
+        cam.SetNcCodeBlockType(cad.RegisterObjectType("ncblock", CreateNcCodeBlock))
         Profile.type = cad.RegisterObjectType("Profile", CreateProfile)
         Pocket.type = cad.RegisterObjectType("Pocket", CreatePocket)
         Drilling.type = cad.RegisterObjectType("Drilling", CreateDrilling)
         Tags.type = cad.RegisterObjectType("Tags", CreateTags)
         Tag.type = cad.RegisterObjectType("Tag", CreateTag)
         ScriptOp.type = cad.RegisterObjectType("ScriptOp", CreateScriptOp)
+        
+#        self.cam_observer = CamObserver()
+#        cad.RegisterObserver(self.cam_observer)
         
         ReadNCCodeColorsFromConfig()
 

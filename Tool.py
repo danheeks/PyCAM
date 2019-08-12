@@ -16,6 +16,7 @@ tool_types_for_choices = [
                           [TOOL_TYPE_SLOTCUTTER, 'Slot Cutter'],
                           [TOOL_TYPE_BALLENDMILL, 'Ball End Mill'],
                           [TOOL_TYPE_CHAMFER, 'Chamfer'],
+                          [TOOL_TYPE_ENGRAVER, 'Engraving Bit'],
                           ]
 
 class Tool(CamObject):
@@ -324,6 +325,17 @@ class Tool(CamObject):
         properties.append(PyPropertyLength("Cutting Edge Height", 'cutting_edge_height', self))
         properties += CamObject.GetBaseProperties(self)
         return properties
+    
+    def HasEdit(self):
+        return True
+    
+    def Edit(self):
+        import ToolDlg
+        dlg = ToolDlg.ToolDlg(self)
+        res = dlg.ShowModal()
+        if res == wx.ID_OK:
+            dlg.GetData()
+        return res
         
     def ReadXml(self):
         self.tool_number = cad.GetXmlInt('tool_number')
@@ -442,6 +454,14 @@ def GetToolTypeValues():
     for type in tool_types_for_choices:
         choices.append(type[0])
     return choices
+
+def GetToolTypeIndex(type):
+    i = 0
+    for t in GetToolTypeValues():
+        if type == t:
+            return i
+        i += 1
+    return -1    
         
 XML_STRING_DRILL = 'drill'
 XML_STRING_CENTRE_DRILL = 'centre_drill'
@@ -460,6 +480,7 @@ def GetToolTypeFromString(s):
     elif s == XML_STRING_SLOT_CUTTER: return TOOL_TYPE_SLOTCUTTER
     elif s == XML_STRING_BALL_END_MILL: return TOOL_TYPE_BALLENDMILL
     elif s == XML_STRING_CHAMFER: return TOOL_TYPE_CHAMFER
+    elif s == XML_STRING_ENGRAVER: return TOOL_TYPE_ENGRAVER
     return TOOL_TYPE_UNDEFINED
 
 def GetToolTypeXMLString(type):
@@ -469,6 +490,7 @@ def GetToolTypeXMLString(type):
     elif type == TOOL_TYPE_SLOTCUTTER: return XML_STRING_SLOT_CUTTER
     elif type == TOOL_TYPE_BALLENDMILL: return XML_STRING_BALL_END_MILL
     elif type == TOOL_TYPE_CHAMFER: return XML_STRING_CHAMFER
+    elif type == TOOL_TYPE_ENGRAVER: return XML_STRING_ENGRAVER
     return XML_STRING_UNDEFINED
 
 def FindToolType(tool_number):

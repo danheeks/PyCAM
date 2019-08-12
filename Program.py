@@ -3,6 +3,7 @@ import Operations
 import Patterns
 import Surfaces
 import Stocks
+import NcCode
 from RawMaterial import RawMaterial
 from Machine import Machine
 from HeeksConfig import HeeksConfig
@@ -69,7 +70,7 @@ class Program(CamObject):
         self.Add(self.stocks)
         self.operations = Operations.Operations()
         self.Add(self.operations)
-        self.nccode = cam.NcCode()
+        self.nccode = NcCode.NcCode()
         self.Add(self.nccode)
 
     def GetOutputFileName(self):
@@ -134,6 +135,10 @@ class Program(CamObject):
             return True
         return False
     
+    def OnAdded(self, object):
+        if object.GetType() == NcCode.type:
+            self.nccode = object
+    
     def GetProperties(self):
         properties = []
         properties.append(PropertyMachine(self))
@@ -168,14 +173,13 @@ class Program(CamObject):
         
     def ReloadPointers(self):
         object = self.GetFirstChild()
-        print('Program.ReloadPointers')
         while object:
             if object.GetType() == Tools.type:self.tools = object
             if object.GetType() == Patterns.type:self.patterns = object
             if object.GetType() == Surfaces.type:self.surfaces = object
             if object.GetType() == Stocks.type:self.stocks = object
             if object.GetType() == Operations.type:self.operations = object
-            if object.GetType() == cam.GetNcCodeType():self.nccode = object
+            if object.GetType() == NcCode.type:self.nccode = object
             
             object = self.GetNextChild()
                 
@@ -260,7 +264,7 @@ class Program(CamObject):
         
     def BackPlot(self):
         self.CreateBackplotFile()
-        cad.OpenXmlFile(self.GetBackplotFilePath(), self)
+        cad.Import(self.GetBackplotFilePath(), self)
         cad.Repaint()
         
 class PropertyMachine(cad.Property):

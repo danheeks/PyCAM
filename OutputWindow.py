@@ -1,5 +1,6 @@
 import wx
 import cad
+import cam
 
 class OutputTextCtrl(wx.TextCtrl):
     def __init__(self, parent):
@@ -11,7 +12,8 @@ class OutputTextCtrl(wx.TextCtrl):
     def OnMouse(self, event):
         if event.LeftUp():
             pos = self.GetInsertionPoint()
-            wx.GetApp().program.nccode.HighlightBlock(pos)
+            if wx.GetApp().program.nccode:
+                wx.GetApp().program.nccode.HighlightBlock(pos)
             cad.Repaint()
         event.Skip()
     
@@ -28,14 +30,43 @@ class OutputTextCtrl(wx.TextCtrl):
             pos0 = self.XYToPosition(0, row0)
             pos1 = self.XYToPosition(1, row1)
             
-#            if wx.GetApp().program.nccode:
-#                wx.GetApp().program.nccode.FormatBlocks(self, pos0, pos1)
+            if wx.GetApp().program.nccode:
+                wx.GetApp().program.nccode.FormatBlocks(self, pos0, pos1)
             
             self.SetScrollPos(wx.VERTICAL, scrollpos)
             
             self.painting = False
         
         event.Skip()
+        
+    def SetText(self):
+        self.Clear()
+        self.Freeze()
+
+        font = wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, "Lucida Console", wx.FONTENCODING_SYSTEM)
+        ta = wx.TextAttr()
+        ta.SetFont(font)
+        self.SetDefaultStyle(ta)
+
+        str = ''
+        
+        for block in wx.GetApp().program.nccode.GetBlocks():
+            str += block.Text()
+            str += '\n'
+        
+        self.SetValue(str)
+        self.SetStyle(0, 100, ta)
+
+#        '''
+#        import platform
+#        if platform.system() != "Windows":
+#        # for Windows, this is done in OutputTextCtrl.OnPaint
+#        for block in self.blocks:
+#            block.FormatText(textCtrl, block == self.highlighted_block, False)
+#        '''
+        
+        self.Thaw()
+        
     
 class OutputWindow(wx.ScrolledWindow):
     def __init__(self, parent):

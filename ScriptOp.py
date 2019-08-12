@@ -1,6 +1,7 @@
 from Operation import Operation
 import cad
 from nc.nc import *
+from Object import PyProperty
 
 type = 0
 
@@ -42,15 +43,27 @@ class ScriptOp(Operation):
         return copy
     
     def CopyFrom(self, object):
-        pass
-#        Operation.CopyFrom(self, object)
-#        print('ScirptOp CopyFrom str = ' + self.str + ', object.str = ' + object.str)
-#        self.str = object.str
+        Operation.CopyFrom(self, object)
+        self.str = object.str
             
     def GetProperties(self):
         properties = []
+        properties.append(PyProperty('Script', 'str', self))
+        properties[-1].type = cad.PROPERTY_TYPE_LONG_STRING
         properties += Operation.GetProperties(self)
         return properties
     
     def DoGCodeCalls(self):
         exec(self.str, globals())
+
+class PyMultiLineProperty(PyProperty):
+    def __init__(self, title, value_name, object, num_lines, recalculate = None):
+        PyProperty.__init__(self, title, value_name, object, recalculate)
+        self.number_of_lines = number_of_lines
+        
+    def GetNumberOfLines(self):
+        return self.number_of_lines
+        
+        
+        
+        

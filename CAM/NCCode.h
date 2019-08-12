@@ -122,23 +122,21 @@ public:
 	long m_from_pos, m_to_pos; // position of block in text ctrl
 	static double multiplier;
 	static int m_type;
+	bool m_formatted;
 
 	CNCCodeBlock():m_from_pos(-1), m_to_pos(-1), m_formatted(false) {}
 
-	// to do
-	// void WriteNCCode(wxTextFile &f, double ox, double oy);
-
 	// HeeksObj's virtual functions
 	int GetType()const{ return m_type; }
+	const wchar_t* GetTypeString(void) const { return L"NC Code Block"; }
+	const wchar_t* GetXMLTypeString(){ return L"ncblock"; }
 	HeeksObj *MakeACopy(void)const;
 	void glCommands(bool select, bool marked, bool no_color);
 	void GetBox(CBox &box);
 	void WriteToXML(TiXmlElement *element);
 	void ReadFromXML(TiXmlElement *element);
 	void AppendText(std::wstring& str);
-	// to do     void FormatText(wxTextCtrl *textCtrl, bool highlighted, bool force_format);
-private:
-	bool m_formatted;
+
 };
 
 class CNCCode :public HeeksObj
@@ -192,6 +190,8 @@ public:
 	bool CanAddTo(HeeksObj* owner);
 	bool OneOfAKind(){return true;}
 	bool SetClickMarkPoint(MarkedObject* marked_object, const Point3d &ray_start, const Point3d &ray_direction);
+	bool NeverDelete(){ return true; }  // I think python will already delete this or something.
+
 
 	static void ReadColorsFromConfig();
 	static void WriteColorsToConfig();
@@ -202,4 +202,5 @@ public:
 	// to do        void FormatBlocks(wxTextCtrl *textCtrl, int i0, int i1);
 	void HighlightBlock(long pos);
 	void SetHighlightedBlock(CNCCodeBlock* block);
+	CNCCodeBlock* GetHighlightedBlock(){ return m_highlighted_block; }
 };

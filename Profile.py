@@ -62,6 +62,7 @@ class Profile(SketchOp):
         return copy
     
     def CopyFrom(self, object):
+        print('Profile.CopyFrom object = ' + str(object))
         SketchOp.CopyFrom(self, object)
         self.tool_on_side = object.tool_on_side
         self.cut_mode = object.cut_mode

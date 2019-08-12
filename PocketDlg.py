@@ -17,7 +17,7 @@ class PocketDlg(SketchOpDlg):
         self.lgthStepOver = LengthCtrl(self)
         self.MakeLabelAndControl("Step Over", self.lgthStepOver).AddToSizer(self.sizerLeft)
         self.lgthMaterialAllowance = LengthCtrl(self)
-        self.MakeLabelAndControl("Materiall Allowance", self.lgthMaterialAllowance).AddToSizer(self.sizerLeft)
+        self.MakeLabelAndControl("Material Allowance", self.lgthMaterialAllowance).AddToSizer(self.sizerLeft)
         self.cmbStartingPlace = ComboBoxBinded(self, choices = ["Boundary", "Center"])
         self.MakeLabelAndControl("Starting Place", self.cmbStartingPlace).AddToSizer(self.sizerLeft)
         self.cmbCutMode = ComboBoxBinded(self, choices = ["Conventional", "Climb"])
@@ -25,14 +25,24 @@ class PocketDlg(SketchOpDlg):
         self.chkKeepToolDown = wx.CheckBox(self, wx.ID_ANY, 'Keep Tool Down')
         HControl(wx.ALL, self.chkKeepToolDown).AddToSizer(self.sizerLeft)
         self.chkUseZigZag = wx.CheckBox(self, wx.ID_ANY, 'Use Zig Zag')
+        self.Bind(wx.EVT_CHECKBOX, self.OnUseZigZagCheck, self.chkUseZigZag)
         HControl(wx.ALL, self.chkUseZigZag).AddToSizer(self.sizerLeft)
         self.dblZigAngle = DoubleCtrl(self)
         self.MakeLabelAndControl("Zig Zag Angle", self.dblZigAngle).AddToSizer(self.sizerLeft)
         self.chkZigUnidirectional = wx.CheckBox(self, wx.ID_ANY, 'Zig Unidirectional')
+        self.Bind(wx.EVT_CHECKBOX, self.OnZigUnidirectionalCheck, self.chkZigUnidirectional)
         HControl(wx.ALL, self.chkZigUnidirectional).AddToSizer(self.sizerLeft)
         
         SketchOpDlg.AddLeftControls(self)        
             
+    def OnUseZigZagCheck(self, e):
+        self.EnableControls()
+        self.OnComboOrCheck(e)
+        
+    def OnZigUnidirectionalCheck(self, e):
+        self.EnableControls()
+        self.OnComboOrCheck(e)
+
     def GetDataRaw(self):
         self.object.step_over = self.lgthStepOver.GetValue()
         self.object.material_allowance = self.lgthMaterialAllowance.GetValue()

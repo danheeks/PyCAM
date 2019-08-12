@@ -610,8 +610,8 @@ void CNCCode::GetProperties(std::list<Property *> *list)
 {
 #if 0 // to do
 	list->push_back(new PropertyInt(_("Arc Interpolation Count"), CNCCode::s_arc_interpolation_count, this, on_set_arc_interpolation_count));
-	HeeksObj::GetProperties(list);
 #endif
+	HeeksObj::GetProperties(list);
 }
 
 HeeksObj *CNCCode::MakeACopy(void)const{return new CNCCode(*this);}
