@@ -73,7 +73,10 @@ class CamApp(App):
         self.cam_dir = cam_dir
         self.program = None
         App.__init__(self)
-        
+
+    def GetAppName(self):
+        return 'CAM ( Computer Aided Manufacturing )'
+
     def RegisterObjectTypes(self):
         App.RegisterObjectTypes(self)
         Program.type = cad.RegisterObjectType("Program", CreateProgram)

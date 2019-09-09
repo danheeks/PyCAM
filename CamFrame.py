@@ -14,8 +14,8 @@ import ScriptOp
 from OutputWindow import OutputWindow
 
 class CamFrame(Frame):
-    def __init__(self, parent, id=-1, title='CAM ( Computer Aided Manufacturing )', pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.DEFAULT_FRAME_STYLE, name=wx.FrameNameStr):
-        Frame.__init__(self, parent, id, title, pos, size, style, name)
+    def __init__(self, parent, id=-1, pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.DEFAULT_FRAME_STYLE, name=wx.FrameNameStr):
+        Frame.__init__(self, parent, id, pos, size, style, name)
         self.program_window = None
         
     def AddExtraMenus(self):
