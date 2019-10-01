@@ -142,8 +142,8 @@ class CamApp(App):
         Profile.tag_drawing.profile = object
         cad.SetInputMode(Profile.tag_drawing)
         
-    def GetObjectTools(self, object, from_tree_canvas = False):
-        tools = App.GetObjectTools(self, object, from_tree_canvas)
+    def GetObjectTools(self, object, control_pressed, from_tree_canvas = False):
+        tools = App.GetObjectTools(self, object, control_pressed, from_tree_canvas)
         if object.GetType() == Profile.type:
             tools.append(CamContextTool.CamObjectContextTool(object, "Add Tags", "addtag", self.AddTags))
         return tools
