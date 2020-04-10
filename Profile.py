@@ -275,6 +275,10 @@ class Profile(SketchOp):
             if self.tool_on_side == PROFILE_RIGHT_OR_INSIDE: reversed = not reversed
             
         curve = object.GetCurve()
+
+        if curve.NumVertices() <= 1:
+            raise NameError("sketch has no spans! object = " + object.GetTitle() + ' curve = ' + str(curve))
+
         if initially_ccw != reversed:
             curve.Reverse()
             

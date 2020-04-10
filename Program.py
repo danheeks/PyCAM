@@ -14,6 +14,7 @@ import cad
 from Object import PyProperty
 from nc.nc import *
 import Surface
+import Simulation
 import cam
 
 type = 0
@@ -40,6 +41,7 @@ class Program(CamObject):
         self.stocks = None
         self.operations = None
         self.nccode = None
+        self.simulation = None
         
     def TypeName(self):
         return "Program"
@@ -59,19 +61,34 @@ class Program(CamObject):
     
     def add_initial_children(self):
         # add tools, operations, etc.
-        self.tools = Tools.Tools()
-        self.tools.load_default()
-        self.Add(self.tools)
-        self.patterns = Patterns.Patterns()
-        self.Add(self.patterns)
-        self.surfaces = Surfaces.Surfaces()
-        self.Add(self.surfaces)
-        self.stocks = Stocks.Stocks()
-        self.Add(self.stocks)
-        self.operations = Operations.Operations()
-        self.Add(self.operations)
-        self.nccode = NcCode.NcCode()
-        self.Add(self.nccode)
+        if self.tools == None:
+            self.tools = Tools.Tools()
+            self.tools.load_default()
+            self.Add(self.tools)
+
+        if self.patterns == None:
+            self.patterns = Patterns.Patterns()
+            self.Add(self.patterns)
+            
+        if self.surfaces == None:
+            self.surfaces = Surfaces.Surfaces()
+            self.Add(self.surfaces)
+            
+        if self.stocks == None:
+            self.stocks = Stocks.Stocks()
+            self.Add(self.stocks)
+            
+        if self.operations == None:
+            self.operations = Operations.Operations()
+            self.Add(self.operations)
+            
+        if self.nccode == None:
+            self.nccode = NcCode.NcCode()
+            self.Add(self.nccode)
+            
+        if self.simulation == None:
+            self.simulation = Simulation.Simulation()
+            self.Add(self.simulation)
 
     def GetOutputFileName(self):
         if self.output_file_name_follows_data_file_name == False:
@@ -138,6 +155,8 @@ class Program(CamObject):
     def OnAdded(self, object):
         if object.GetType() == NcCode.type:
             self.nccode = object
+        if object.GetType() == Simulation.type:
+            self.simulation = object
     
     def GetProperties(self):
         properties = []
@@ -171,6 +190,8 @@ class Program(CamObject):
         
         self.ReloadPointers()
         
+        self.add_initial_children() # add any missing children
+        
     def ReloadPointers(self):
         object = self.GetFirstChild()
         while object:
@@ -180,6 +201,7 @@ class Program(CamObject):
             if object.GetType() == Stocks.type:self.stocks = object
             if object.GetType() == Operations.type:self.operations = object
             if object.GetType() == NcCode.type:self.nccode = object
+            if object.GetType() == Simulation.type:self.simulation = object
             
             object = self.GetNextChild()
                 
@@ -201,16 +223,6 @@ class Program(CamObject):
     
     def AutoExpand(self):
         return True
-    
-#    def OnRenderTriangles(self):
-#        if self.operations:
-#            object = self.operations.GetFirstChild()
-#            while object:
-#                object.OnRenderTriangles()
-#                object = self.GetNextChild()
-
-#        if self.nccode:
-#            self.nccode.OnRenderTriangles()
     
     def MakeGCode(self):
         wx.GetApp().attached_to_surface = None

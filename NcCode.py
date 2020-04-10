@@ -45,16 +45,19 @@ class NcCode(CamObject):
     def KillGLLists(self):
         self.nc_code.KillGLLists()
         
-    def GetBox(self, box):
+    def GetBox(self):
+        box = geom.Box3D()
         self.nc_code.GetBox(box)
+        return box
         
-    def MakeACopy(self, object):
+    def MakeACopy(self):
         object = NcCode()
         object.CopyFrom(self)
         return object
     
     def CopyFrom(self, object):
-        self.nc_code.CopyFrom(self.GetCopyFromObject().nc_code)
+        pass
+        #self.nc_code.CopyFrom(object)
     
     def CallsObjListReadXml(self):
         return False

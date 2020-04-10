@@ -12,7 +12,7 @@
 #include "strconv.h"
 #include "Curve.h"
 #include "Picking.h"
-#include "MarkedObject.h"
+//#include "MarkedObject.h"
 
 #include <memory>
 #include <sstream>
@@ -641,6 +641,7 @@ bool CNCCode::CanAddTo(HeeksObj* owner)
 	return ((owner != NULL) && (!wcsicmp(owner->GetTypeString(), L"program")));
 }
 
+#if 0
 bool CNCCode::SetClickMarkPoint(MarkedObject* marked_object, const Point3d &ray_start, const Point3d &ray_direction)
 {
 	if(marked_object->m_map.size() > 0)
@@ -669,6 +670,7 @@ bool CNCCode::SetClickMarkPoint(MarkedObject* marked_object, const Point3d &ray_
 	}
 	return false;
 }
+#endif
 
 void CNCCode::ReadFromXML(TiXmlElement* element)
 {

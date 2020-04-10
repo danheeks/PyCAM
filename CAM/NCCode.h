@@ -189,7 +189,7 @@ public:
 	bool CanAdd(HeeksObj* object);
 	bool CanAddTo(HeeksObj* owner);
 	bool OneOfAKind(){return true;}
-	bool SetClickMarkPoint(MarkedObject* marked_object, const Point3d &ray_start, const Point3d &ray_direction);
+//	bool SetClickMarkPoint(MarkedObject* marked_object, const Point3d &ray_start, const Point3d &ray_direction);
 	bool NeverDelete(){ return true; }  // I think python will already delete this or something.
 
 

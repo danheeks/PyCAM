@@ -246,6 +246,9 @@ def profile(curve, direction = "on", radius = 1.0, offset_extra = 0.0, roll_radi
     global tags
 
     offset_curve = geom.Curve(curve)
+
+    if offset_curve.NumVertices() <= 1:
+        raise NameError("sketch has no spans!")
     
     if direction == "on":
         use_CRC() == False 

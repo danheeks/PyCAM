@@ -12,14 +12,16 @@ import cam
 cam.SetResPath(cam_dir)
 cam.SetApp(cad.GetApp())
 
-from App import App # from CAD
+from SolidApp import SolidApp # from CAD
 from CamFrame import CamFrame
 import Program
 import Tool
 import Tools
 import Operations
 import Patterns
+import Surface
 import Surfaces
+import Stock
 import Stocks
 import NcCode
 import Profile
@@ -28,6 +30,7 @@ import Drilling
 import ScriptOp
 import Tags
 import Tag
+import Simulation
 import CamContextTool
 from HeeksConfig import HeeksConfig
 
@@ -38,7 +41,9 @@ def CreateTool(): return Tool.Tool()
 def CreateTools(): return Tools.Tools()
 def CreateOperations(): return Operations.Operations()
 def CreatePatterns(): return Patterns.Patterns()
+def CreateSurface(): return Surface.Surface()
 def CreateSurfaces(): return Surfaces.Surfaces()
+def CreateStock(): return Stock.Stock()
 def CreateStocks(): return Stocks.Stocks()
 def CreateNcCode(): return NcCode.NcCode()
 def CreateNcCodeBlock(): return cam.NcCodeBlock()
@@ -48,6 +53,7 @@ def CreateDrilling(): return Drilling.Drilling()
 def CreateTags(): return Tags.Tags()
 def CreateTag(): return Tag.Tag()
 def CreateScriptOp(): return ScriptOp.ScriptOp()
+def CreateSimulation(): return Simulation.Simulation()
 
 #class CamObserver(cad.Observer):
 #    def __init__(self):
@@ -68,23 +74,25 @@ def CreateScriptOp(): return ScriptOp.ScriptOp()
 #                wx.GetApp().frame.output_window.textCtrl.SetText()
    
 
-class CamApp(App):
+class CamApp(SolidApp):
     def __init__(self):
         self.cam_dir = cam_dir
         self.program = None
-        App.__init__(self)
+        SolidApp.__init__(self)
 
     def GetAppName(self):
         return 'CAM ( Computer Aided Manufacturing )'
 
     def RegisterObjectTypes(self):
-        App.RegisterObjectTypes(self)
+        SolidApp.RegisterObjectTypes(self)
         Program.type = cad.RegisterObjectType("Program", CreateProgram)
         Tools.type = cad.RegisterObjectType("Tools", CreateTools)
         Tool.type = cad.RegisterObjectType("Tool", CreateTool)
         Operations.type = cad.RegisterObjectType("Operations", CreateOperations)
         Patterns.type = cad.RegisterObjectType("Patterns", CreatePatterns)
+        Surface.type = cad.RegisterObjectType("Surface", CreateSurface)
         Surfaces.type = cad.RegisterObjectType("Surfaces", CreateSurfaces)
+        Stock.type = cad.RegisterObjectType("Stock", CreateStock)
         Stocks.type = cad.RegisterObjectType("Stocks", CreateStocks)
         NcCode.type = cad.RegisterObjectType("nccode", CreateNcCode)
         cam.SetNcCodeBlockType(cad.RegisterObjectType("ncblock", CreateNcCodeBlock))
@@ -94,6 +102,7 @@ class CamApp(App):
         Tags.type = cad.RegisterObjectType("Tags", CreateTags)
         Tag.type = cad.RegisterObjectType("Tag", CreateTag)
         ScriptOp.type = cad.RegisterObjectType("ScriptOp", CreateScriptOp)
+        Simulation.type = cad.RegisterObjectType("Simulation", CreateSimulation)
         
 #        self.cam_observer = CamObserver()
 #        cad.RegisterObserver(self.cam_observer)
@@ -121,7 +130,7 @@ class CamApp(App):
         cad.AddUndoably(self.program)
 
     def OnNewOrOpen(self, open):
-        App.OnNewOrOpen(self, open)
+        SolidApp.OnNewOrOpen(self, open)
 
         self.AddProgramIfThereIsntOne()
 #         if open == False:
@@ -143,7 +152,7 @@ class CamApp(App):
         cad.SetInputMode(Profile.tag_drawing)
         
     def GetObjectTools(self, object, control_pressed, from_tree_canvas = False):
-        tools = App.GetObjectTools(self, object, control_pressed, from_tree_canvas)
+        tools = SolidApp.GetObjectTools(self, object, control_pressed, from_tree_canvas)
         if object.GetType() == Profile.type:
             tools.append(CamContextTool.CamObjectContextTool(object, "Add Tags", "addtag", self.AddTags))
         return tools
