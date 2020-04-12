@@ -69,10 +69,10 @@
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DebugInformationFormat>None</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
       <EnableCOMDATFolding>
       </EnableCOMDATFolding>
       <OptimizeReferences>

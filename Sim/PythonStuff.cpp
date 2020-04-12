@@ -50,6 +50,7 @@ void SetApp(CApp* app)
 			.def("sum", static_cast< void (Octree::*)(const Volume* vol) >(&Octree::sum))
 			.def("diff", static_cast< void (Octree::*)(const Volume* vol) >(&Octree::diff))
 			.def("get_root_scale", &Octree::get_root_scale)
+			.def("get_leaf_scale", &Octree::leaf_scale)
 			;
 
 		boost::python::class_<GLVertex>("GLVertex")
@@ -76,6 +77,7 @@ void SetApp(CApp* app)
 
 		boost::python::class_<Volume, boost::noncopyable>("Volume", boost::python::no_init)
 			.def("setColor", &Volume::setColor)
+			.def("Render", &Volume::Render)
 			;
 
 		boost::python::class_<SphereVolume, boost::python::bases<Volume>>("SphereVolume")
@@ -98,6 +100,7 @@ void SetApp(CApp* app)
 			.def("setCenter", &CylinderVolume::setCenter)
 			.def("setRotationCenter", &CylinderVolume::setRotationCenter)
 			.def("setAngle", &CylinderVolume::setAngle)
+			.def("Render", &CylinderVolume::Render)
 			;
 
 		

@@ -63,6 +63,8 @@ class Volume {
         /// Points p outside the volume should return negative values.
         virtual double dist(const GLVertex& p) const = 0;
 
+		virtual void Render(){}
+
         /// bounding-box. This holds the maximum(minimum) points along the X,Y, and Z-coordinates
         /// of the volume (i.e. the volume where dist(p) returns negative values)
         Bbox bb;
@@ -232,6 +234,8 @@ class CylinderVolume: public Volume {
         /// update the bounding-box of cylinder
         void calcBB();
         double dist(const GLVertex& p) const;
+
+		void Render()const;
 
     private:
         /// cylinder radius

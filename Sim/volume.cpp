@@ -362,6 +362,33 @@ double CylinderVolume::dist(const GLVertex& p) const {
    }
 }
 
+void CylinderVolume::Render()const
+{
+	glEnable(GL_LIGHTING);
+	glBegin(GL_TRIANGLES);
+	int num_t = 20;
+	float a_step = 6.28318530 / num_t;
+	for (int i = 0; i < num_t; i++)
+	{
+		float a0 = i * a_step;
+		float a1 = (i + 1) * a_step;
+		float x0 = center.x + radius * cos(a0);
+		float y0 = center.y + radius * sin(a0);
+		float x1 = center.x + radius * cos(a1);
+		float y1 = center.y + radius * sin(a1);
+		float z0 = center.z;
+		float z1 = center.z + length;
+		glVertex3f(x0, y0, z0);
+		glVertex3f(x1, y1, z0);
+		glVertex3f(x0, y0, z1);
+		glVertex3f(x1, y1, z0);
+		glVertex3f(x1, y1, z1);
+		glVertex3f(x0, y0, z1);
+	}
+	glEnd();
+	glDisable(GL_LIGHTING);
+}
+
 //************* CutterVolume **************/
 
 CutterVolume::CutterVolume() {
