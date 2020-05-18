@@ -26,76 +26,28 @@
 
 #include <cutsim_def.hpp>
 
-/// color of a GL-vertex
-struct Color {
-    /// red
-    GLfloat r;
-    /// green
-    GLfloat g;
-    /// blue
-    GLfloat b;
-    /// set color
-    void set(GLfloat ri, GLfloat gi, GLfloat bi) {
-        r = ri;
-        g = gi;
-        b = bi;
-    }
-    bool isGray() {
-			return (r != 0.0) && (r == g) && (g == b);
-    }
-};
-
 /// a vertex/point in 3D, with (x,y,z) coordinates of type GLfloat
 /// normal is (nx,ny,nz)
 /// color is (r,g,b)
 struct GLVertex {
     /// default (0,0,0) ctor
-    GLVertex() : x(0), y(0), z(0), r(0), g(0), b(0) {}
+    GLVertex() : x(0), y(0), z(0), col(0) {}
     /// ctor with given (x,y,z)
     GLVertex(GLfloat x, GLfloat y, GLfloat z) 
-         : x(x), y(y), z(z), r(0), g(0), b(0) {}
+         : x(x), y(y), z(z), col(0) {}
     /// ctor with given (x,y,z) and (r,g,b)
-    GLVertex(GLfloat x, GLfloat y, GLfloat z, GLfloat r, GLfloat g, GLfloat b) 
-         : x(x), y(y), z(z), r(r), g(g), b(b) {}
-    /// ctor with given position (x,y,z) color (r,g,b) and normal (xn,yn,zn)
-    GLVertex(GLfloat x, GLfloat y, GLfloat z, GLfloat red, GLfloat gre, GLfloat blu, GLfloat xn, GLfloat yn, GLfloat zn) 
-         : x(x), y(y), z(z), r(red), g(gre), b(blu), nx(xn), ny(yn), nz(zn) {}
-    
-    /// set normal
-    void setNormal(GLfloat xn, GLfloat yn, GLfloat zn) {
-        nx = xn;
-        ny = yn;
-        nz = zn;
-        // normalize:
-        GLfloat norm = sqrt( nx*nx + ny*ny + nz*nz );
-        if (norm != 1.0 ) {
-            nx /= norm;
-            ny /= norm;
-            nz /= norm;
-        }
-    }
+	GLVertex(GLfloat x, GLfloat y, GLfloat z, HeeksColor c)
+         : x(x), y(y), z(z), col(c) {}
     /// set the vertex color
-    void setColor( Color c ) {
-        setColor( c.r, c.g, c.b);
+	void setColor(HeeksColor c) {
+		col = c;
     }
     /// set the vertex color
     void setColor(GLfloat red, GLfloat green, GLfloat blue) {
-        r = red;
-        g = green;
-        b = blue;
+		col = HeeksColor((unsigned char)(red * 255), (unsigned char)(green * 255), (unsigned char)(blue * 255));
     }
-    /// assume p1-p2-p3 forms a triangle. set normals. set color.
-    static void set_normal_and_color(GLVertex& p1,GLVertex& p2,GLVertex& p3, Color c ) {
-        GLVertex n = (p1-p2).cross( p1-p3 );
-        n.normalize();
-        p1.setNormal(n.x,n.y,n.z);
-        p2.setNormal(n.x,n.y,n.z);
-        p3.setNormal(n.x,n.y,n.z);
-        p1.setColor( c );
-        p2.setColor( c );
-        p3.setColor( c );
-    }
-    /// string output
+
+	/// string output
 	std::string str() { static char s[128]; sprintf(s, "(%f, %f, %f )", x, y, z); return std::string(s); }
     
 // DATA
@@ -105,18 +57,7 @@ struct GLVertex {
     GLfloat y;
     /// z-coordinate
     GLfloat z; 
-    /// red
-    GLfloat r;
-    /// green
-    GLfloat g;
-    /// blue
-    GLfloat b; // color, 12-bytes offset from position data.
-    /// normal x-coordinate
-    GLfloat nx;
-    /// normal y-coordinate
-    GLfloat ny;
-    /// normal z-coordinate
-    GLfloat nz; // normal, 24-bytes offset
+	HeeksColor col;
     
 // Operators etc
     /// return length

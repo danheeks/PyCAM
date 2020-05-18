@@ -31,9 +31,9 @@
 #define TOOL_FLUTE_COLOR	0.7, 0.7, 0.65
 #define STOCK_COLOR		0,1,1
 // PARTS must be gray color.
-#define PARTS_COLOR		1,1,1
-#define CUTTING_COLOR	1,1,0
-#define COLLISION_COLOR		1,0,0
+#define PARTS_COLOR		255, 255, 255
+#define CUTTING_COLOR	255, 255, 0
+#define COLLISION_COLOR		255, 0, 0
 
 #define DEFAULT_TRAVERSE_FEED_RATE	(1000.0)
 #define DEFAULT_FEED_RATE	(200.0)

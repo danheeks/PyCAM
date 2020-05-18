@@ -8,12 +8,21 @@ from Object import PyProperty
 import sim
 import threading
 import time
+from consts import *
 
 type = 0
 
 import math
 import re
 import copy
+
+simulation = None  # global simulation object when one exists
+
+def OnTimer(event):
+    if simulation.running:
+        new_pos = simulation.current_pos + simulation.mm_per_sec/30
+        simulation.cut_to_position(new_pos)
+        wx.GetApp().frame.graphics_canvas.Refresh()
 
 class Line:
     def __init__(self, p0, p1, rapid, tool_number):
@@ -23,45 +32,47 @@ class Line:
         self.tool_number = tool_number
         
     def Length(self):
-        return self.p0.dist(self.p1)
+        return self.p0.Dist(self.p1)
         
-x_for_cut = 0
-y_for_cut = 0
-z_for_cut = 0
+p_for_cut = None
         
-class VoxelCyl:
+class SimCyl(sim.CylinderVolume):
     def __init__(self, radius, z, color):
-        self.radius = int(radius)
-        self.z_bottom = int(z)
-        self.z_top = int(z) + 1
+        sim.CylinderVolume.__init__(self)
+        self.radius = radius
+        self.z_bottom = z
+        self.z_top = z + wx.GetApp().program.simulation.leaf_scale
         self.color = color
 
     def cut(self, rapid):
-        if rapid == True: voxelcut.set_current_color(0x600000)
-        else: voxelcut.set_current_color(self.color)
-        voxelcut.remove_cylinder(int(x_for_cut), int(y_for_cut), z_for_cut + int(self.z_bottom), int(x_for_cut), int(y_for_cut), z_for_cut + int(self.z_top), int(self.radius))
+        if rapid == True: self.setColor(0.6, 0.0, 0.0)
+        else: self.setColor(self.color[0], self.color[1], self.color[2])
+        self.setCenter(sim.GLVertex(p_for_cut.x, p_for_cut.y, p_for_cut.z + self.z_bottom))
+        simulation.tree.diff(self)
         
     def draw(self, rapid):
-
-        color = self.color
-        if rapid: color = 0x600000
+        self.setCenter(sim.GLVertex(p_for_cut.x, p_for_cut.y, p_for_cut.z + self.z_bottom))
+        self.Render()
+        # to do
+#        color = self.color
+#        if rapid: color = 0x600000
         
-        for i in range(0, 21):
-            a = 0.31415926 * i
-            x = float(x_for_cut) + self.radius * math.cos(a)
-            y = float(y_for_cut) + self.radius * math.sin(a)
-            z_bottom = float(z_for_cut) + self.z_bottom
-            z_top = float(z_for_cut) + self.z_top
+#        for i in range(0, 21):
+#            a = 0.31415926 * i
+#            x = float(x_for_cut) + self.radius * math.cos(a)
+#            y = float(y_for_cut) + self.radius * math.sin(a)
+#            z_bottom = float(z_for_cut) + self.z_bottom
+#            z_top = float(z_for_cut) + self.z_top
 
-            voxelcut.drawline3d(x, y, z_bottom, x, y, z_top, color)
+#            voxelcut.drawline3d(x, y, z_bottom, x, y, z_top, color)
             
-            if i > 0:
-                voxelcut.drawline3d(prevx, prevy, prevz_bottom, x, y, z_bottom, color)
-                voxelcut.drawline3d(prevx, prevy, prevz_top, x, y, z_top, color)
-            prevx = x
-            prevy = y
-            prevz_bottom = z_bottom
-            prevz_top = z_top
+#            if i > 0:
+#                voxelcut.drawline3d(prevx, prevy, prevz_bottom, x, y, z_bottom, color)
+#                voxelcut.drawline3d(prevx, prevy, prevz_top, x, y, z_top, color)
+#            prevx = x
+#            prevy = y
+#            prevz_bottom = z_bottom
+#            prevz_top = z_top
         
 class Tool:
     def __init__(self, span_list):
@@ -82,9 +93,9 @@ class Tool:
             intersection_line = geom.Span(geom.Point(0, z), geom.Vertex(0, geom.Point(300, z), geom.Point(0, 0)), False)
             intersections = span.Intersect(intersection_line)
             if len(intersections):
-                radius = intersections[0].x * toolpath.coords.voxels_per_mm
-                self.cylinders.append(VoxelCyl(radius, z * toolpath.coords.voxels_per_mm, color))
-            z += 1/toolpath.coords.voxels_per_mm
+                radius = intersections[0].x
+                self.cylinders.append(SimCyl(radius, z, color))
+            z += wx.GetApp().program.simulation.leaf_scale
             
     def refine_cylinders(self):
         cur_cylinder = None
@@ -97,6 +108,7 @@ class Tool:
             else:
                 if (cur_cylinder.radius == cylinder.radius) and (cur_cylinder.color == cylinder.color):
                     cur_cylinder.z_top = cylinder.z_top
+                    cur_cylinder.setLength(cur_cylinder.z_top - cur_cylinder.z_bottom)
                 else:
                     self.cylinders.append(cur_cylinder)
                     cur_cylinder = cylinder
@@ -112,25 +124,17 @@ class Tool:
                                   
         self.cylinders_calculated = True
             
-    def cut(self, x, y, z, rapid):
-        global x_for_cut
-        global y_for_cut
-        global z_for_cut
-        x_for_cut = x
-        y_for_cut = y
-        z_for_cut = z
+    def cut(self, p, rapid):
+        global p_for_cut
+        p_for_cut = p
         
         for cylinder in self.cylinders:
             cylinder.cut(rapid)
             
-    def draw(self, x, y, z, rapid):
-        global x_for_cut
-        global y_for_cut
-        global z_for_cut
-        x_for_cut = x
-        y_for_cut = y
-        z_for_cut = z
-
+    def draw(self, p, rapid):
+        global p_for_cut
+        p_for_cut = p
+        
         for cylinder in self.cylinders:
             cylinder.draw(rapid)
 
@@ -147,11 +151,13 @@ class RemovalThread(threading.Thread):
             x = r * math.cos(a)
             y = r * math.sin(a)
             self.removeCylinder(sim.GLVertex(x,y,z))
-        self.simulation.iso_algo.updateGL()
+        if self.simulation.iso_algo:
+            self.simulation.iso_algo.updateGL()
 
-        self.simulation.threadLock.acquire()
-        self.simulation.gldata.swap()
-        self.simulation.threadLock.release()
+        if self.simulation.iso_algo:
+            self.simulation.threadLock.acquire()
+            self.simulation.gldata.swap()
+            self.simulation.threadLock.release()
         
         wx.GetApp().frame.graphics_canvas.Refresh()
 
@@ -176,6 +182,7 @@ class Simulation(CamObject):
         self.mm_per_sec = 50.0
         self.running = False
         self.in_cut_to_position = False
+        self.leaf_scale = None
         
         self.x = 0
         self.y = 0
@@ -184,18 +191,6 @@ class Simulation(CamObject):
         self.t = None
         
         self.gldata = None
-
-#        self.gldata = sim.GLData()
-#        self.tree = sim.Octree(70.0, 9, centre_point, self.gldata)
-#        self.iso_algo = sim.MarchingCubes(self.gldata, self.tree)
-#        stock0 = sim.RectVolume()
-#        stock0.corner = sim.GLVertex(-50, -30, -10)
-#        stock0.v1 = sim.GLVertex(100, 0, 0)
-#        stock0.v2 = sim.GLVertex(0, 60, 0)
-#        stock0.v3 = sim.GLVertex(0, 0, 10)
-#        stock0.calcBB()
-#        stock0.setColor(0,1,1)
-#        self.tree.sum(stock0)
         
         self.threadLock = threading.Lock()
         
@@ -216,8 +211,6 @@ class Simulation(CamObject):
         self.running = False
         
     def draw_tool(self):
-        voxelcut.drawclear()
-        
         index = self.current_line_index
         if index < 0: index = 0
         if index >= len(self.lines):
@@ -225,24 +218,22 @@ class Simulation(CamObject):
         
         tool_number = self.lines[index].tool_number
         rapid = self.lines[index].rapid
-        
+
         if tool_number in self.tools:
-            x, y, z = self.coords.mm_to_voxels(self.current_point.x, self.current_point.y, self.current_point.z)
-            self.tools[tool_number].draw(x, y, z, rapid)
+            self.tools[tool_number].draw(self.current_point, rapid)
         
     def cut_point(self, p):
-        x, y, z = self.coords.mm_to_voxels(p.x, p.y, p.z)
         index = self.current_line_index
         if index < 0: index = 0
         tool_number = self.lines[index].tool_number
         rapid = self.lines[index].rapid
         
         if tool_number in self.tools:
-            self.tools[tool_number].cut(x, y, z, rapid)
+            self.tools[tool_number].cut(p, rapid)
          
     def cut_line(self, line):
         length = line.Length()
-        num_segments = int(1 + length * self.coords.voxels_per_mm * 0.2)
+        num_segments = int(1 + length / self.leaf_scale * 0.2)
         step = length/num_segments
         dv = (line.p1 - line.p0) * (1.0/num_segments)
         for i in range (0, num_segments + 1):
@@ -254,7 +245,6 @@ class Simulation(CamObject):
             return
         
         if self.cut_to_position == True:
-            import wx
             wx.MessageBox("in cut_to_position again!")
         
         self.in_cut_to_position = True
@@ -276,6 +266,15 @@ class Simulation(CamObject):
                 self.current_pos = end_pos
             self.current_point = line.p1
             self.current_line_index = self.current_line_index + 1
+        
+        if self.iso_algo:
+            self.iso_algo.updateGL()
+
+            self.threadLock.acquire()
+            self.gldata.swap()
+            self.threadLock.release()
+        
+        wx.GetApp().frame.graphics_canvas.Refresh()
             
         self.in_cut_to_position = False
         
@@ -308,7 +307,7 @@ class Simulation(CamObject):
         if x == None: x = self.x
         if y == None: y = self.y
         if z == None: z = self.z
-        self.add_line(Point(self.x, self.y, self.z), Point(x, y, z))
+        self.add_line(geom.Point3D(self.x, self.y, self.z), geom.Point3D(x, y, z))
         self.x = x
         self.y = y
         self.z = z
@@ -318,7 +317,7 @@ class Simulation(CamObject):
         if x == None: x = self.x
         if y == None: y = self.y
         if z == None: z = self.z
-        self.add_line(Point(self.x, self.y, self.z), Point(x, y, z))
+        self.add_line(geom.Point3D(self.x, self.y, self.z), geom.Point3D(x, y, z))
         self.x = x
         self.y = y
         self.z = z
@@ -330,11 +329,11 @@ class Simulation(CamObject):
         if z == None: z = self.z
         geom.set_units(0.05)
         curve = geom.Curve()
-        curve.append(geom.Point(self.x, self.y))
-        curve.append(geom.Vertex(dir, geom.Point(x, y), geom.Point(i, j)))
+        curve.Append(geom.Point(self.x, self.y))
+        curve.Append(geom.Vertex(dir, geom.Point(x, y), geom.Point(i, j)))
         curve.UnFitArcs()
         for span in curve.GetSpans():
-            self.add_line(Point(span.p.x, span.p.y, z), Point(span.v.p.x, span.v.p.y, z))
+            self.add_line(geom.Point3D(span.p.x, span.p.y, z), geom.Point3D(span.v.p.x, span.v.p.y, z))
         self.x = x
         self.y = y
         self.z = z
@@ -380,6 +379,7 @@ class Simulation(CamObject):
             self.threadLock.acquire()
             self.gldata.draw()
             self.threadLock.release()
+        self.draw_tool()
         
     def KillGLLists(self):
         # to do
@@ -414,77 +414,57 @@ class Simulation(CamObject):
         #self.sim.SetClickMarkPoint(marked_object, ray_start, ray_direction)
 
     def Reset(self):
+        global simulation
+        simulation = self
+        
         # get the box of all the solids
-        #box = wx.GetApp().program.stocks.GetBox()
-        box = geom.Box3D()
-        cad.GetApp().GetBox(box) # use world box for now
+        box = wx.GetApp().program.stocks.GetBox()
         cp = box.Center()
         scale = box.Width()
         if box.Height() > scale: scale = box.Height()
         if box.Depth() > scale: scale = box.Depth()
-        #self.center_point = sim.GLVertex(cp.x, cp.y, cp.z)
-        self.center_point = sim.GLVertex(0.0, 0.0, 0.0)
+        self.center_point = sim.GLVertex(cp.x, cp.y, cp.z)
+        #self.center_point = sim.GLVertex(0.0, 0.0, 0.0)
         
         self.gldata = sim.GLData()
-        self.tree = sim.Octree(3.0, 9, self.center_point, self.gldata) # to do, use cad's box
+        self.tree = sim.Octree(scale,11, self.center_point, self.gldata)
         self.tree.init(4)
+        self.leaf_scale = self.tree.get_leaf_scale()
         
         self.iso_algo = sim.MarchingCubes(self.gldata, self.tree)
+        #self.iso_algo = None
         
-        # to do, add each stock
-        
-        # for now add a stock the size of the world box
-        maxz = box.MaxZ()
-        if maxz < box.MinZ() + 1.0: maxz = box.MinZ() + 1.0
-        #stock0 = sim.RectVolume(box.MinX(), box.MinY(), box.MinZ() + 0.2, box.MaxX(), box.MaxY(), maxz)
-        #stock0 = sim.RectVolume(2, 2, 0, 10, 10, 1) can't see it
-        self.stock0 = sim.RectVolume(0,0,0,1,1,1)
-        self.stock0.calcBB()
-        self.stock0.setColor(0,1,1)
-        self.tree.sum(self.stock0)
+        # add each stock
+        stocks = wx.GetApp().program.stocks.GetChildren()
+        for stock in stocks:
+            stock_box = stock.GetBox()
+            stock = sim.RectVolume(stock_box.MinX(), stock_box.MinY(), stock_box.MinZ(), stock_box.MaxX(), stock_box.MaxY(), stock_box.MaxZ())
+            stock.calcBB()
+            stock.setColor(0,1,1)
+            self.tree.sum(stock)
+            
+        tools = wx.GetApp().program.tools.GetChildren()
+        for tool in tools:
+            self.tools[tool.tool_number] = GetSimToolDefinition(tool)
+            
+        machine_module = __import__('nc.' + wx.GetApp().program.machine.reader, fromlist = ['dummy'])
+        parser = machine_module.Parser(self)
+        parser.Parse(wx.GetApp().program.GetOutputFileName())
+        self.rewind()
 
-        self.rect = sim.RectVolume(-1,-1,-0.9,2,2,0.1)
-        self.rect.calcBB()
-        self.rect.setColor(0,1,1)
-        self.tree.sum(self.rect)
-
-        self.rect = sim.RectVolume(-1,-1,-2,0.1,2,2)
-        self.rect.calcBB()
-        self.rect.setColor(0,1,1)
-        self.tree.sum(self.rect)
-
-        self.rect = sim.RectVolume(0.9,-1,-2,2,2,2)
-        self.rect.calcBB()
-        self.rect.setColor(0,1,1)
-        self.tree.sum(self.rect)
-
-        self.rect = sim.RectVolume(-1,-1,-2,2,0.1,2)
-        self.rect.calcBB()
-        self.rect.setColor(0,1,1)
-        self.tree.sum(self.rect)
-        
-        self.rect = sim.RectVolume(-1,0.9,-2,2,2,2)
-        self.rect.calcBB()
-        self.rect.setColor(0,1,1)
-        self.tree.sum(self.rect)
-
-        cyl = sim.CylinderVolume()
-        cyl.setRadius(0.3)
-        cyl.setLength(50)
-        cyl.setCenter(sim.GLVertex(1,1,-2))
-        self.tree.diff(cyl)
-        cyl.setCenter(sim.GLVertex(0.9,1,-2))
-        self.tree.diff(cyl)
-        cyl.setCenter(sim.GLVertex(0.8,1,-2))
-        self.tree.diff(cyl)
-
-        self.iso_algo.updateGL()
+        if self.iso_algo:
+            self.iso_algo.updateGL()
 
         self.threadLock.acquire()
         self.gldata.swap()
         self.threadLock.release()
         
-        wx.GetApp().frame.graphics_canvas.Refresh()
+        
+        
+        self.timer = wx.Timer(wx.GetApp().frame, wx.ID_ANY)
+        self.timer.Start(33)
+        wx.GetApp().frame.Bind(wx.EVT_TIMER, OnTimer)
+
         
 #		WriteCoords(ofs);
 #		WriteSolids(ofs);
@@ -495,4 +475,64 @@ class Simulation(CamObject):
 #		ofs<<_T("parser.Parse('")<<GetOutputFileNameForPython(theApp.m_program->GetOutputFileName().c_str())<<_T("')\n");
 #		ofs<<_T("toolpath.rewind()\n");
         
+def GetSimToolDefinition(tool):
+    GRAY = (0.5, 0.5, 0.5)
+    RED = (0.7, 0.0, 0.0)
+    BLUE = (0.0, 0.0, 0.3)
         
+    span_list = []
+    height_above_cutting_edge = 30.0
+    r = tool.diameter/2.0
+    h = tool.cutting_edge_height
+    cr = tool.corner_radius
+    
+    if tool.type == TOOL_TYPE_DRILL or tool.type == TOOL_TYPE_CENTREDRILL:
+        max_cutting_height = 0.0
+        radius_at_cutting_height = r
+        edge_angle = tool.cutting_edge_angle
+        flat_radius = tool.flat_radius
+        if (edge_angle < 0.01) or (r < flat_radius):
+            span_list.append([geom.Span(geom.Point(flat_radius, 0), geom.Vertex(geom.Point(flat_radius, h)), False), GRAY])
+            span_list.append([geom.Span(geom.Point(flat_radius, h), geom.Vertex(geom.Point(flat_radius, h + height_above_cutting_edge)), False), RED])
+        else:
+            rad_diff = r - flat_radius
+            max_cutting_height = rad_diff / math.tan(edge_angle * 0.0174532925199432)
+            radius_at_cutting_height = (h/max_cutting_height) * rad_diff + flat_radius
+            if max_cutting_height > h:
+                span_list.append([geom.Span(geom.Point(flat_radius, 0), geom.Vertex(geom.Point(radius_at_cutting_height, h)), False), GRAY])
+                span_list.append([geom.Span(geom.Point(radius_at_cutting_height, h), geom.Vertex(geom.Point(r, max_cutting_height)), False), GRAY])
+                span_list.append([geom.Span(geom.Point(r, max_cutting_height), geom.Vertex(geom.Point(r, max_cutting_height + height_above_cutting_edge)), False), RED])
+            else:
+                span_list.append([geom.Span(geom.Point(flat_radius, 0), geom.Vertex(geom.Point(r, max_cutting_height)), False), GRAY])
+                span_list.append([geom.Span(geom.Point(r, max_cutting_height), geom.Vertex(geom.Point(r, h)), False), GRAY])
+                span_list.append([geom.Span(geom.Point(r, h), geom.Vertex(geom.Point(r, h + height_above_cutting_edge)), False), RED])
+    elif tool.type == TOOL_TYPE_ENDMILL or tool.type == TOOL_TYPE_SLOTCUTTER:
+        span_list.append([geom.Span(geom.Point(r, 0), geom.Vertex(geom.Point(r, h)), False), GRAY])
+        span_list.append([geom.Span(geom.Point(r, h), geom.Vertex(geom.Point(r, h + height_above_cutting_edge)), False), RED])
+    elif tool.type == TOOL_TYPE_BALLENDMILL:
+        if h > r:
+            span_list.append([geom.Span(geom.Point(0, 0), geom.Vertex(1, geom.Point(r, r), geom.Point(0, r)), False), GRAY])
+            span_list.append([geom.Span(geom.Point(r, r), geom.Vertex(geom.Point(r, h)), False), GRAY])
+            span_list.append([geom.Span(geom.Point(r, h), geom.Vertex(geom.Point(r, h + height_above_cutting_edge)), False), RED])
+        else:
+            x = math.sqrt(r*r - (r-h) * (r-h))
+            span_list.append([geom.Span(geom.Point(0, 0), geom.Vertex(1, geom.Point(x, h), geom.Point(0, r)), False), GRAY])
+            span_list.append([geom.Span(geom.Point(x, h), geom.Vertex(1, geom.Point(r, r), geom.Point(0, r)), False), RED])
+            span_list.append([geom.Span(geom.Point(r, r), geom.Vertex(geom.Point(r, r + height_above_cutting_edge)), False), RED])
+    else:
+        if cr > r: cr = r
+        if cr > 0.0001:
+            if h >= cr:
+                span_list.append([geom.Span(geom.Point(r-cr, 0), geom.Vertex(1, geom.Point(r, cr), geom.Point(r-cr, cr)), False), GRAY])
+                span_list.append([geom.Span(geom.Point(r, r), geom.Vertex(geom.Point(r, h)), False), GRAY])
+                span_list.append([geom.Span(geom.Point(r, h), geom.Vertex(geom.Point(r, h + height_above_cutting_edge)), False), RED])
+            else:
+                x = (r - cr) + math.sqrt(cr*cr - (cr-h) * (cr-h))
+                span_list.append([geom.Span(geom.Point(r-cr, 0), geom.Vertex(1, geom.Point(x, h), geom.Point(0, cr)), False), GRAY])
+                span_list.append([geom.Span(geom.Point(x, h), geom.Vertex(1, geom.Point(r, cr), geom.Point(0, cr)), False), RED])
+                span_list.append([geom.Span(geom.Point(r, cr), geom.Vertex(geom.Point(r, cr + height_above_cutting_edge)), False), RED])
+        else:
+            span_list.append([geom.Span(geom.Point(r, 0), geom.Vertex(geom.Point(r, h)), False), GRAY])
+            span_list.append([geom.Span(geom.Point(r, h), geom.Vertex(geom.Point(r, h + height_above_cutting_edge)), False), RED])
+    
+    return Tool(span_list)

@@ -59,7 +59,6 @@ void MarchingCubes::mc_node( Octnode* node) {
         GLVertex p1 = vertices[ triTable[edgeTableIndex][i    ] ];
         GLVertex p2 = vertices[ triTable[edgeTableIndex][i+1  ] ];
         GLVertex p3 = vertices[ triTable[edgeTableIndex][i+2  ] ];
-        GLVertex::set_normal_and_color( p1, p2, p3, node->color );
         triangle.push_back( g->addVertex(  p1, node ) );
         triangle.push_back( g->addVertex(  p2, node ) );
         triangle.push_back( g->addVertex(  p3, node ) );

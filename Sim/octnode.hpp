@@ -53,7 +53,7 @@ class Octnode {
         /// previous state of this node
         NodeState prev_state;
         /// the color of this node
-        Color color;
+        HeeksColor color;
         /// create suboctant idx of parent with scale nodescale and depth nodedepth
         Octnode(Octnode* parent, unsigned int idx, double nodescale, unsigned int nodedepth, GLData* g);
         /// create root node

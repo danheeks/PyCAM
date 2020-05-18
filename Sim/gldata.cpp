@@ -41,8 +41,8 @@ GLData::GLData() {
 }
 
 /// add a vertex with given position and color, return its index
-unsigned int GLData::addVertex(float x, float y, float z, float r, float g, float b) {
-    return addVertex( GLVertex(x,y,z,r,g,b), NULL );
+unsigned int GLData::addVertex(float x, float y, float z, HeeksColor c) {
+    return addVertex( GLVertex(x,y,z,c), NULL );
 }
 
 /// add vertex, associate given Octnode with the vertex, and return index
@@ -57,21 +57,10 @@ unsigned int GLData::addVertex(GLVertex v, Octnode* n) {
 }
 
 /// add vertex at given position
-unsigned int GLData::addVertex(float x, float y, float z, float r, float g, float b, Octnode* n) {
-    unsigned int id = addVertex(x,y,z,r,g,b);
+unsigned int GLData::addVertex(float x, float y, float z, HeeksColor c, Octnode* n) {
+    unsigned int id = addVertex(x,y,z,c);
     vertexDataArray[id].node = n;
     return id;
-}
-
-/// set vertex normal
-void GLData::setNormal(unsigned int vertexIdx, float nx, float ny, float nz) {
-    vertexArray[workIndex][vertexIdx].setNormal(nx,ny,nz);
-}
-
-/// modify given vertex
-void GLData::modifyVertex( unsigned int id, float x, float y, float z, float r, float g, float b, float nx, float ny, float nz) {
-    GLVertex p = GLVertex(x,y,z,r,g,b,nx,ny,nz);
-    vertexArray[workIndex][id] = p;
 }
 
 /// remove vertex with given index

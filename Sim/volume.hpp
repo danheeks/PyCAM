@@ -69,10 +69,10 @@ class Volume {
         /// of the volume (i.e. the volume where dist(p) returns negative values)
         Bbox bb;
         /// the color of this Volume
-        Color color;
+        HeeksColor color;
         /// set the color
         void setColor(GLfloat r, GLfloat g, GLfloat b) {
-            color.r = r; color.g = g; color.b = b;
+			color = HeeksColor((unsigned char)(r * 255), (unsigned char)(g * 255), (unsigned char)(b * 255));
         }
 };
 

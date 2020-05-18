@@ -14,6 +14,8 @@ import ScriptOp
 import Stock
 from OutputWindow import OutputWindow
 from SimControls import SimControls
+import math
+import geom
 
 class CamFrame(Frame):
     def __init__(self, parent, id=-1, pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.DEFAULT_FRAME_STYLE, name=wx.FrameNameStr):

@@ -120,11 +120,9 @@ class GLData {
 
 public:
     GLData();
-    unsigned int addVertex(float x, float y, float z, float r, float g, float b);
+	unsigned int addVertex(float x, float y, float z, HeeksColor c);
     unsigned int addVertex(GLVertex v, Octnode* n);
-    unsigned int addVertex(float x, float y, float z, float r, float g, float b, Octnode* n);
-    void setNormal(unsigned int vertexIdx, float nx, float ny, float nz);
-    void modifyVertex( unsigned int id, float x, float y, float z, float r, float g, float b, float nx, float ny, float nz);
+	unsigned int addVertex(float x, float y, float z, HeeksColor c, Octnode* n);
     void removeVertex( unsigned int vertexIdx );
     int addPolygon( std::vector<GLuint>& verts);
     void removePolygon( unsigned int polygonIdx);

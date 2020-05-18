@@ -267,7 +267,7 @@ CuttingStatus Octnode::diff_cd(const Volume* vol) {
     }
     set_state();
 
-    if (status.collision) color.set(COLLISION_COLOR);
+    if (status.collision) color = HeeksColor(COLLISION_COLOR);
 
     return status;
 }
