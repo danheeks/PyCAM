@@ -1,5 +1,5 @@
 # PyCAM
-Dan Heeks's experimental CAD/CAM software built on Dan's PyCAD, not to be confused with the more famous PyCAM ( http://pycam.sourceforge.net/ ).
+Dan Heeks's experimental CAD/CAM software built on Dan's PyCAD for the Raspberry Pi, not to be confused with the more famous PyCAM ( http://pycam.sourceforge.net/ ).
 ## To build PyCAM ##
 First build PyCAD https://github.com/danheeks/PyCAD/blob/master/README.md
 ### Fetch sources ###
