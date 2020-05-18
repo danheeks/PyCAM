@@ -48,18 +48,28 @@ include_directories("../../PyCAD/CAD")
 
 # this defines the source-files for library
 set(CAM_SRC
-    ../../../PyCAD/Geom/Arc.cpp
-    ../../../PyCAD/Geom/Area.cpp
-    ../../../PyCAD/Geom/AreaClipper.cpp
-    ../../../PyCAD/Geom/AreaOrderer.cpp
-    ../../../PyCAD/Geom/AreaPocket.cpp
-    ../../../PyCAD/Geom/Circle.cpp
-    ../../../PyCAD/Geom/clipper.cpp
-    ../../../PyCAD/Geom/Construction.cpp
-    ../../../PyCAD/Geom/Curve.cpp
-    ../../../PyCAD/Geom/Finite.cpp
-    ../../../PyCAD/Geom/Matrix.cpp
-    ../../../PyCAD/Geom/Offset.cpp
+    ../../PyCAD/Geom/Arc.cpp
+    ../../PyCAD/Geom/Area.cpp
+    ../../PyCAD/Geom/AreaClipper.cpp
+    ../../PyCAD/Geom/AreaOrderer.cpp
+    ../../PyCAD/Geom/AreaPocket.cpp
+    ../../PyCAD/Geom/Circle.cpp
+    ../../PyCAD/Geom/clipper.cpp
+    ../../PyCAD/Geom/Construction.cpp
+    ../../PyCAD/Geom/Curve.cpp
+    ../../PyCAD/Geom/Finite.cpp
+    ../../PyCAD/Geom/Matrix.cpp
+    ../../PyCAD/Geom/Offset.cpp
+    ../../PyCAD/Geom/Arc.cpp
+    ../../PyCAD/CAD/HeeksColor.cpp
+    ../../PyCAD/CAD/HeeksObj.cpp
+    ../../PyCAD/CAD/Picking.cpp
+    ../../PyCAD/CAD/Property.cpp
+    ../../PyCAD/CAD/strconv.cpp
+    ../../PyCAD/CAD/tinystr.cpp
+    ../../PyCAD/CAD/tinyxml.cpp
+    ../../PyCAD/CAD/tinyxmlerror.cpp
+    ../../PyCAD/CAD/tinyxmlparser.cpp
     NCCode.cpp
     PythonStuff.cpp
 )
