@@ -637,7 +637,12 @@ bool CNCCode::CanAdd(HeeksObj* object)
 
 bool CNCCode::CanAddTo(HeeksObj* owner)
 {
-	return ((owner != NULL) && (!wcsicmp(owner->GetTypeString(), L"program")));
+	if (owner == NULL)
+		return false;
+
+	std::wstring type_string(owner->GetTypeString());
+	lowerCase(type_string);
+	return type_string.compare(L"program") == 0;
 }
 
 #if 0
