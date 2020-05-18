@@ -5,14 +5,13 @@
  * details.
  */
 
-#include "stdafx.h"
+#include <stdafx.h>
 #include <math.h>
 #include "NCCode.h"
 #include "geometry.h"
 #include "strconv.h"
 #include "Curve.h"
 #include "Picking.h"
-//#include "MarkedObject.h"
 
 #include <memory>
 #include <sstream>

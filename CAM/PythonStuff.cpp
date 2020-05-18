@@ -15,14 +15,9 @@
 #endif
 
 
-#include <boost/progress.hpp>
-#include <boost/timer.hpp>
-#include <boost/foreach.hpp>
 #include <boost/python.hpp>
 #include <boost/python/module.hpp>
 #include <boost/python/class.hpp>
-#include <boost/python/wrapper.hpp>
-#include <boost/python/call.hpp>
 
 #include "NCCode.h"
 #include "strconv.h"
