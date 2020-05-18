@@ -46,7 +46,7 @@ class NcCode(CamObject):
         self.nc_code.KillGLLists()
         
     def GetBox(self):
-        box = geom.Box3D()
+        self.box = geom.Box3D()
         self.nc_code.GetBox(box)
         return box
         
