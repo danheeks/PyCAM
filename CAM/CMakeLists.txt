@@ -45,18 +45,18 @@ endif (NOT WIN32)
 
 # this defines the source-files for library
 set(CAM_SRC
-    ../Geom/Arc.cpp
-    ../Geom/Area.cpp
-    ../Geom/AreaClipper.cpp
-    ../Geom/AreaOrderer.cpp
-    ../Geom/AreaPocket.cpp
-    ../Geom/Circle.cpp
-    ../Geom/clipper.cpp
-    ../Geom/Construction.cpp
-    ../Geom/Curve.cpp
-    ../Geom/Finite.cpp
-    ../Geom/Matrix.cpp
-    ../Geom/Offset.cpp
+    ../../../PyCAD/Geom/Arc.cpp
+    ../../../PyCAD/Geom/Area.cpp
+    ../../../PyCAD/Geom/AreaClipper.cpp
+    ../../../PyCAD/Geom/AreaOrderer.cpp
+    ../../../PyCAD/Geom/AreaPocket.cpp
+    ../../../PyCAD/Geom/Circle.cpp
+    ../../../PyCAD/Geom/clipper.cpp
+    ../../../PyCAD/Geom/Construction.cpp
+    ../../../PyCAD/Geom/Curve.cpp
+    ../../../PyCAD/Geom/Finite.cpp
+    ../../../PyCAD/Geom/Matrix.cpp
+    ../../../PyCAD/Geom/Offset.cpp
     NCCode.cpp
     PythonStuff.cpp
 )
