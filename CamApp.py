@@ -4,7 +4,7 @@ import sys
 from nc.nc import *
 
 cam_dir = os.path.dirname(os.path.realpath(__file__))
-pycad_dir = os.path.realpath(cam_dir + '/../../PyCAD/trunk')
+pycad_dir = os.path.realpath(cam_dir + '/../PyCAD')
 sys.path.append(pycad_dir)
 import cad
 import cam
@@ -30,7 +30,7 @@ import Drilling
 import ScriptOp
 import Tags
 import Tag
-import Simulation
+#import Simulation
 import CamContextTool
 from HeeksConfig import HeeksConfig
 
@@ -53,7 +53,7 @@ def CreateDrilling(): return Drilling.Drilling()
 def CreateTags(): return Tags.Tags()
 def CreateTag(): return Tag.Tag()
 def CreateScriptOp(): return ScriptOp.ScriptOp()
-def CreateSimulation(): return Simulation.Simulation()
+#def CreateSimulation(): return Simulation.Simulation()
 
 #class CamObserver(cad.Observer):
 #    def __init__(self):
@@ -102,7 +102,7 @@ class CamApp(SolidApp):
         Tags.type = cad.RegisterObjectType("Tags", CreateTags)
         Tag.type = cad.RegisterObjectType("Tag", CreateTag)
         ScriptOp.type = cad.RegisterObjectType("ScriptOp", CreateScriptOp)
-        Simulation.type = cad.RegisterObjectType("Simulation", CreateSimulation)
+#        Simulation.type = cad.RegisterObjectType("Simulation", CreateSimulation)
         
 #        self.cam_observer = CamObserver()
 #        cad.RegisterObserver(self.cam_observer)

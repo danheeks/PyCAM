@@ -14,7 +14,7 @@ import cad
 from Object import PyProperty
 from nc.nc import *
 import Surface
-import Simulation
+#import Simulation
 import cam
 
 type = 0
@@ -41,7 +41,7 @@ class Program(CamObject):
         self.stocks = None
         self.operations = None
         self.nccode = None
-        self.simulation = None
+        #self.simulation = None
         
     def TypeName(self):
         return "Program"
@@ -86,9 +86,9 @@ class Program(CamObject):
             self.nccode = NcCode.NcCode()
             self.Add(self.nccode)
             
-        if self.simulation == None:
-            self.simulation = Simulation.Simulation()
-            self.Add(self.simulation)
+#        if self.simulation == None:
+#            self.simulation = Simulation.Simulation()
+#            self.Add(self.simulation)
 
     def GetOutputFileName(self):
         if self.output_file_name_follows_data_file_name == False:
@@ -155,8 +155,8 @@ class Program(CamObject):
     def OnAdded(self, object):
         if object.GetType() == NcCode.type:
             self.nccode = object
-        if object.GetType() == Simulation.type:
-            self.simulation = object
+#        if object.GetType() == Simulation.type:
+#            self.simulation = object
     
     def GetProperties(self):
         properties = []
@@ -201,7 +201,7 @@ class Program(CamObject):
             if object.GetType() == Stocks.type:self.stocks = object
             if object.GetType() == Operations.type:self.operations = object
             if object.GetType() == NcCode.type:self.nccode = object
-            if object.GetType() == Simulation.type:self.simulation = object
+#            if object.GetType() == Simulation.type:self.simulation = object
             
             object = self.GetNextChild()
                 
