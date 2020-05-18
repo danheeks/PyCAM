@@ -72,7 +72,7 @@ class OutputWindow(wx.ScrolledWindow):
     def __init__(self, parent):
         wx.ScrolledWindow.__init__(self, parent, name = 'Output', style = wx.HSCROLL + wx.VSCROLL + wx.NO_FULL_REPAINT_ON_RESIZE)
         self.textCtrl = OutputTextCtrl(self)
-        self.textCtrl.SetMaxLength(0)
+        #self.textCtrl.SetMaxLength(0)
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Resize()
         
