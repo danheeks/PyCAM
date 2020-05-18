@@ -43,7 +43,7 @@ if (NOT WIN32)
     include_directories(OPENGL_INCLUDE_DIR)
 endif (NOT WIN32)
 
-include_directories("../../../PyCAD/Geom")
+include_directories("../../PyCAD/Geom")
 
 # this defines the source-files for library
 set(CAM_SRC
