@@ -45,7 +45,7 @@ class CamFrame(Frame):
         self.AddMenuItem('Ball End Mill...', self.NewProfileOp, None, 'ballmill')        
         self.AddMenuItem('Chamfer Mill...', self.NewProfileOp, None, 'chamfmill')        
         self.EndMenu()      
-        self.AddMenuItem('Create G-Code', self.PostProcessMenuCallback, None, 'postprocess')        
+        self.AddMenuItem('Create G-Code', self.OnCreateGCode, None, 'postprocess')        
         self.AddMenuItem('Simulate', self.OnSimulate, None, 'simulate')        
         self.AddMenuItem('Open NC File', self.NewProfileOp, None, 'opennc')        
         self.AddMenuItem('Save NC File As', self.NewProfileOp, None, 'savenc')        
@@ -147,7 +147,7 @@ class CamFrame(Frame):
         import wx
         wx.MessageBox("post process")
         
-    def PostProcessMenuCallback(self, e):
+    def OnCreateGCode(self, e):
         self.output_window.textCtrl.Clear()
         wx.GetApp().program.MakeGCode()
         wx.GetApp().program.BackPlot()
