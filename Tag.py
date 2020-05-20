@@ -23,6 +23,18 @@ class Tag(CamObject):
         # the name of the PNG file in the HeeksCNC icons folder
         return "tag"
         
+    def MakeACopy(self):
+        copy = Tag()
+        copy.CopyFrom(self)
+        return copy
+        
+    def CopyFrom(self, object):
+        CamObject.CopyFrom(self, object)
+        self.pos = object.pos
+        self.width = object.width
+        self.angle = object.angle
+        self.height = object.height
+
     def WriteXml(self):
         cad.SetXmlValue('x', self.pos.x)
         cad.SetXmlValue('y', self.pos.y)

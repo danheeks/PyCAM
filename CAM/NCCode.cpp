@@ -55,9 +55,11 @@ void PathObject::WriteBaseXML(TiXmlElement *pElem)
 void PathObject::ReadFromXMLElement(TiXmlElement* pElem)
 {
 	double x;
+	m_point = CNCCode::prev_point;
 	if(pElem->Attribute("x", &x))m_point.x = x * CNCCodeBlock::multiplier;
 	if(pElem->Attribute("y", &x))m_point.y = x * CNCCodeBlock::multiplier;
 	if(pElem->Attribute("z", &x))m_point.z = x * CNCCodeBlock::multiplier;
+	CNCCode::prev_point = m_point;
 
 	if (pElem->Attribute("tool_number"))
 	{
@@ -681,6 +683,7 @@ void CNCCode::ReadFromXML(TiXmlElement* element)
 	pos = 0;
 
 	CNCCodeBlock::multiplier = 1.0;
+	CNCCode::prev_point = Point3d(0, 0, 0);
 
 	// loop through all the objects
 	for(TiXmlElement* pElem = TiXmlHandle(element).FirstChildElement().Element() ; pElem;	pElem = pElem->NextSiblingElement())
