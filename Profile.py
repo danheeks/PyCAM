@@ -166,6 +166,9 @@ class Profile(SketchOp):
 
         SketchOp.ReadXml(self)
         
+    def CallsObjListReadXml(self):
+        return False
+        
     def ReadDefaultValues(self):
         SketchOp.ReadDefaultValues(self)
         config = HeeksConfig()
@@ -201,9 +204,6 @@ class Profile(SketchOp):
         config.WriteFloat("ExtendAtEnd", self.extend_at_end)
         config.WriteFloat("LeadInLineLen", self.lead_in_line_len)
         config.WriteFloat("LeadOutLineLen", self.lead_out_line_len)
-        
-    def CallsObjListReadXml(self):
-        return False
             
     def GetProperties(self):
         properties = []
@@ -274,6 +274,17 @@ class Profile(SketchOp):
             if self.tool_on_side == PROFILE_RIGHT_OR_INSIDE: reversed = not reversed
             
         curve = object.GetCurve()
+        
+        if self.start_given or self.end_given:
+            start = None
+            if self.start_given:
+                start = geom.Point(self.start.x, self.start.y)
+            end = None
+            end_beyond = False
+            if self.end_given:
+                end = geom.Point(self.end.x, self.end.y)
+                end_beyond = self.end_beyond_full_profile
+            kurve_funcs.make_smaller(curve, start, end, end_beyond)
 
         if curve.NumVertices() <= 1:
             raise NameError("sketch has no spans! object = " + object.GetTitle() + ' curve = ' + str(curve))

@@ -18,10 +18,10 @@ type = 0
 PROFILE_CONVENTIONAL = 0
 PROFILE_CLIMB = 1
 
-ENTRY_STYLE_UNDEFINED = 0
-ENTRY_STYLE_PLUNGE = 1
-ENTRY_STYLE_RAMP = 2
-ENTRY_STYLE_HELICAL = 3
+ENTRY_STYLE_PLUNGE = 0
+ENTRY_STYLE_RAMP = 1
+ENTRY_STYLE_HELICAL = 2
+ENTRY_STYLE_UNDEFINED = 3
 
 class Pocket(SketchOp):
     def __init__(self, sketch = 0, tool_number = -1, operation_type = cad.OBJECT_TYPE_UNKNOWN):
@@ -55,6 +55,9 @@ class Pocket(SketchOp):
                 self.entry_move = cad.GetXmlInt('entry_move', self.entry_move)
             child_element = cad.GetNextXmlChild()
         SketchOp.ReadXml(self)
+        
+    def CallsObjListReadXml(self):
+        return False
         
     def ReadDefaultValues(self):
         SketchOp.ReadDefaultValues(self)
@@ -123,7 +126,7 @@ class Pocket(SketchOp):
         properties.append(PyPropertyLength("Material Allowance", 'material_allowance', self))
         properties.append(PyChoiceProperty("Cut Mode", 'cut_mode', ['Conventional', 'Climb'], self))
         properties.append(PyChoiceProperty("Starting Place", 'from_center', ['Conventional', 'Climb'], self))
-        properties.append(PyChoiceProperty("Entry Move", 'entry_move', ['Plunge', 'Ramp', 'Helical'], self, [1,2,3]))
+        properties.append(PyChoiceProperty("Entry Move", 'entry_move', ['Plunge', 'Ramp', 'Helical'], self, [0,1,2]))
         properties.append(PyProperty("Keep Tool Down", 'keep_tool_down_if_poss', self))
         properties.append(PyProperty("Use Zig Zag", 'use_zig_zag', self))
         properties.append(PyProperty("Zig Angle", 'zig_angle', self))
