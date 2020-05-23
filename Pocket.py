@@ -32,6 +32,7 @@ class Pocket(SketchOp):
         cad.BeginXmlChild('params')
         cad.SetXmlValue('step', self.step_over)
         cad.SetXmlValue('cut_mode', self.cut_mode)
+        cad.SetXmlValue('mat', self.material_allowance)
         cad.SetXmlValue('from_center', self.from_center)
         cad.SetXmlValue('keep_tool_down', self.keep_tool_down_if_poss)
         cad.SetXmlValue('use_zig_zag', self.use_zig_zag)
@@ -47,6 +48,7 @@ class Pocket(SketchOp):
             if child_element == 'params':
                 self.step_over = cad.GetXmlFloat('step', self.step_over)
                 self.cut_mode = cad.GetXmlInt('cut_mode', self.cut_mode)
+                self.material_allowance = cad.GetXmlFloat('mat', self.material_allowance)
                 self.from_center = cad.GetXmlInt('from_center', self.from_center)
                 self.keep_tool_down_if_poss = cad.GetXmlBool('keep_tool_down', self.keep_tool_down_if_poss)
                 self.use_zig_zag = cad.GetXmlBool('use_zig_zag', self.use_zig_zag)

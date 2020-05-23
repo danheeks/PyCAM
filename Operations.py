@@ -18,6 +18,9 @@ class Operations(CamObject):
         # the name of the PNG file in the HeeksCNC icons folder
         return "operations"
     
+    def UsesID(self):
+        return False
+    
     def CanBeDeleted(self):
         return False
     

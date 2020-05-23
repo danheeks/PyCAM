@@ -16,6 +16,9 @@ class Tags(CamObject):
         # the name of the PNG file in the HeeksCNC icons folder
         return "tags"
     
+    def UsesID(self):
+        return False
+    
     def CanBeDeleted(self):
         return False
     

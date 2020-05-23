@@ -23,6 +23,9 @@ class Tag(CamObject):
         # the name of the PNG file in the HeeksCNC icons folder
         return "tag"
         
+    def UsesID(self):
+        return False
+    
     def MakeACopy(self):
         copy = Tag()
         copy.CopyFrom(self)

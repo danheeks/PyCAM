@@ -26,6 +26,9 @@ class Tools(CamObject):
     def OneOfAKind(self):
         return True
     
+    def UsesID(self):
+        return False
+    
     def AddToPopupMenu(self, menu):
         menu.AddItem("save as default tools", self.OnSaveDefault)
         

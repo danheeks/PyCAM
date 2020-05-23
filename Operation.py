@@ -8,11 +8,9 @@ from Object import PyPropertyLength
 
 class Operation(CamObject):
     def __init__(self, tool_number = -1, operation_type = cad.OBJECT_TYPE_UNKNOWN):
-        CamObject.__init__(self)
+        CamObject.__init__(self, id_named = True)
         self.active = True
         self.comment = ''
-        self.title = self.TypeName()
-        self.title_made_from_id = True
         self.tool_number = tool_number
         self.operation_type = operation_type
         self.pattern = 1
@@ -20,12 +18,6 @@ class Operation(CamObject):
         
     def TypeName(self):
         return "Operation"
-    
-    def GetTitle(self):
-        if self.title_made_from_id:
-            return self.TypeName() + ' ' + str(self.GetID())
-        else:
-            return self.title
         
     def icon(self):
         # the name of the PNG file in the HeeksCNC icons folder
@@ -63,18 +55,14 @@ class Operation(CamObject):
         CamObject.CopyFrom(self, object)
         self.active = object.active
         self.comment = object.comment
-        self.title = object.title
-        self.title_made_from_id = object.title_made_from_id
         self.tool_number = object.tool_number
         self.operation_type = object.operation_type
         self.pattern = object.pattern
         self.surface = object.surface
         
     def WriteXml(self):
-        if len(self.comment): cad.SetXmlValue('comment', self.comment)
+        if len(self.comment) > 0: cad.SetXmlValue('comment', self.comment)
         cad.SetXmlValue('active', self.active)
-        cad.SetXmlValue('title', self.title)
-        cad.SetXmlValue('title_from_id', self.title_made_from_id)
         cad.SetXmlValue('tool_number', self.tool_number)
         cad.SetXmlValue('pattern', self.pattern)
         cad.SetXmlValue('surface', self.surface)
@@ -83,8 +71,6 @@ class Operation(CamObject):
     def ReadXml(self):
         self.comment = cad.GetXmlValue('comment', self.comment)
         self.active = cad.GetXmlBool('active', self.active)
-        self.title = cad.GetXmlValue('title', self.title)
-        self.title_made_from_id = cad.GetXmlBool('title_from_id', self.title_made_from_id)
         self.tool_number = cad.GetXmlInt('tool_number', self.tool_number)
         self.pattern = cad.GetXmlInt('pattern', self.pattern)
         self.surface = cad.GetXmlInt('surface', self.surface)

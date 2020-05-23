@@ -16,6 +16,9 @@ class Patterns(CamObject):
         # the name of the PNG file in the HeeksCNC icons folder
         return "patterns"
     
+    def UsesID(self):
+        return False
+    
     def CanBeDeleted(self):
         return False
         

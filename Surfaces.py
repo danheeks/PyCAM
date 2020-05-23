@@ -16,6 +16,9 @@ class Surfaces(CamObject):
         # the name of the PNG file in the HeeksCNC icons folder
         return "surfaces"
     
+    def UsesID(self):
+        return False
+    
     def CanBeDeleted(self):
         return False
         

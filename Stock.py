@@ -6,7 +6,7 @@ type = 0
 
 class Stock(CamObject):
     def __init__(self):
-        CamObject.__init__(self)
+        CamObject.__init__(self, id_named = True)
         self.solids = []
         
     def GetType(self):
