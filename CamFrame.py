@@ -3,7 +3,7 @@ import os
 import wx
 import cad
 cam_dir = os.path.dirname(os.path.realpath(__file__))
-pycad_dir = os.path.realpath(cam_dir + '/../../PyCAD/trunk')
+pycad_dir = os.path.realpath(cam_dir + '/../PyCAD')
 sys.path.append(pycad_dir)
 
 from Frame import Frame # from CAD
@@ -13,7 +13,6 @@ import Drilling
 import ScriptOp
 import Stock
 from OutputWindow import OutputWindow
-from SimControls import SimControls
 import math
 import geom
 
@@ -46,13 +45,11 @@ class CamFrame(Frame):
         self.AddMenuItem('Chamfer Mill...', self.NewProfileOp, None, 'chamfmill')        
         self.EndMenu()      
         self.AddMenuItem('Create G-Code', self.OnCreateGCode, None, 'postprocess')        
-        self.AddMenuItem('Simulate', self.OnSimulate, None, 'simulate')        
         self.AddMenuItem('Open NC File', self.NewProfileOp, None, 'opennc')        
         self.AddMenuItem('Save NC File As', self.NewProfileOp, None, 'savenc')        
         self.EndMenu()      
         
         self.AddMenuItem('Output', self.OnViewOutput, self.OnUpdateViewOutput, check_item = True, menu = self.window_menu)
-        self.AddMenuItem('Simulation Controls', self.OnViewSimControls, self.OnUpdateViewSimControls, check_item = True, menu = self.window_menu)
         
         self.bitmap_path = save_bitmap_path
 
@@ -60,9 +57,6 @@ class CamFrame(Frame):
         self.output_window = OutputWindow(self)
         self.aui_manager.AddPane(self.output_window, wx.aui.AuiPaneInfo().Name('Output').Caption('Output').Left().Bottom().BestSize(wx.Size(600, 200)))
         wx.GetApp().RegisterHideableWindow(self.output_window)
-        self.sim_controls = SimControls(self)
-        self.aui_manager.AddPane(self.sim_controls, wx.aui.AuiPaneInfo().Name('SimControls').Caption('Simulation Controls').Center().Bottom().BestSize(wx.Size(300, 80)))
-        wx.GetApp().RegisterHideableWindow(self.sim_controls)
         
     def GetSelectedSketches(self):
         sketches = []
@@ -151,10 +145,6 @@ class CamFrame(Frame):
         self.output_window.textCtrl.Clear()
         wx.GetApp().program.MakeGCode()
         wx.GetApp().program.BackPlot()
-        
-    def OnSimulate(self, e):
-        wx.GetApp().program.simulation.Reset()
-        self.sim_controls.SetFromSimulation(wx.GetApp().program.simulation)
 
     def on_open_nc_file(self):
         import wx
@@ -190,13 +180,3 @@ class CamFrame(Frame):
     def OnUpdateViewOutput(self, e):
         e.Check(self.aui_manager.GetPane(self.output_window).IsShown())
 
-    def OnViewSimControls(self, e):
-        pane_info = self.aui_manager.GetPane(self.sim_controls)
-        if pane_info.IsOk():
-            pane_info.Show(e.IsChecked())
-            self.aui_manager.Update()
-        
-    def OnUpdateViewSimControls(self, e):
-        e.Check(self.aui_manager.GetPane(self.sim_controls).IsShown())
-        
-        
