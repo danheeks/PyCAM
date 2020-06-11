@@ -95,15 +95,14 @@ class Program(CamObject):
             return self.output_file
         
         filepath = wx.GetApp().filepath
+
         if filepath == None:
             # The user hasn't assigned a filename yet.  Use the default.
             return self.output_file
-
-        pos = filepath.rfind('.')
-        if pos == -1:
-            return self.output_file
         
-        filepath = filepath[0:pos] + ".tap"
+        pos = filepath.rfind('.')
+        
+        filepath = filepath[0:pos] + self.machine.suffix
         return filepath
     
     def GetMachines(self):

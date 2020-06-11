@@ -30,9 +30,11 @@ class Parser:
         self.drillz = None
         self.need_m6_for_t_change = True
         self.pattern_main = re.compile('([(!;].*|\s+|[a-zA-Z0-9_:](?:[+-])?\d*(?:\.\d*)?|\w\#\d+|\(.*?\)|\#\d+\=(?:[+-])?\d*(?:\.\d*)?)')
+        self.file_in = None
         
     def __del__(self):
-        self.file_in.close()
+        if self.file_in != None:
+            self.file_in.close()
 
     ############################################################################
     ##  Internals
