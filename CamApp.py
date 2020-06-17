@@ -13,7 +13,6 @@ cam.SetResPath(cam_dir)
 cam.SetApp(cad.GetApp())
 
 from SolidApp import SolidApp # from CAD
-from CamFrame import CamFrame
 import Program
 import Tool
 import Tools
@@ -30,9 +29,14 @@ import Drilling
 import ScriptOp
 import Tags
 import Tag
-#import Simulation
+import Pattern
 import CamContextTool
 from HeeksConfig import HeeksConfig
+from OutputWindow import OutputWindow
+import math
+import geom
+from Ribbon import RB
+from Ribbon import Ribbon
 
 programs = []
 
@@ -53,26 +57,7 @@ def CreateDrilling(): return Drilling.Drilling()
 def CreateTags(): return Tags.Tags()
 def CreateTag(): return Tag.Tag()
 def CreateScriptOp(): return ScriptOp.ScriptOp()
-#def CreateSimulation(): return Simulation.Simulation()
-
-#class CamObserver(cad.Observer):
-#    def __init__(self):
-#        cad.Observer.__init__(self)
-#        print('CamObserver __init__')
-        
-#    def OnRemoved(self, removed):
-#        for object in removed:
-#            if object.GetType() == cam.GetNcCodeType():
-#                wx.GetApp().frame.output_window.Clear()
-
-#    def OnAdded(self, added):
-#        for object in added:
-#            print('object added')
-#            if object.GetType() == cam.GetNcCodeType():
-#                wx.GetApp().program.nccode = object
-#                print('nccode added')
-#                wx.GetApp().frame.output_window.textCtrl.SetText()
-   
+def CreatePattern(): return Pattern.Pattern()
 
 class CamApp(SolidApp):
     def __init__(self):
@@ -89,6 +74,7 @@ class CamApp(SolidApp):
         Tools.type = cad.RegisterObjectType("Tools", CreateTools)
         Tool.type = cad.RegisterObjectType("Tool", CreateTool)
         Operations.type = cad.RegisterObjectType("Operations", CreateOperations)
+        Pattern.type = cad.RegisterObjectType("Pattern", CreatePattern)
         Patterns.type = cad.RegisterObjectType("Patterns", CreatePatterns)
         Surface.type = cad.RegisterObjectType("Surface", CreateSurface)
         Surfaces.type = cad.RegisterObjectType("Surfaces", CreateSurfaces)
@@ -102,17 +88,9 @@ class CamApp(SolidApp):
         Tags.type = cad.RegisterObjectType("Tags", CreateTags)
         Tag.type = cad.RegisterObjectType("Tag", CreateTag)
         ScriptOp.type = cad.RegisterObjectType("ScriptOp", CreateScriptOp)
-#        Simulation.type = cad.RegisterObjectType("Simulation", CreateSimulation)
-        
-#        self.cam_observer = CamObserver()
-#        cad.RegisterObserver(self.cam_observer)
         
         ReadNCCodeColorsFromConfig()
 
-    
-    def NewFrame(self, pos=wx.DefaultPosition, size=wx.DefaultSize):
-        return CamFrame(None, pos = pos, size = size)
-        
     def AddProgramIfThereIsntOne(self):
         # check if there is already a program in the document
         doc = cad.GetApp()
@@ -156,6 +134,184 @@ class CamApp(SolidApp):
         if object.GetType() == Profile.type:
             tools.append(CamContextTool.CamObjectContextTool(object, "Add Tags", "addtag", self.AddTags))
         return tools
+        
+    def AddExtraRibbonPages(self, ribbon):
+        SolidApp.AddExtraRibbonPages(self, ribbon)
+        
+        save_bitmap_path = self.bitmap_path
+        self.bitmap_path = cam_dir + '/bitmaps'
+
+        page = RB.RibbonPage(ribbon, wx.ID_ANY, 'Machining', ribbon.Image('ops'))
+        page.Bind(wx.EVT_KEY_DOWN, ribbon.OnKeyDown)
+
+        panel = RB.RibbonPanel(page, wx.ID_ANY, 'Milling', ribbon.Image('ops'))
+        toolbar = RB.RibbonButtonBar(panel)
+        Ribbon.AddToolBarTool(toolbar, 'Profile', 'opprofile', 'Add a Profile Operation', self.NewProfileOp)
+        Ribbon.AddToolBarTool(toolbar, 'Pocket', 'pocket', 'Add a Pocket Operation', self.NewPocketOp)
+        Ribbon.AddToolBarTool(toolbar, 'Drilling', 'drilling', 'Add a Drilling Operation', self.NewDrillingOp)
+
+        panel = RB.RibbonPanel(page, wx.ID_ANY, 'Other Operations', ribbon.Image('ops'))
+        toolbar = RB.RibbonButtonBar(panel)
+        Ribbon.AddToolBarTool(toolbar, 'Script', 'scriptop', 'Add a Script Operation', self.NewScriptOp)
+        Ribbon.AddToolBarTool(toolbar, 'Pattern', 'pattern', 'Add a Pattern', self.NewPattern)
+        Ribbon.AddToolBarTool(toolbar, 'Surface', 'surface', 'Add a Surface', self.NewSurface)
+        Ribbon.AddToolBarTool(toolbar, 'Stock', 'stock', 'Add a Stock', self.NewStock)
+
+        panel = RB.RibbonPanel(page, wx.ID_ANY, 'Tools', ribbon.Image('tools'))
+        toolbar = RB.RibbonButtonBar(panel)
+        Ribbon.AddToolBarTool(toolbar, 'Drill', 'drill', 'Add a Drill', self.NewProfileOp)
+        Ribbon.AddToolBarTool(toolbar, 'Centre Drill', 'centredrill', 'Add a Centre Drill', self.NewProfileOp)
+        Ribbon.AddToolBarTool(toolbar, 'End Mill', 'endmill', 'Add an End Mill', self.NewProfileOp)
+        Ribbon.AddToolBarTool(toolbar, 'Slot Drill', 'slotdrill', 'Add a Slot Drill', self.NewProfileOp)
+        Ribbon.AddToolBarTool(toolbar, 'Ball End Mill', 'ballmill', 'Add a Ball Mill', self.NewProfileOp)
+        Ribbon.AddToolBarTool(toolbar, 'Chamfer Mill', 'chamfmill', 'Add a Chamfer Mill', self.NewProfileOp)
+
+        panel = RB.RibbonPanel(page, wx.ID_ANY, 'G-Code', ribbon.Image('code'))
+        toolbar = RB.RibbonButtonBar(panel)
+        Ribbon.AddToolBarTool(toolbar, 'Create G-Code', 'postprocess', 'Create G-Code Output File', self.OnCreateGCode)
+        Ribbon.AddToolBarTool(toolbar, 'Open G-Code', 'opennc', 'Open a G-Code File ( to display its tool path )', self.NewProfileOp)
+
+        page.Realize()
+
+        self.bitmap_path = save_bitmap_path
+
+    def AddExtraWindows(self):
+        self.output_window = OutputWindow(self)
+        self.aui_manager.AddPane(self.output_window, wx.aui.AuiPaneInfo().Name('Output').Caption('Output').Left().Bottom().BestSize(wx.Size(600, 200)))
+        self.RegisterHideableWindow(self.output_window)
+        
+    def GetSelectedSketches(self):
+        sketches = []
+        for object in cad.GetSelectedObjects():
+            if object.GetIDGroupType() == cad.OBJECT_TYPE_SKETCH:
+                sketches.append(object.GetID())
+        return sketches
+        
+    def GetSelectedPoints(self):
+        points = []
+        for object in cad.GetSelectedObjects():
+            if object.GetIDGroupType() == cad.OBJECT_TYPE_POINT:
+                points.append(object.GetID())
+        return points
+    
+    def EditAndAddSketchOp(self, new_object, sketches):
+        if new_object.Edit():
+            cad.StartHistory()
+            cad.AddUndoably(new_object, self.program.operations, None)
+            
+            first = True
+            for sketch in sketches:
+                if first:
+                    first = False
+                else:
+                    copy = new_object.MakeACopy()
+                    copy.sketch = sketch
+                    cad.AddUndoably(copy, self.program.operations, None)
+            
+            cad.EndHistory()
+    
+    def NewProfileOp(self, e):
+        sketches = self.GetSelectedSketches()
+        sketch = 0
+        if len(sketches) > 0: sketch = sketches[0]
+        new_object = Profile.Profile(sketch)
+        new_object.SetID(cad.GetNextID(Profile.type))
+        new_object.AddMissingChildren()  # add the tags container
+        
+        self.EditAndAddSketchOp(new_object, sketches)
+            
+    def NewPocketOp(self, e):
+        sketches = self.GetSelectedSketches()
+        sketch = 0
+        if len(sketches) > 0: sketch = sketches[0]
+        new_object = Pocket.Pocket(sketch)
+        new_object.SetID(cad.GetNextID(Pocket.type))
+        
+        self.EditAndAddSketchOp(new_object, sketches)
+        
+    def NewStock(self, e):
+        solids = []
+        for object in cad.GetSelectedObjects():
+            if object.GetIDGroupType() == cad.OBJECT_TYPE_STL_SOLID:
+                solids.append(object.GetID())
+
+        new_object = Stock.Stock()
+        new_object.solids += solids
+        new_object.SetID(cad.GetNextID(Stock.type))
+        if new_object.Edit():
+            cad.AddUndoably(new_object, self.program.stocks, None)
+            cad.EndHistory()
+        
+    def EditAndAddOp(self, op):
+        if op.Edit():
+            cad.StartHistory()
+            cad.AddUndoably(op, self.program.operations, None)
+            cad.EndHistory()
+            
+    def NewDrillingOp(self, e):
+        new_object = Drilling.Drilling()
+        new_object.points += self.GetSelectedPoints()
+        new_object.SetID(cad.GetNextID(Drilling.type))
+        self.EditAndAddOp(new_object)
+            
+    def NewScriptOp(self, e):
+        new_object = ScriptOp.ScriptOp()
+        new_object.SetID(cad.GetNextID(ScriptOp.type))
+        self.EditAndAddOp(new_object)
+
+    def NewPattern(self, e):
+        new_object = Pattern.Pattern()
+        new_object.SetID(cad.GetNextID(Pattern.type))
+        self.EditAndAddOp(new_object)
+
+    def NewSurface(self, e):
+        new_object = Surface.Surface()
+        new_object.SetID(cad.GetNextID(Surface.type))
+        self.EditAndAddOp(new_object)
+
+    def on_post_process(self):
+        import wx
+        wx.MessageBox("post process")
+        
+    def OnCreateGCode(self, e):
+        self.output_window.textCtrl.Clear()
+        self.program.MakeGCode()
+        self.program.BackPlot()
+
+    def on_open_nc_file(self):
+        import wx
+        dialog = wx.FileDialog(self.cad.frame, "Open NC file", wildcard = "NC files" + " |*.*")
+        dialog.CentreOnParent()
+        
+        if dialog.ShowModal() == wx.ID_OK:
+            from PyProcess import HeeksPyBackplot
+            HeeksPyBackplot(dialog.GetPath())
+        
+    def on_save_nc_file(self):
+        import wx
+        dialog = wx.FileDialog(self.cad.frame, "Save NC file", wildcard = "NC files" + " |*.*", style = wx.FD_SAVE + wx.FD_OVERWRITE_PROMPT)
+        dialog.CentreOnParent()
+        
+        if dialog.ShowModal() == wx.ID_OK:
+            nc_file_str = dialog.GetPath()
+            f = open(nc_file_str, "w")
+            if f.errors:
+                wx.MessageBox("Couldn't open file" + " - " + nc_file_str)
+                return
+            f.write(self.ouput_window.textCtrl.GetValue())
+            
+            from PyProcess import HeeksPyPostProcess
+            HeeksPyBackplot(dialog.GetPath())
+
+    def OnViewOutput(self, e):
+        pane_info = self.aui_manager.GetPane(self.output_window)
+        if pane_info.IsOk():
+            pane_info.Show(e.IsChecked())
+            self.aui_manager.Update()
+        
+    def OnUpdateViewOutput(self, e):
+        e.Check(self.aui_manager.GetPane(self.output_window).IsShown())
+
         
 def ReadNCCodeColorsFromConfig():
     config = HeeksConfig()

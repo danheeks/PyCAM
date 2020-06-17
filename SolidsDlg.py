@@ -31,7 +31,12 @@ class SolidsDlg(HeeksObjDlg):
         
     def PickSolids(self):
         cad.ClearSelection(True)
-        wx.GetApp().PickObjects('Pick solids', cad.MARKING_FILTER_STL_SOLID, False)
+        filter = cad.Filter()
+        filter.AddType(cad.OBJECT_TYPE_STL_SOLID)
+        if wx.GetApp().IsSolidApp():
+            import step
+            filter.AddType(step.GetSolidType())
+        wx.GetApp().PickObjects('Pick solids', filter, False)
         
         solids = []
         for object in cad.GetSelectedObjects():
