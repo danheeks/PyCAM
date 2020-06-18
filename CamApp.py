@@ -175,10 +175,10 @@ class CamApp(SolidApp):
 
         self.bitmap_path = save_bitmap_path
 
-    def AddExtraWindows(self):
-        self.output_window = OutputWindow(self)
-        self.aui_manager.AddPane(self.output_window, wx.aui.AuiPaneInfo().Name('Output').Caption('Output').Left().Bottom().BestSize(wx.Size(600, 200)))
-        self.RegisterHideableWindow(self.output_window)
+    def AddExtraWindows(self, frame):
+        self.output_window = OutputWindow(frame)
+        frame.aui_manager.AddPane(self.output_window, wx.aui.AuiPaneInfo().Name('Output').Caption('Output').Left().Bottom().BestSize(wx.Size(600, 200)))
+        self.RegisterHideableWindow(self.output_window, self.cam_dir + '/bitmaps')
         
     def GetSelectedSketches(self):
         sketches = []

@@ -10,7 +10,7 @@ from HDialog import ComboBoxBinded
 import Drilling
 
 class DrillingDlg(DepthOpDlg):
-    def __init__(self, object, title = 'Pocket Operation'):
+    def __init__(self, object, title = 'Drilling Operation'):
         DepthOpDlg.__init__(self, object, True, title)
 
     def AddLeftControls(self):
