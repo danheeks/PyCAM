@@ -65,7 +65,7 @@ class NcCode(CamObject):
 
     def ReadXml(self):
         self.nc_code.ReadXml()
-        self.SetTextCtrl(wx.GetApp().frame.output_window.textCtrl)
+        self.SetTextCtrl(wx.GetApp().output_window.textCtrl)
         
     def WriteXml(self):
         self.nc_code.WriteXml()
@@ -137,7 +137,7 @@ class NcCode(CamObject):
     def SetHighlightedBlock(self, block):
         highlighted_block = self.nc_code.GetHighlightedBlock()
         if highlighted_block != None:
-            self.FormatBlockText(highlighted_block, wx.GetApp().frame.output_window.textCtrl, False, True)
+            self.FormatBlockText(highlighted_block, wx.GetApp().output_window.textCtrl, False, True)
         self.nc_code.SetHighlightedBlock(block)
         if block != None:
             self.FormatBlockText(block, wx.GetApp().output_window.textCtrl, True, True)
