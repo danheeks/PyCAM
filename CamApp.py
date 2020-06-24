@@ -168,8 +168,10 @@ class CamApp(SolidApp):
 
         panel = RB.RibbonPanel(page, wx.ID_ANY, 'G-Code', ribbon.Image('code'))
         toolbar = RB.RibbonButtonBar(panel)
+        Ribbon.AddToolBarTool(toolbar, 'Auto Program', 'magic', 'Create Program Automatically', self.OnAutoProgram)
         Ribbon.AddToolBarTool(toolbar, 'Create G-Code', 'postprocess', 'Create G-Code Output File', self.OnCreateGCode)
-        Ribbon.AddToolBarTool(toolbar, 'Open G-Code', 'opennc', 'Open a G-Code File ( to display its tool path )', self.NewProfileOp)
+        Ribbon.AddToolBarTool(toolbar, 'Setup Sheet', 'pdf', 'Create PDF Setup Sheet', self.OnSetupSheet)
+        Ribbon.AddToolBarTool(toolbar, 'Open G-Code', 'opennc', 'Open a G-Code File ( to display its tool path )', self.OnOpenGCodeFile)
 
         page.Realize()
 
@@ -268,39 +270,32 @@ class CamApp(SolidApp):
         new_object = Surface.Surface()
         new_object.SetID(cad.GetNextID(Surface.type))
         self.EditAndAddOp(new_object)
-
-    def on_post_process(self):
-        import wx
-        wx.MessageBox("post process")
+        
+    def OnAutoProgram(self, event):
+        from AutoProgram import AutoProgram
+        a = AutoProgram()
+        #if a.Edit():
+        if True:
+            a.Run()
         
     def OnCreateGCode(self, e):
         self.output_window.textCtrl.Clear()
         self.program.MakeGCode()
         self.program.BackPlot()
+        
+    def OnSetupSheet(self, e):
+        temporaary_filepath = str((wx.StandardPaths.Get().GetTempDir() + "/setup_sheet.pdf").replace('\\', '/'))
+        self.program.MakeSetupSheet(temporaary_filepath)
+        import os
+        os.system("start " + temporaary_filepath + "")        
 
-    def on_open_nc_file(self):
+    def OnOpenGCodeFile(self):
         import wx
-        dialog = wx.FileDialog(self.cad.frame, "Open NC file", wildcard = "NC files" + " |*.*")
+        dialog = wx.FileDialog(self.cad.frame, "Open G-Code file", wildcard = "G-Code files" + " |*.*")
         dialog.CentreOnParent()
         
         if dialog.ShowModal() == wx.ID_OK:
             from PyProcess import HeeksPyBackplot
-            HeeksPyBackplot(dialog.GetPath())
-        
-    def on_save_nc_file(self):
-        import wx
-        dialog = wx.FileDialog(self.cad.frame, "Save NC file", wildcard = "NC files" + " |*.*", style = wx.FD_SAVE + wx.FD_OVERWRITE_PROMPT)
-        dialog.CentreOnParent()
-        
-        if dialog.ShowModal() == wx.ID_OK:
-            nc_file_str = dialog.GetPath()
-            f = open(nc_file_str, "w")
-            if f.errors:
-                wx.MessageBox("Couldn't open file" + " - " + nc_file_str)
-                return
-            f.write(self.ouput_window.textCtrl.GetValue())
-            
-            from PyProcess import HeeksPyPostProcess
             HeeksPyBackplot(dialog.GetPath())
 
     def OnViewOutput(self, e):

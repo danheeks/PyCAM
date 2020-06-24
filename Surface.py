@@ -1,4 +1,5 @@
 from CamObject import CamObject
+import cad
 
 type = 0
 

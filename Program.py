@@ -14,7 +14,6 @@ import cad
 from Object import PyProperty
 from nc.nc import *
 import Surface
-#import Simulation
 import cam
 
 type = 0
@@ -264,19 +263,52 @@ class Program(CamObject):
         
         program_end()
         
-    def GetBackplotFilePath(self):
-        return str((wx.StandardPaths.Get().GetTempDir() + "/backplot.xml").replace('\\', '/'))   
-        
-    def CreateBackplotFile(self):
-        from nc.hxml_writer import HxmlWriter
-        machine_module = __import__('nc.' + self.machine.reader, fromlist = ['dummy'])
-        parser = machine_module.Parser(HxmlWriter())
-        parser.Parse(self.GetOutputFileName())
-        
     def BackPlot(self):
-        self.CreateBackplotFile()
-        cad.Import(self.GetBackplotFilePath(), self)
+        import NcCode.NcCodeWriter        
+        machine_module = __import__('nc.' + self.machine.reader, fromlist = ['dummy'])
+        parser = machine_module.Parser(NcCode.NcCodeWriter(self.nccode))
+        self.nccode.Clear()
+        parser.Parse(self.GetOutputFileName())
         cad.Repaint()
+        
+    def MakeSetupSheet(self, pdf_file_path):
+        from reportlab.lib import colors
+        from reportlab.lib.pagesizes import A4, mm
+        from reportlab.platypus import Image, Paragraph, SimpleDocTemplate, Table
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib.enums import TA_CENTER
+         
+        doc = SimpleDocTemplate(pdf_file_path, pagesize=A4)
+        # container for the 'Flowable' objects
+        elements = []
+         
+        styles = getSampleStyleSheet()
+        
+        # strip path from output file
+        filename = self.GetOutputFileName()
+        filename = filename.replace('\\', '/')
+        pos = filename.rfind('/')
+        filename = filename[pos+1:]
+        
+        elements.append(Paragraph('Setup Sheet for ' + filename, styles['Title']))
+        
+        box = wx.GetApp().program.stocks.GetBoxWithInvisibles()
+
+        elements.append(Paragraph('Stock', styles['Heading2']))
+        elements.append(Paragraph('Width(X) = ' + '{:.1f}'.format(box.Width()) + 'mm' , styles['Normal']))
+        elements.append(Paragraph('Height(Y) = ' + '{:.1f}'.format(box.Height()) + 'mm' , styles['Normal']))
+        elements.append(Paragraph('Thickness(Z) = ' + '{:.1f}'.format(box.Depth()) + 'mm' , styles['Normal']))
+
+        elements.append(Paragraph('Tools', styles['Heading2']))
+        for tool in self.tools.GetChildren():
+            elements.append(Paragraph('T' + str(tool.tool_number) + ' ' + tool.GetTitle(), styles['Normal']))
+
+        elements.append(Paragraph('Tool Changes', styles['Heading2']))
+        elements.append(Paragraph('to do with program.nc_code', styles['Normal']))
+        
+        # write the document to disk
+        doc.build(elements)  
+
         
 class PropertyMachine(cad.Property):
     def __init__(self, program):

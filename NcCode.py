@@ -14,6 +14,7 @@ class NcCode(CamObject):
         self.nc_code = cam.NcCode()
         CamObject.__init__(self)
         self.nc_code.SetOwner(self)
+        self.box = None
 
     def icon(self):
         return "nccode"
@@ -26,6 +27,11 @@ class NcCode(CamObject):
     
     def GetType(self):
         return type
+    
+    def GetBox(self):
+        box = geom.Box3D()
+        self.nc_code.GetBox(box)
+        return box
     
     def CanBeDeleted(self):
         return False
@@ -45,11 +51,13 @@ class NcCode(CamObject):
     def KillGLLists(self):
         self.nc_code.KillGLLists()
         
-    def GetBox(self):
-        return None
-        #self.box = geom.Box3D()
-        #self.nc_code.GetBox(box)
-        #return box
+#    def GetBox(self):
+#        if self.box == None:
+#            self.box = geom.Box3D()
+#            self.nc_code.GetBox(self.box)
+#            print('self.box = ' + str(self.box))
+#        return None
+#        return self.box
         
     def MakeACopy(self):
         object = NcCode()

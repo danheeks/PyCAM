@@ -29,3 +29,12 @@ class Stocks(CamObject):
         object = Stocks()
         object.CopyFrom(self)
         return object
+        
+    def GetBoxWithInvisibles(self):
+        import geom
+        box = geom.Box3D()
+        for stock in self.GetChildren():
+            b = stock.GetBoxWithInvisibles()
+            if b:
+                box.InsertBox(b)
+        return box
