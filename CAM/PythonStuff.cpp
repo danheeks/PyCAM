@@ -117,6 +117,7 @@ HeeksColor CncColor(ColorEnum i)
 			.def("SetHighlightedBlock", &CNCCode::SetHighlightedBlock)
 			.def("GetBlocks", &CncCodeGetBlocks)
 			.def("DestroyGLLists", &CNCCode::DestroyGLLists)
+			.def("AddBlock", &AddBlock)
 			;
 
 		boost::python::class_<CNCCodeBlock, boost::python::bases<HeeksObj>, boost::noncopyable>("NcCodeBlock")
