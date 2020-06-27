@@ -109,6 +109,11 @@ HeeksColor CncColor(ColorEnum i)
 	return CNCCode::Color(i);
 }
 
+void AddBlock(CNCCode &nccode, CNCCodeBlock* block)
+{
+	nccode.m_blocks.push_back(block);
+}
+
 	BOOST_PYTHON_MODULE(cam) {
 
 		boost::python::class_<CNCCode, boost::python::bases<HeeksObj>, boost::noncopyable>("NcCode")
