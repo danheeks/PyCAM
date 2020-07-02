@@ -44,8 +44,6 @@ void ColouredText::ReadFromXMLElement(TiXmlElement* element)
 
 void PathObject::WriteBaseXML(TiXmlElement *pElem)
 {
-	pElem->SetAttribute("tool_number", m_tool_number);
-
 	pElem->SetDoubleAttribute("x", m_point.x);
 	pElem->SetDoubleAttribute("y", m_point.y);
 	pElem->SetDoubleAttribute("z", m_point.z);
@@ -60,15 +58,6 @@ void PathObject::ReadFromXMLElement(TiXmlElement* pElem)
 	if(pElem->Attribute("y", &x))m_point.y = x * CNCCodeBlock::multiplier;
 	if(pElem->Attribute("z", &x))m_point.z = x * CNCCodeBlock::multiplier;
 	CNCCode::prev_point = m_point;
-
-	if (pElem->Attribute("tool_number"))
-	{
-		pElem->Attribute("tool_number", &m_tool_number);
-	} // End if - then
-	else
-	{
-		m_tool_number = 0;	// No tool selected.
-	} // End if - else
 }
 
 void PathLine::WriteXML(TiXmlNode *root)
@@ -418,6 +407,8 @@ void CNCCodeBlock::WriteToXML(TiXmlElement *element)
 		line_strip.WriteXML(element);
 	}
 
+	element->SetAttribute("tool_number", m_tool_number);
+
 	HeeksObj::WriteToXML(element);
 }
 
@@ -452,6 +443,8 @@ void CNCCodeBlock::ReadFromXML(TiXmlElement* element)
 	if(m_text.size() > 0)CNCCode::pos++;
 
 	m_to_pos = CNCCode::pos;
+
+	element->Attribute("tool_number", &m_tool_number);
 
 	HeeksObj::ReadFromXML(element);
 }

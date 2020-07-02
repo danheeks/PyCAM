@@ -68,6 +68,11 @@ boost::python::list CncCodeGetBlocks(CNCCode& object) {
 	return return_list;
 }
 
+void CNCCodeAddBlock(CNCCode& object, CNCCodeBlock& block)
+{
+	object.m_blocks.push_back(&block);
+}
+
 std::wstring CncCodeBlockGetText(CNCCodeBlock& object)
 {
 	std::wstring str;
@@ -104,14 +109,57 @@ boost::python::list CncCodeBlockGetLineStrips(CNCCodeBlock& object) {
 	return return_list;
 }
 
+void CncCodeBlockAddText(CNCCodeBlock& object, ColouredText& text) {
+	object.m_text.push_back(text);
+}
+
+void CncCodeBlockAddPath(CNCCodeBlock& object, ColouredPath& path) {
+	object.m_line_strips.push_back(path);
+}
+
 HeeksColor CncColor(ColorEnum i)
 {
 	return CNCCode::Color(i);
 }
 
-void AddBlock(CNCCode &nccode, CNCCodeBlock* block)
+ColorEnum CNCCodeGetTextColor(const std::string& s)
 {
-	nccode.m_blocks.push_back(block);
+	return CNCCode::GetColor(s.c_str());
+}
+
+void SetMultiplier(double multiplier)
+{
+	CNCCodeBlock::multiplier = multiplier;
+}
+
+CNCCodeBlock* NewNcCodeBlock()
+{
+	return new CNCCodeBlock();
+}
+
+ColouredPath* NewColouredPath()
+{
+	return new ColouredPath();
+}
+
+ColouredText* NewColouredText()
+{
+	return new ColouredText();
+}
+
+PathLine* NewPathLine()
+{
+	return new PathLine();
+}
+
+PathArc* NewPathArc()
+{
+	return new PathArc();
+}
+
+void AddPathObject(ColouredPath& path, PathObject& path_object)
+{
+	path.m_points.push_back(&path_object);
 }
 
 	BOOST_PYTHON_MODULE(cam) {
@@ -122,7 +170,7 @@ void AddBlock(CNCCode &nccode, CNCCodeBlock* block)
 			.def("SetHighlightedBlock", &CNCCode::SetHighlightedBlock)
 			.def("GetBlocks", &CncCodeGetBlocks)
 			.def("DestroyGLLists", &CNCCode::DestroyGLLists)
-			.def("AddBlock", &AddBlock)
+			.def("AddBlock", &CNCCodeAddBlock)
 			;
 
 		boost::python::class_<CNCCodeBlock, boost::python::bases<HeeksObj>, boost::noncopyable>("NcCodeBlock")
@@ -133,12 +181,35 @@ void AddBlock(CNCCode &nccode, CNCCodeBlock* block)
 			.def("GetTexts", &CncCodeBlockGetTexts)
 			.def("Text", &CncCodeBlockGetText)
 			.def("GetLineStrips", &CncCodeBlockGetLineStrips)
+			.def("AddText", &CncCodeBlockAddText)
+			.def("AddPath", &CncCodeBlockAddPath)
 			;
 
 		boost::python::class_<ColouredText, boost::noncopyable>("ColouredText")
 			.def(boost::python::init<ColouredText>())
 			.def_readwrite("str", &ColouredText::m_str)
 			.def_readwrite("color_type", &ColouredText::m_color_type)
+			;
+
+		boost::python::class_<ColouredPath, boost::noncopyable>("ColouredPath")
+			.def(boost::python::init<ColouredPath>())
+			.def_readwrite("color_type", &ColouredPath::m_color_type)
+			.def("AddPathObject", &AddPathObject)
+			;
+
+		boost::python::class_<PathObject, boost::noncopyable>("PathObject", boost::python::no_init)
+			.def_readwrite("point", &PathObject::m_point)
+			;
+
+		boost::python::class_<PathLine, boost::python::bases<PathObject>, boost::noncopyable>("PathLine")
+			.def(boost::python::init<PathLine>())
+			;
+
+		boost::python::class_<PathArc, boost::python::bases<PathObject>, boost::noncopyable>("PathArc")
+			.def(boost::python::init<PathArc>())
+			.def_readwrite("c", &PathArc::m_c)
+			.def_readwrite("radius", &PathArc::m_radius)
+			.def_readwrite("dir", &PathArc::m_dir)
 			;
 
 		boost::python::enum_<ColorEnum>("ColorEnum")
@@ -163,6 +234,12 @@ void AddBlock(CNCCode &nccode, CNCCodeBlock* block)
 		boost::python::def("GetNcCodeType", GetNcCodeType);
 		boost::python::def("SetNcCodeType", SetNcCodeType);
 		boost::python::def("SetNcCodeBlockType", SetNcCodeBlockType);
-		boost::python::def("CncColor", CncColor);
-
+		boost::python::def("CncColor", CncColor); 
+		boost::python::def("GetTextColor", CNCCodeGetTextColor); 
+		boost::python::def("SetMultiplier", SetMultiplier); 
+		boost::python::def("NewNcCodeBlock", NewNcCodeBlock, boost::python::return_value_policy<boost::python::reference_existing_object>());
+		boost::python::def("NewColouredPath", NewColouredPath, boost::python::return_value_policy<boost::python::reference_existing_object>());
+		boost::python::def("NewColouredText", NewColouredText, boost::python::return_value_policy<boost::python::reference_existing_object>());
+		boost::python::def("NewPathLine", NewPathLine, boost::python::return_value_policy<boost::python::reference_existing_object>());
+		boost::python::def("NewPathArc", NewPathArc, boost::python::return_value_policy<boost::python::reference_existing_object>());
 	}

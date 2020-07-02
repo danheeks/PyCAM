@@ -264,11 +264,12 @@ class Program(CamObject):
         program_end()
         
     def BackPlot(self):
-        import NcCode.NcCodeWriter        
+        from NcCode import NcCodeWriter        
         machine_module = __import__('nc.' + self.machine.reader, fromlist = ['dummy'])
         parser = machine_module.Parser(NcCode.NcCodeWriter(self.nccode))
         self.nccode.Clear()
         parser.Parse(self.GetOutputFileName())
+        self.nccode.SetTextCtrl(wx.GetApp().output_window.textCtrl)
         cad.Repaint()
         
     def MakeSetupSheet(self, pdf_file_path):

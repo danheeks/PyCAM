@@ -164,83 +164,62 @@ class NcCodeWriter:
     def __init__(self, nccode):
         self.nccode = nccode
         self.t = None
-        self.oldx = None
-        self.oldy = None
-        self.oldz = None
+        self.oldp = geom.Point3D(0,0,50)
         self.current_block = None
+        self.current_path = None
 
     def begin_ncblock(self):
-        self.current_block = cam.NcCodeBlock()
+        self.current_block = cam.NewNcCodeBlock()
 
     def end_ncblock(self):
-        self.nccode.AddBlock(self.current_block)
+        self.nccode.nc_code.AddBlock(self.current_block)
         self.current_block = None
 
     def add_text(self, s, col, cdata):
-        pass
-#         s.replace('&', '&amp;')
-#         s.replace('"', '&quot;')
-#         s.replace('<', '&lt;')
-#         s.replace('>', '&gt;')
-#         if (cdata) : (cd1, cd2) = ('<![CDATA[', ']]>')
-#         else : (cd1, cd2) = ('', '')
-#         if (col != None) : self.file_out.write('\t\t<text col="'+col+'">'+cd1+s+cd2+'</text>\n')
-#         else : self.file_out.write('\t\t<text>'+cd1+s+cd2+'</text>\n')
+        text = cam.NewColouredText()
+        text.str = s
+        text.color_type = cam.GetTextColor(s)
+        self.current_block.AddText(text)
 
     def set_mode(self, units):
-        pass
-#         self.file_out.write('\t\t<mode')
-#         if (units != None) : self.file_out.write(' units="'+str(units)+'"')
-#         self.file_out.write(' />\n')
+        cam.SetMultiplier(float(units))
         
     def metric(self):
-        pass
-#         self.set_mode(units = 1.0)
+        self.set_mode(units = 1.0)
         
     def imperial(self):
-        pass
-#         self.set_mode(units = 25.4)
+        self.set_mode(units = 25.4)
 
     def begin_path(self, col):
-        pass
-#         if (col != None) : self.file_out.write('\t\t<path col="'+col+'">\n')
-#         else : self.file_out.write('\t\t<path>\n')
+        self.current_path = cam.NewColouredPath()
+        self.current_path.color_type = cam.GetTextColor(col)
 
     def end_path(self):
-        pass
-#         self.file_out.write('\t\t</path>\n')
+        self.current_block.AddPath(self.current_path)
+        self.current_path = None
         
     def rapid(self, x=None, y=None, z=None, a=None, b=None, c=None):
-        pass
-#         self.begin_path("rapid")
-#         self.add_line(x, y, z, a, b, c)
-#         self.end_path()
+        self.begin_path("rapid")
+        self.add_line(x, y, z, a, b, c)
+        self.end_path()
         
     def feed(self, x=None, y=None, z=None, a=None, b=None, c=None):
-        pass
-#         self.begin_path("feed")
-#         self.add_line(x, y, z, a, b, c)
-#         self.end_path()
+        self.begin_path("feed")
+        self.add_line(x, y, z, a, b, c)
+        self.end_path()
 
     def arc_cw(self, x=None, y=None, z=None, i=None, j=None, k=None, r=None):
-        pass
-#         self.begin_path("feed")
-#         self.add_arc(x, y, z, i, j, k, r, -1)
-#         self.end_path()
+        self.begin_path("feed")
+        self.add_arc(x, y, z, i, j, k, r, -1)
+        self.end_path()
 
     def arc_ccw(self, x=None, y=None, z=None, i=None, j=None, k=None, r=None):
-        pass
-#         self.begin_path("feed")
-#         self.add_arc(x, y, z, i, j, k, r, 1)
-#         self.end_path()
+        self.begin_path("feed")
+        self.add_arc(x, y, z, i, j, k, r, 1)
+        self.end_path()
         
     def tool_change(self, id):
-        pass
-#         self.file_out.write('\t\t<tool')
-#         if (id != None) : 
-#             self.file_out.write(' number="'+str(id)+'"')
-#             self.file_out.write(' />\n')
-#         self.t = id
+        self.t = id
             
     def current_tool(self):
         return self.t
@@ -252,45 +231,25 @@ class NcCodeWriter:
         pass
 
     def add_line(self, x, y, z, a = None, b = None, c = None):
-        pass
-#         self.file_out.write('\t\t\t<line')
-#         if (x != None) :
-#             self.file_out.write(' x="%.6f"' % x)
-#         if (y != None) :
-#             self.file_out.write(' y="%.6f"' % y)
-#         if (z != None) :
-#             self.file_out.write(' z="%.6f"' % z)
-#         if (a != None) : self.file_out.write(' a="%.6f"' % a)
-#         if (b != None) : self.file_out.write(' b="%.6f"' % b)
-#         if (c != None) : self.file_out.write(' c="%.6f"' % c)
-#         self.file_out.write(' />\n')
-#         if x != None: self.oldx = x
-#         if y != None: self.oldy = y
-#         if z != None: self.oldz = z
+        line = cam.NewPathLine()
+        if x != None: self.oldp.x = float(x)
+        if y != None: self.oldp.y = float(y)
+        if z != None: self.oldp.z = float(z)
+        line.point = geom.Point3D(self.oldp)
+        self.current_path.AddPathObject(line)
         
     def add_arc(self, x, y, z, i, j, k, r = None, d = None):
-        pass
-#         self.file_out.write('\t\t\t<arc')
-#         if (x != None) :
-#             self.file_out.write(' x="%.6f"' % x)
-#         if (y != None) :
-#             self.file_out.write(' y="%.6f"' % y)
-#         if (z != None) :
-#             self.file_out.write(' z="%.6f"' % z)
-#         if (i != None):
-#             if self.oldx == None: print('arc move "i" without x set!')
-#             else: self.file_out.write(' i="%.6f"' % (i - self.oldx))
-#         if (j != None):
-#             if self.oldy == None: print('arc move "j" without y set!')
-#             else: self.file_out.write(' j="%.6f"' % (j - self.oldy))
-#         if (k != None):
-#             if self.oldz == None: print('arc move "k" without z set!')
-#             else: self.file_out.write(' k="%.6f"' % (k - self.oldz))
-#         if (r != None) : self.file_out.write(' r="%.6f"' % r)
-#         if (d != None) : self.file_out.write(' d="%i"' % d)
-#         self.file_out.write(' />\n')
-#         if x != None: self.oldx = x
-#         if y != None: self.oldy = y
-#         if z != None: self.oldz = z
+        arc = cam.NewPathArc()
+        arc.c = geom.Point3D(self.oldp)
+        if i != None: arc.c.x = float(i) - self.oldp.x
+        if j != None: arc.c.y = float(j) - self.oldp.y
+        if k != None: arc.c.z = float(k) - self.oldp.z
+        if x != None: self.oldp.x = float(x)
+        if y != None: self.oldp.y = float(y)
+        if z != None: self.oldp.z = float(z)
+        arc.point = geom.Point3D(self.oldp)
+        if r != None: arc.radius = float(r)
+        if d != None: arc.dir = int(d)
+        self.current_path.AddPathObject(arc)
         
     

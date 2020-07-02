@@ -55,7 +55,6 @@ public:
 	virtual ~PathObject() {}
 
 	Point3d m_point;
-	int m_tool_number;
 	PathObject(){m_point = Point3d(0.0, 0.0, 0.0);}
 	virtual int GetType() = 0; // 0 - line, 1 - arc
 	virtual void GetBox(CBox &box){box.Insert(m_point.getBuffer());}
@@ -119,6 +118,7 @@ class CNCCodeBlock:public HeeksObj
 public:
 	std::list<ColouredText> m_text;
 	std::list<ColouredPath> m_line_strips;
+	int m_tool_number;
 	long m_from_pos, m_to_pos; // position of block in text ctrl
 	static double multiplier;
 	static int m_type;
