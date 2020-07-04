@@ -62,6 +62,7 @@ set(CAM_SRC
     ../../PyCAD/Geom/Offset.cpp
     ../../PyCAD/Geom/Arc.cpp
     ../../PyCAD/CAD/HeeksColor.cpp
+    ../../PyCAD/CAD/HeeksFont.cpp
     ../../PyCAD/CAD/HeeksObj.cpp
     ../../PyCAD/CAD/Picking.cpp
     ../../PyCAD/CAD/Property.cpp
