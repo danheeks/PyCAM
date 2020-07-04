@@ -1,88 +1,95 @@
 import wx
-import cad
+from wx import glcanvas
 import cam
+import Mouse
 
-class OutputTextCtrl(wx.TextCtrl):
+class OutputWindow(glcanvas.GLCanvas):
     def __init__(self, parent):
-        wx.TextCtrl.__init__(self, parent, style = wx.TE_MULTILINE + wx.TE_DONTWRAP + wx.TE_RICH + wx.TE_RICH2)
-        self.painting = False
-        self.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouse)
+        glcanvas.GLCanvas.__init__(self, parent,-1, attribList=[glcanvas.WX_GL_RGBA, glcanvas.WX_GL_DOUBLEBUFFER, glcanvas.WX_GL_DEPTH_SIZE, 24])
+        self.viewport = cam.NewNcCodeViewport()
+        self.context = glcanvas.GLContext(self)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.Bind(wx.EVT_SIZE, self.OnSize)
+        self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
+        self.Bind(wx.EVT_SCROLLWIN_THUMBTRACK, self.OnScroll)
+        self.Bind(wx.EVT_SCROLLWIN_THUMBRELEASE, self.OnScrollRelease)
+        self.Bind(wx.EVT_SCROLLWIN_LINEUP, self.OnScrollLineUp)
+        self.Bind(wx.EVT_SCROLLWIN_LINEDOWN, self.OnScrollLineDown)
         
-    def OnMouse(self, event):
-        if event.LeftUp():
-            pos = self.GetInsertionPoint()
-            if wx.GetApp().program.nccode:
-                wx.GetApp().program.nccode.HighlightBlock(pos)
-            cad.Repaint()
-        event.Skip()
-    
+        self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
+        self.Resize()
+
+    def OnSize(self, event):
+       self.Resize()
+       event.Skip()
+       
+    def GetLastLineToScrollTo(self):
+        line = self.viewport.GetNumberOfLines() - self.viewport.GetLinesPerPage()
+        if line < 0:
+            line = 0
+        return line
+
+    def OnMouseWheel(self, event):
+        x = event.GetWheelRotation()
+        if event.controlDown:
+            # zoom in or out
+            scale = 1.1 if x > 0 else 0.909090909090909
+            new_pixels_per_line = self.viewport.GetPixelsPerLine() * scale
+            if new_pixels_per_line < 10.0:
+                new_pixels_per_line = 10.0
+            elif new_pixels_per_line > 150.0:
+                new_pixels_per_line = 150.0
+            self.viewport.SetPixelsPerLine( new_pixels_per_line )
+            if self.viewport.GetCurrentLine() > self.GetLastLineToScrollTo():
+                self.viewport.SetCurrentLine(self.GetLastLineToScrollTo())
+        else:
+            line_number = self.viewport.GetCurrentLine()
+            translation = 20 / self.viewport.GetPixelsPerLine()
+            if x > 0:
+                line_number -= translation
+                if line_number < 0: line_number = 0
+            else:
+                line_number += translation
+                last_line = self.GetLastLineToScrollTo()
+                if line_number > last_line:
+                    line_number = last_line
+            self.viewport.SetCurrentLine(line_number)
+        self.SetScrollBarToCurrentLine()
+        self.Refresh()            
+
+    def OnEraseBackground(self, event):
+        pass # Do nothing, to avoid flashing on MSW
+
+    def Resize(self):
+        s = self.GetClientSize()
+        self.viewport.SetSize(s.GetWidth(), s.GetHeight())
+        self.Refresh()
+
     def OnPaint(self, event):
         dc = wx.PaintDC(self)
+        self.SetCurrent(self.context)
+        self.viewport.Render()
+        self.SwapBuffers()
         
-        if self.painting == False:
-            self.painting = True
-            size = self.GetClientSize()
-            scrollpos = self.GetScrollPos(wx.VERTICAL)
-            result0, col0, row0 = self.HitTest(wx.Point(0, 0))
-            result1, col1, row1 = self.HitTest(wx.Point(size.x, size.y))
-            
-            pos0 = self.XYToPosition(0, row0)
-            pos1 = self.XYToPosition(1, row1)
-            
-            if wx.GetApp().program.nccode:
-                wx.GetApp().program.nccode.FormatBlocks(self, pos0, pos1)
-            
-            self.SetScrollPos(wx.VERTICAL, scrollpos)
-            
-            self.painting = False
+    def SetScrollBarToCurrentLine(self):
+        self.SetScrollbar(wx.VERTICAL, self.viewport.GetCurrentLine() * 100, self.viewport.GetLinesPerPage() * 100, self.viewport.GetNumberOfLines() * 100)
         
-        event.Skip()
+    def SetNcCodeObject(self, nccode):
+        self.viewport.SetNcCode(nccode)
+        self.SetScrollBarToCurrentLine()
         
-    def SetText(self):
-        self.Clear()
-        self.Freeze()
+    def OnScroll(self, event):
+        fraction = float(event.GetPosition()) * 0.01 / self.viewport.GetNumberOfLines()
+        cur_line = float(self.viewport.GetNumberOfLines()) * fraction
+        self.viewport.SetCurrentLine(cur_line )
+        self.Refresh()
+        
+    def OnScrollLineUp(self, event):
+        pass
 
-        font = wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, "Lucida Console", wx.FONTENCODING_SYSTEM)
-        ta = wx.TextAttr()
-        ta.SetFont(font)
-        self.SetDefaultStyle(ta)
+    def OnScrollLineDown(self, event):
+        pass
 
-        str = ''
+    def OnScrollRelease(self, event):
+        self.SetScrollBarToCurrentLine()
         
-        for block in wx.GetApp().program.nccode.GetBlocks():
-            str += block.Text()
-            str += '\n'
-        
-        self.SetValue(str)
-        self.SetStyle(0, 100, ta)
-
-#        '''
-#        import platform
-#        if platform.system() != "Windows":
-#        # for Windows, this is done in OutputTextCtrl.OnPaint
-#        for block in self.blocks:
-#            block.FormatText(textCtrl, block == self.highlighted_block, False)
-#        '''
-        
-        self.Thaw()
-        
-    
-class OutputWindow(wx.ScrolledWindow):
-    def __init__(self, parent):
-        wx.ScrolledWindow.__init__(self, parent, name = 'Output', style = wx.HSCROLL + wx.VSCROLL + wx.NO_FULL_REPAINT_ON_RESIZE)
-        self.textCtrl = OutputTextCtrl(self)
-        #self.textCtrl.SetMaxLength(0)
-        self.Bind(wx.EVT_SIZE, self.OnSize)
-        self.Resize()
-        
-    def Resize(self):
-        self.textCtrl.SetSize(self.GetClientSize())
-        
-    def Clear(self):
-        self.textCtrl.Clear()
-    
-    def OnSize(self, event):
-        self.Resize()
-        event.Skip()
-    

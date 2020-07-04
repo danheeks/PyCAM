@@ -157,6 +157,11 @@ PathArc* NewPathArc()
 	return new PathArc();
 }
 
+CNCCodeViewport* NewNcCodeViewport()
+{
+	return new CNCCodeViewport();
+}
+
 void AddPathObject(ColouredPath& path, PathObject& path_object)
 {
 	path.m_points.push_back(&path_object);
@@ -212,6 +217,20 @@ void AddPathObject(ColouredPath& path, PathObject& path_object)
 			.def_readwrite("dir", &PathArc::m_dir)
 			;
 
+		boost::python::class_<CNCCodeViewport, boost::noncopyable>("CNCCodeViewport", boost::python::no_init)
+			.def("SetSize", &CNCCodeViewport::SetSize)
+			.def("GetWidth", &CNCCodeViewport::GetWidth)
+			.def("GetHeight", &CNCCodeViewport::GetHeight)
+			.def("Render", &CNCCodeViewport::Render)
+			.def("GetCurrentLine", &CNCCodeViewport::GetCurrentLine)
+			.def("SetCurrentLine", &CNCCodeViewport::SetCurrentLine)
+			.def("SetNcCode", &CNCCodeViewport::SetNcCode)
+			.def("GetLinesPerPage", &CNCCodeViewport::GetLinesPerPage)
+			.def("GetNumberOfLines", &CNCCodeViewport::GetNumberOfLines)
+			.def("GetPixelsPerLine", &CNCCodeViewport::GetPixelsPerLine)
+			.def("SetPixelsPerLine", &CNCCodeViewport::SetPixelsPerLine)
+			;
+
 		boost::python::enum_<ColorEnum>("ColorEnum")
 		.value("COLOR_DEFAULT_TYPE", ColorDefaultType)
 			.value("COLOR_BLOCK_TYPE", ColorBlockType)
@@ -242,4 +261,5 @@ void AddPathObject(ColouredPath& path, PathObject& path_object)
 		boost::python::def("NewColouredText", NewColouredText, boost::python::return_value_policy<boost::python::reference_existing_object>());
 		boost::python::def("NewPathLine", NewPathLine, boost::python::return_value_policy<boost::python::reference_existing_object>());
 		boost::python::def("NewPathArc", NewPathArc, boost::python::return_value_policy<boost::python::reference_existing_object>());
+		boost::python::def("NewNcCodeViewport", NewNcCodeViewport, boost::python::return_value_policy<boost::python::reference_existing_object>());
 	}

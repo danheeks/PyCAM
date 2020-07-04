@@ -12,6 +12,7 @@
 #include "strconv.h"
 #include "Curve.h"
 #include "Picking.h"
+#include "HeeksFont.h"
 
 #include <memory>
 #include <sstream>
@@ -785,4 +786,73 @@ void CNCCode::SetHighlightedBlock(CNCCodeBlock* block)
 //	if(m_highlighted_block)m_highlighted_block->FormatText(wxGetApp().m_output_canvas->m_textCtrl, false, true);
 	m_highlighted_block = block;
 //	if(m_highlighted_block)m_highlighted_block->FormatText(wxGetApp().m_output_canvas->m_textCtrl, true, true);
+}
+
+void CNCCodeViewport::Render()
+{
+	glViewport(0, 0, m_w, m_h);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
+	glDrawBuffer(GL_BACK);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+	glClearColor(1, 1, 1, 1);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	if (m_nc_code == NULL)
+		return;
+
+	if (m_nc_code->m_blocks.size() == 0)
+		return;
+
+	glOrtho(0.0f, m_w, 0.0f, m_h, 0.0f, 1.0f);
+
+	int lines_to_draw = GetLinesPerPage() + 1;
+	int start_line = (int)m_current_line;
+	double extra = m_current_line - start_line;
+
+	// move up to start, just above top of window
+	glTranslated(0, (extra - 0.8) * m_pixels_per_line + m_h, 0);
+
+	std::list<CNCCodeBlock*>::iterator It = m_nc_code->m_blocks.begin();
+	std::advance(It, start_line);
+	glColor3ub(0, 0, 0);
+	for (int i = 0; i < lines_to_draw; i++)
+	{
+		CNCCodeBlock* block = *It;
+		glPushMatrix();
+		glScaled(m_pixels_per_line * 0.7, m_pixels_per_line * 0.7, 0);
+		for (std::list<ColouredText>::iterator TextIt = block->m_text.begin(); TextIt != block->m_text.end(); TextIt++)
+		{
+			ColouredText &text = *TextIt;
+			CNCCode::Color(text.m_color_type).glColor();
+			//DrawHeeksFontStringAntialiased(Ttc(text.m_str.c_str()), 0.1 / m_pixels_per_line, false, true);
+			DrawHeeksFontString(Ttc(text.m_str.c_str()), false, true);
+		}
+		glPopMatrix();
+		glTranslated(0, -m_pixels_per_line, 0);
+		It++;
+		if (It == m_nc_code->m_blocks.end())
+			break;
+	}
+}
+
+void CNCCodeViewport::SetNcCode(CNCCode *nc_code)
+{
+	m_nc_code = nc_code;
+}
+
+int CNCCodeViewport::GetLinesPerPage()
+{
+	return (int)(((double)m_h + 0.5) / m_pixels_per_line);
+}
+
+int CNCCodeViewport::GetNumberOfLines()
+{
+	if (m_nc_code)
+		return m_nc_code->m_blocks.size();
+	return 0;
 }

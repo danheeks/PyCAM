@@ -279,7 +279,6 @@ class CamApp(SolidApp):
             a.Run()
         
     def OnCreateGCode(self, e):
-        self.output_window.textCtrl.Clear()
         self.program.MakeGCode()
         self.program.BackPlot()
         

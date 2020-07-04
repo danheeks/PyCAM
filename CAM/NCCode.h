@@ -198,9 +198,31 @@ public:
 	static void GetOptions(std::list<Property *> *list);
 
 	void DestroyGLLists(void); // not void KillGLLists(void), because I don't want the display list recreated on the Redraw button
-	// to do        void SetTextCtrl(wxTextCtrl *textCtrl);
-	// to do        void FormatBlocks(wxTextCtrl *textCtrl, int i0, int i1);
 	void HighlightBlock(long pos);
 	void SetHighlightedBlock(CNCCodeBlock* block);
 	CNCCodeBlock* GetHighlightedBlock(){ return m_highlighted_block; }
+};
+
+class CNCCodeViewport
+{
+	CNCCode* m_nc_code;
+	int m_w;
+	int m_h;
+	double m_current_line;
+	double m_pixels_per_line;
+
+public:
+	CNCCodeViewport() :m_nc_code(NULL), m_w(0), m_h(0), m_current_line(0.0), m_pixels_per_line(13.0){}
+
+	void SetSize(int w, int h){ m_w = w; m_h = h; }
+	int GetWidth(){ return m_w; }
+	int GetHeight(){ return m_h; }
+	void Render();// this does all the OpenGL commands
+	double GetCurrentLine(){ return m_current_line; }
+	void SetCurrentLine(double line){ m_current_line = line; }
+	void SetNcCode(CNCCode *nc_code);
+	int GetLinesPerPage();
+	int GetNumberOfLines();
+	double GetPixelsPerLine(){ return m_pixels_per_line; }
+	void SetPixelsPerLine(double p){ m_pixels_per_line = p; }
 };

@@ -86,6 +86,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\PyCAD\CAD\HeeksColor.cpp" />
+    <ClCompile Include="..\..\PyCAD\CAD\HeeksFont.cpp" />
     <ClCompile Include="..\..\PyCAD\CAD\HeeksObj.cpp" />
     <ClCompile Include="..\..\PyCAD\CAD\Picking.cpp" />
     <ClCompile Include="..\..\PyCAD\CAD\Property.cpp" />
@@ -115,6 +116,8 @@
   <ItemGroup>
     <ClInclude Include="..\..\PyCAD\CAD\App.h" />
     <ClInclude Include="..\..\PyCAD\CAD\HeeksColor.h" />
+    <ClInclude Include="..\..\PyCAD\CAD\HeeksFont.h" />
+    <ClInclude Include="..\..\PyCAD\CAD\HeeksFontData.h" />
     <ClInclude Include="..\..\PyCAD\CAD\HeeksObj.h" />
     <ClInclude Include="..\..\PyCAD\CAD\IPoint.h" />
     <ClInclude Include="..\..\PyCAD\CAD\Picking.h" />

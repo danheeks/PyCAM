@@ -269,7 +269,7 @@ class Program(CamObject):
         parser = machine_module.Parser(NcCode.NcCodeWriter(self.nccode))
         self.nccode.Clear()
         parser.Parse(self.GetOutputFileName())
-        self.nccode.SetTextCtrl(wx.GetApp().output_window.textCtrl)
+        wx.GetApp().output_window.SetNcCodeObject(self.nccode.nc_code)
         cad.Repaint()
         
     def MakeSetupSheet(self, pdf_file_path):
