@@ -28,10 +28,10 @@ class NcCode(CamObject):
     def GetType(self):
         return type
     
-    def GetBox(self):
-        box = geom.Box3D()
-        self.nc_code.GetBox(box)
-        return box
+#     def GetBox(self):
+#         box = geom.Box3D()
+#         self.nc_code.GetBox(box)
+#         return box
     
     def CanBeDeleted(self):
         return False

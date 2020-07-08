@@ -1,5 +1,4 @@
-#include "stdafx.h"
-
+#include <stdafx.h>
 
 #include <Python.h>
 
@@ -253,9 +252,9 @@ void AddPathObject(ColouredPath& path, PathObject& path_object)
 		boost::python::def("GetNcCodeType", GetNcCodeType);
 		boost::python::def("SetNcCodeType", SetNcCodeType);
 		boost::python::def("SetNcCodeBlockType", SetNcCodeBlockType);
-		boost::python::def("CncColor", CncColor); 
-		boost::python::def("GetTextColor", CNCCodeGetTextColor); 
-		boost::python::def("SetMultiplier", SetMultiplier); 
+		boost::python::def("CncColor", CncColor);
+		boost::python::def("GetTextColor", CNCCodeGetTextColor);
+		boost::python::def("SetMultiplier", SetMultiplier);
 		boost::python::def("NewNcCodeBlock", NewNcCodeBlock, boost::python::return_value_policy<boost::python::reference_existing_object>());
 		boost::python::def("NewColouredPath", NewColouredPath, boost::python::return_value_policy<boost::python::reference_existing_object>());
 		boost::python::def("NewColouredText", NewColouredText, boost::python::return_value_policy<boost::python::reference_existing_object>());
