@@ -178,7 +178,10 @@ class NcCodeWriter:
     def add_text(self, s, col, cdata):
         text = cam.NewColouredText()
         text.str = s
-        text.color_type = cam.GetTextColor(s)
+        if col == None:
+            text.color_type = cam.ColorEnum.COLOR_DEFAULT_TYPE
+        else:
+            text.color_type = cam.GetTextColor(col)
         self.current_block.AddText(text)
 
     def set_mode(self, units):
