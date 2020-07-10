@@ -5,7 +5,7 @@ import Mouse
 
 class OutputWindow(glcanvas.GLCanvas):
     def __init__(self, parent):
-        glcanvas.GLCanvas.__init__(self, parent,-1, attribList=[glcanvas.WX_GL_RGBA, glcanvas.WX_GL_DOUBLEBUFFER, glcanvas.WX_GL_DEPTH_SIZE, 24])
+        glcanvas.GLCanvas.__init__(self, parent,-1, attribList=[glcanvas.WX_GL_RGBA, glcanvas.WX_GL_DOUBLEBUFFER, glcanvas.WX_GL_DEPTH_SIZE, 24], style = wx.VSCROLL)
         self.viewport = cam.NewNcCodeViewport()
         self.context = glcanvas.GLContext(self)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
