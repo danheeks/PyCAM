@@ -285,8 +285,8 @@ class CamApp(SolidApp):
     def OnSetupSheet(self, e):
         temporaary_filepath = str((wx.StandardPaths.Get().GetTempDir() + "/setup_sheet.pdf").replace('\\', '/'))
         self.program.MakeSetupSheet(temporaary_filepath)
-        import os
-        os.system("start " + temporaary_filepath + "")        
+        import webbrowser
+        webbrowser.open_new(temporaary_filepath)
 
     def OnOpenGCodeFile(self):
         import wx
