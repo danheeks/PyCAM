@@ -64,10 +64,13 @@ class CamApp(SolidApp):
         self.cam_dir = cam_dir
         self.program = None
         SolidApp.__init__(self)
-
-    def GetAppName(self):
+        
+    def GetAppTitle(self):
         return 'CAM ( Computer Aided Manufacturing )'
-
+       
+    def GetAppConfigName(self):
+        return 'HeeksCAM'
+ 
     def RegisterObjectTypes(self):
         SolidApp.RegisterObjectTypes(self)
         Program.type = cad.RegisterObjectType("Program", CreateProgram)
