@@ -2,7 +2,7 @@ from AutoProgramDlg import AutoProgramDlg
 
 class AutoProgram:
     def __init__(self):
-        self.ReadFromConfig():
+        self.ReadFromConfig()
     
     def ReadFromConfig(self):
         pass
