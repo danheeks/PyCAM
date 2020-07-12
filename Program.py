@@ -280,6 +280,7 @@ class Program(CamObject):
         from reportlab.lib.enums import TA_CENTER
          
         doc = SimpleDocTemplate(pdf_file_path, pagesize=A4)
+        doc.title = 'Setup Sheet'
         # container for the 'Flowable' objects
         elements = []
          
