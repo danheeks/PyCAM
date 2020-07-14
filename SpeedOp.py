@@ -10,8 +10,8 @@ ABS_MODE_ABSOLUTE = 1
 ABS_MODE_INCREMENTAL = 2
 
 class SpeedOp(Operation):
-    def __init__(self, tool_number = -1, operation_type = cad.OBJECT_TYPE_UNKNOWN):
-        Operation.__init__(self, tool_number, operation_type)
+    def __init__(self):
+        Operation.__init__(self)
         self.horizontal_feed_rate = 200.0
         self.vertical_feed_rate = 50.0
         self.spindle_speed = 7000.0

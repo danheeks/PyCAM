@@ -7,10 +7,16 @@ from Object import PyProperty
 from Object import PyPropertyLength
 
 class DepthOp(SpeedOp):
-    def __init__(self, tool_number = -1, operation_type = cad.OBJECT_TYPE_UNKNOWN):
-        SpeedOp.__init__(self, tool_number, operation_type)
+    def __init__(self):
+        SpeedOp.__init__(self)
         self.user_depths = ''
-        self.ReadDefaultValues()
+        self.clearance_height = 5.0
+        self.start_depth = 0.0
+        self.step_down = 1.0
+        self.final_depth = -1.0
+        self.rapid_safety_space = 2.0
+        self.z_finish_depth = 0.0
+        self.z_thru_depth = 0.0
         
     def ReadDefaultValues(self):
         SpeedOp.ReadDefaultValues(self)

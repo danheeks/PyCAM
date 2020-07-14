@@ -64,8 +64,7 @@ class NcCode(CamObject):
         return object
     
     def CopyFrom(self, object):
-        pass
-        #self.nc_code.CopyFrom(object)
+        self.nc_code.CopyFrom(object.nc_code)
     
     def CallsObjListReadXml(self):
         return False

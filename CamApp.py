@@ -220,6 +220,7 @@ class CamApp(SolidApp):
         sketch = 0
         if len(sketches) > 0: sketch = sketches[0]
         new_object = Profile.Profile(sketch)
+        new_object.ReadDefaultValues()
         new_object.SetID(cad.GetNextID(Profile.type))
         new_object.AddMissingChildren()  # add the tags container
         
@@ -230,6 +231,7 @@ class CamApp(SolidApp):
         sketch = 0
         if len(sketches) > 0: sketch = sketches[0]
         new_object = Pocket.Pocket(sketch)
+        new_object.ReadDefaultValues()
         new_object.SetID(cad.GetNextID(Pocket.type))
         
         self.EditAndAddSketchOp(new_object, sketches)
@@ -255,6 +257,7 @@ class CamApp(SolidApp):
             
     def NewDrillingOp(self, e):
         new_object = Drilling.Drilling()
+        new_object.ReadDefaultValues()
         new_object.points += self.GetSelectedPoints()
         new_object.SetID(cad.GetNextID(Drilling.type))
         self.EditAndAddOp(new_object)
@@ -277,8 +280,7 @@ class CamApp(SolidApp):
     def OnAutoProgram(self, event):
         from AutoProgram import AutoProgram
         a = AutoProgram()
-        #if a.Edit():
-        if True:
+        if a.Edit():
             a.Run()
         
     def OnCreateGCode(self, e):

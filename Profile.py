@@ -24,8 +24,11 @@ PROFILE_CLIMB = 1
 type = 0
 
 class Profile(SketchOp):
-    def __init__(self, sketch = 0, tool_number = -1, operation_type = cad.OBJECT_TYPE_UNKNOWN):
-        SketchOp.__init__(self, sketch, tool_number, operation_type)
+    def __init__(self, sketch = 0):
+        SketchOp.__init__(self, sketch)
+        self.tool_on_side = PROFILE_LEFT_OR_OUTSIDE
+        self.cut_mode = PROFILE_CLIMB
+        self.auto_roll_radius = 2.0
         self.auto_roll_on = True
         self.auto_roll_off = True
         self.roll_on_point = geom.Point3D(0,0,0)
@@ -35,8 +38,18 @@ class Profile(SketchOp):
         self.start = geom.Point3D(0,0,0)
         self.end = geom.Point3D(0,0,0)
         self.sort_sketches = True
-        self.ReadDefaultValues()
         self.tags = None
+        self.offset_extra = 0.0
+        self.do_finishing_pass = False
+        self.only_finishing_pass = False
+        self.finishing_h_feed_rate = 100.0
+        self.finishing_cut_mode = PROFILE_CONVENTIONAL
+        self.finishing_step_down = 1.0
+        self.end_beyond_full_profile = False
+        self.extend_at_start = 0.0
+        self.extend_at_end = 0.0
+        self.lead_in_line_len = 0.0
+        self.lead_out_line_len = 0.0
         
     def TypeName(self):
         return "Profile"

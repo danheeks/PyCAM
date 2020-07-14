@@ -7,12 +7,11 @@ from Object import PyProperty
 from Object import PyPropertyLength
 
 class Operation(CamObject):
-    def __init__(self, tool_number = -1, operation_type = cad.OBJECT_TYPE_UNKNOWN):
+    def __init__(self):
         CamObject.__init__(self, id_named = True)
         self.active = True
         self.comment = ''
-        self.tool_number = tool_number
-        self.operation_type = operation_type
+        self.tool_number = 0
         self.pattern = 1
         self.surface = 0
         
@@ -56,7 +55,6 @@ class Operation(CamObject):
         self.active = object.active
         self.comment = object.comment
         self.tool_number = object.tool_number
-        self.operation_type = object.operation_type
         self.pattern = object.pattern
         self.surface = object.surface
         

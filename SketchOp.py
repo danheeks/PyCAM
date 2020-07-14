@@ -3,8 +3,8 @@ import cad
 from Object import PyProperty
 
 class SketchOp(DepthOp):
-    def __init__(self, sketch, tool_number = -1, operation_type = cad.OBJECT_TYPE_UNKNOWN):
-        DepthOp.__init__(self, tool_number, operation_type)
+    def __init__(self, sketch):
+        DepthOp.__init__(self)
         self.sketch = sketch
         
     def CopyFrom(self, object):

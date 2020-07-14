@@ -26,7 +26,15 @@ ENTRY_STYLE_UNDEFINED = 3
 class Pocket(SketchOp):
     def __init__(self, sketch = 0, tool_number = -1, operation_type = cad.OBJECT_TYPE_UNKNOWN):
         SketchOp.__init__(self, sketch, tool_number, operation_type)
-        self.ReadDefaultValues()
+        self.step_over = 1.0
+        self.cut_mode = PROFILE_CLIMB
+        self.from_center = True
+        self.material_allowance = 0.0
+        self.keep_tool_down_if_poss = True
+        self.use_zig_zag = False
+        self.zig_angle = 0.0
+        self.zig_unidirectional = False
+        self.entry_move = ENTRY_STYLE_PLUNGE
         
     def WriteXml(self):
         cad.BeginXmlChild('params')

@@ -37,23 +37,23 @@ class Stock(CamObject):
         self.solids += object.solids
         
     def GetBox(self):
-        box = geom.Box3D()
+        self.box = geom.Box3D()
         # return the box around all the solids
         for solid in self.solids:
             object = cad.GetObjectFromId(cad.OBJECT_TYPE_STL_SOLID, solid)
             if object:
                 if object.GetVisible():
-                    object.GetBox(box)
-        return box
+                    self.box.InsertBox(object.GetBox())
+        return self.box
     
     def GetBoxWithInvisibles(self):            
-        box = geom.Box3D()
+        self.box = geom.Box3D()
         # return the box around all the solids
         for solid in self.solids:
             object = cad.GetObjectFromId(cad.OBJECT_TYPE_STL_SOLID, solid)
             if object:
-                box.InsertBox(object.GetBox())
-        return box
+                self.box.InsertBox(object.GetBox())
+        return self.box
         
     def WriteXml(self):
         CamObject.WriteXml(self)

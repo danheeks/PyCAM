@@ -16,7 +16,11 @@ class Drilling(DepthOp):
     def __init__(self, tool_number = -1, operation_type = cad.OBJECT_TYPE_UNKNOWN):
         DepthOp.__init__(self, tool_number, operation_type)
         self.points = [] #  list of point id integers
-        self.ReadDefaultValues()
+        self.dwell = 0.0
+        self.retract_mode = 0
+        self.spindle_mode = 0
+        self.internal_coolant_on = False
+        self.rapid_to_clearance = True
         
     def WriteXml(self):
         cad.BeginXmlChild('params')
