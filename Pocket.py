@@ -24,8 +24,8 @@ ENTRY_STYLE_HELICAL = 2
 ENTRY_STYLE_UNDEFINED = 3
 
 class Pocket(SketchOp):
-    def __init__(self, sketch = 0, tool_number = -1, operation_type = cad.OBJECT_TYPE_UNKNOWN):
-        SketchOp.__init__(self, sketch, tool_number, operation_type)
+    def __init__(self, sketch = 0):
+        SketchOp.__init__(self, sketch)
         self.step_over = 1.0
         self.cut_mode = PROFILE_CLIMB
         self.from_center = True

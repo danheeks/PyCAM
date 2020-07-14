@@ -78,7 +78,7 @@ class Tag(CamObject):
 
         return properties
         
-    def OnRenderTriangles(self):
+    def OnGlCommands(self, select, marked, no_color):
         cad.DrawColor(cad.Color(0,0,0))
         cad.DrawSymbol(1, self.pos.x, self.pos.y, 0.0)
         cad.DrawColor(cad.Color(0,0,255))

@@ -13,8 +13,8 @@ import math
 type = 0
 
 class Drilling(DepthOp):
-    def __init__(self, tool_number = -1, operation_type = cad.OBJECT_TYPE_UNKNOWN):
-        DepthOp.__init__(self, tool_number, operation_type)
+    def __init__(self):
+        DepthOp.__init__(self)
         self.points = [] #  list of point id integers
         self.dwell = 0.0
         self.retract_mode = 0

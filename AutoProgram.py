@@ -123,7 +123,7 @@ class AutoProgram:
             wx.GetApp().program.BackPlot()
         
     def CutOutside(self):
-        self.part_stl = self.part.GetTris(0.01)
+        self.part_stl = self.part.GetTris(0.1)
         self.part_box = self.part_stl.GetBox()
         self.clearance_height = self.part_box.MaxZ() + 5.0
         mat = geom.Matrix()
@@ -308,7 +308,7 @@ class AutoProgram:
         if r == None:
             tool_id = self.ChoosePreferredTool()
         else:
-            if self.tools[self.ChoosePreferredTool()].diam <= r*2:
+            if default_tools[self.ChoosePreferredTool()].diam <= r*2:
                 tool_id = self.ChoosePreferredTool()
             else:
                 tool_id = self.GetFirstToolGreaterOrEqual(r*2)

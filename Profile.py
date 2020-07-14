@@ -413,11 +413,11 @@ class Profile(SketchOp):
         self.tags = Tags.Tags()
         self.Add(self.tags)
         
-    def OnRenderTriangles(self):
+    def OnGlCommands(self, select, marked, no_color):
         if self.tags:
             object = self.tags.GetFirstChild()
             while object:
-                object.OnRenderTriangles()
+                object.OnGlCommands(select, marked, no_color)
                 object = self.tags.GetNextChild()
 
 class TagDrawing(cad.Drawing):
