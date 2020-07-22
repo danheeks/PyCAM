@@ -71,6 +71,7 @@ class Profile(SketchOp):
         
     def MakeACopy(self):
         copy = Profile(self.sketch)
+        cad.PyIncref(copy)
         copy.CopyFrom(self)
         return copy
     
@@ -412,13 +413,6 @@ class Profile(SketchOp):
         # add tags
         self.tags = Tags.Tags()
         self.Add(self.tags)
-        
-    def OnGlCommands(self, select, marked, no_color):
-        if self.tags:
-            object = self.tags.GetFirstChild()
-            while object:
-                object.OnGlCommands(select, marked, no_color)
-                object = self.tags.GetNextChild()
 
 class TagDrawing(cad.Drawing):
     def __init__(self):

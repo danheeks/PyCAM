@@ -132,10 +132,18 @@ class CamApp(SolidApp):
         Profile.tag_drawing.profile = object
         cad.SetInputMode(Profile.tag_drawing)
         
+    def RepositionTag(self, object):
+        pos = self.PickPosition('Pick New Tag Position')
+        object.pos.x = pos.x
+        object.pos.y = pos.y
+        cad.Repaint()
+        
     def GetObjectTools(self, object, control_pressed, from_tree_canvas = False):
         tools = SolidApp.GetObjectTools(self, object, control_pressed, from_tree_canvas)
         if object.GetType() == Profile.type:
             tools.append(CamContextTool.CamObjectContextTool(object, "Add Tags", "addtag", self.AddTags))
+        if object.GetType() == Tag.type:
+            tools.append(CamContextTool.CamObjectContextTool(object, "Pick new position", "tagpos", self.RepositionTag))
         return tools
         
     def AddExtraRibbonPages(self, ribbon):

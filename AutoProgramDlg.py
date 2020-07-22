@@ -29,6 +29,8 @@ class AutoProgramDlg(HDialog):
         self.MakeLabelAndControl('X Margin', self.lgthXMargin).AddToSizer(self.sizerLeft)
         self.chkCreateGCode = wx.CheckBox(self, wx.ID_ANY, 'Create G-Code')
         HControl(wx.ALL, self.chkCreateGCode).AddToSizer(self.sizerLeft)
+        self.chkBigRigidPart = wx.CheckBox(self, wx.ID_ANY, 'Big Rigid Part')
+        HControl(wx.ALL, self.chkBigRigidPart).AddToSizer(self.sizerLeft)
 
         # add right controls
         cut_mode_choices = []
@@ -44,6 +46,8 @@ class AutoProgramDlg(HDialog):
         self.MakeLabelAndControl('Tag Angle', self.dblTagAngle).AddToSizer(self.sizerRight)
         self.lgthTagYMargin = LengthCtrl(self)
         self.MakeLabelAndControl('Tag Y Margin', self.lgthTagYMargin).AddToSizer(self.sizerRight)
+        
+        
         self.MakeOkAndCancel(wx.HORIZONTAL).AddToSizer(self.sizerRight)
             
         self.SetFromData(auto_program)
@@ -68,6 +72,7 @@ class AutoProgramDlg(HDialog):
         self.lgthTagHeight.SetValue(auto_program.tag_height)
         self.dblTagAngle.SetValue(auto_program.tag_angle)
         self.lgthTagYMargin.SetValue(auto_program.tag_y_margin)
+        self.chkBigRigidPart.SetValue(auto_program.big_rigid_part)
         
     def GetData(self, auto_program):
         auto_program.x_margin = self.lgthXMargin.GetValue()
@@ -78,4 +83,5 @@ class AutoProgramDlg(HDialog):
         auto_program.tag_height = self.lgthTagHeight.GetValue()
         auto_program.tag_angle = self.dblTagAngle.GetValue()
         auto_program.tag_y_margin = self.lgthTagYMargin.GetValue()
+        auto_program.big_rigid_part = self.chkBigRigidPart.GetValue()
         

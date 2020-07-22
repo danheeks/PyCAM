@@ -9,6 +9,7 @@ import Program
 import NcCode
 import Stock
 import Profile
+import Drilling
 import Tag
 import Tags
 import Tool
@@ -21,16 +22,26 @@ BOTTOM_NONE = 0
 BOTTOM_THROUGH = 1
 BOTTOM_POCKET = 2
 
+
+stock_thicknesses = {
+                 'Acetal':[5.0, 6.0, 10.0, 20.0, 30.0, 40.0],
+                 'Alu Alloy':[2.0, 3.0, 4.0, 5.0, 6.0, 10.0, 16.0, 20.0, 30.0, 40.0],
+                 'Mild Steel':[2.0, 3.0, 4.0, 5.0, 6.0],
+                 }
+
 class DefaultTool:
-    def __init__(self, diam, type, hfeed, finish_hfeed, spin, vfeed, rough_step_down, finish_step_down):
+    def __init__(self, diam, type, hfeed, finish_hfeed, spin, vfeed, rough_step_down, finish_step_down = None):
         self.diam = diam
         self.type = type
         self.hfeed = hfeed
+        if hfeed == None:
+            self.hfeed = 200.0
         self.finish_hfeed = finish_hfeed
         self.spin = spin
         self.vfeed = vfeed
         self.rough_step_down = rough_step_down
         self.finish_step_down = finish_step_down
+        self.added = False
         
     def GetName(self):
         if self.type == TOOL_TYPE_SLOTCUTTER:
@@ -40,35 +51,107 @@ class DefaultTool:
         else:
             return 'Unknown Tool Type'
         
-    def AddTool(self, tool_number):
+    def NewTool(self, tool_number):
         tool = Tool.Tool(self.diam, title = self.GetName(), tool_number = tool_number, type = self.type)
         cad.PyIncref(tool)
-        cad.AddUndoably(tool, wx.GetApp().program.tools)
+        return tool
 
-default_tools = {
-                 1:DefaultTool(16.0, TOOL_TYPE_SLOTCUTTER, 200.0, 100.0, 1800.0, 50.0, 5.0, 10.0),
-                 2:DefaultTool(2.5, TOOL_TYPE_DRILL, None, None, 3000.0, 150.0, 1.0, None),
-                 3:DefaultTool(6.0, TOOL_TYPE_SLOTCUTTER, 200.0, 100.0, 3000.0, 100.0, 3.0, 6.0),
-                 4:DefaultTool(2.0, TOOL_TYPE_SLOTCUTTER, 150.0, 75.0, 3000.0, 50.0, 1.0, 2.0),
-                 5:DefaultTool(5.0, TOOL_TYPE_SLOTCUTTER, 200.0, 100.0, 3000.0, 100.0, 2.5, 5.0),
-                 6:DefaultTool(3.0, TOOL_TYPE_SLOTCUTTER, 150.0, 75.0, 3000.0, 50.0, 1.5, 3.0),
-                 }
+slot_cutter_positions = [3,4,5,6]
+drill_positions = [1,2,7,8,9]
 
-stock_thicknesses = {
-                 'Acetal':[5.0, 6.0, 10.0, 20.0, 30.0, 40.0],
-                 'Alu Alloy':[2.0, 3.0, 4.0, 5.0, 6.0, 10.0, 16.0, 20.0, 30.0, 40.0],
-                 'Mild Steel':[2.0, 3.0, 4.0, 5.0, 6.0],
-                 }
+slot_cutters = [
+    DefaultTool(16.0, TOOL_TYPE_SLOTCUTTER, 200.0, 100.0, 1800.0, 50.0, 5.0, 10.0),
+    DefaultTool(6.0, TOOL_TYPE_SLOTCUTTER, 200.0, 100.0, 3000.0, 100.0, 3.0, 6.0),
+    DefaultTool(2.0, TOOL_TYPE_SLOTCUTTER, 150.0, 75.0, 3000.0, 50.0, 1.0, 2.0),
+    DefaultTool(5.0, TOOL_TYPE_SLOTCUTTER, 200.0, 100.0, 3000.0, 100.0, 2.5, 5.0),
+    DefaultTool(3.0, TOOL_TYPE_SLOTCUTTER, 150.0, 75.0, 3000.0, 50.0, 1.5, 3.0),
+]
 
-default_options = {
-                   "machine":"emc2b",
-                   "outer_tool_diameter":6.0,
-                   "tools":default_tools,
-                   }
+drills = [
+    DefaultTool(1.6, TOOL_TYPE_DRILL, None, None, 3000.0, 150.0, 1.0),
+    DefaultTool(1.8, TOOL_TYPE_DRILL, None, None, 3000.0, 150.0, 1.0),
+    DefaultTool(1.9, TOOL_TYPE_DRILL, None, None, 3000.0, 150.0, 1.0),
+    DefaultTool(2.0, TOOL_TYPE_DRILL, None, None, 3000.0, 150.0, 1.0),
+    DefaultTool(2.1, TOOL_TYPE_DRILL, None, None, 3000.0, 150.0, 1.0),
+    DefaultTool(2.5, TOOL_TYPE_DRILL, None, None, 3000.0, 150.0, 1.0),
+    DefaultTool(3.0, TOOL_TYPE_DRILL, None, None, 3000.0, 150.0, 1.0),
+    DefaultTool(3.2, TOOL_TYPE_DRILL, None, None, 3000.0, 150.0, 1.0),
+    DefaultTool(3.3, TOOL_TYPE_DRILL, None, None, 3000.0, 150.0, 1.0),
+    DefaultTool(3.5, TOOL_TYPE_DRILL, None, None, 3000.0, 150.0, 1.0),
+    DefaultTool(3.6, TOOL_TYPE_DRILL, None, None, 3000.0, 150.0, 1.0),
+    DefaultTool(4.0, TOOL_TYPE_DRILL, None, None, 3000.0, 150.0, 1.0),
+    DefaultTool(4.2, TOOL_TYPE_DRILL, None, None, 3000.0, 150.0, 1.0),
+]
+        
+class DefaultTools:
+    def __init__(self, auto_program, name, tools, tool_numbers):
+        self.auto_program = auto_program
+        self.name = name
+        self.tools = tools
+        self.tool_numbers = tool_numbers
+        self.next_index = 0
+        
+    def AddIfNotAdded(self, tool_index):
+        tool = self.tools[tool_index]
+        if tool.added:
+            return
+        if self.next_index >= len(self.tool_numbers):
+            raise NameError('no more ' + self.name + ' available!')
+            
+        tool_id = self.tool_numbers[self.next_index]
+        self.next_index += 1
+        self.auto_program.tools_to_add_at_end[tool_id] = tool.NewTool(tool_id)        
+        return tool_id, tool
+    
+    def GetFirstToolGreaterOrEqual(self, d):
+        if d == None:
+            return None
+        min_d = None
+        min_d_tool = None
+        for index in range(0, len(self.tools)):
+            tool_diameter = self.tools[index].diam
+            if tool_diameter == d:
+                return index
+            if tool_diameter > d:
+                if min_d == None or tool_diameter < min_d:
+                    min_d = tool_diameter
+                    min_d_tool = index
+        return min_d_tool
+    
+    def GetToolOfDiameter(self, d):
+        for index in range(0, len(self.tools)):
+            tool_diameter = self.tools[index].diam
+            if math.fabs(tool_diameter - d) < 0.01:
+                return index
+        return None
+
+class Hole:
+    # used to group found features
+    def __init__(self, circle, top_z, bottom_z):
+        self.diameter = circle.radius * 2
+        self.top_z = top_z
+        self.bottom_z = bottom_z
+        self.pts = [circle.c]
+        
+    def AddHole(self, hole):
+        # returns True if it added the hole's position to this hole
+        if math.fabs(self.diameter - hole.diameter) > 0.01:
+            return False
+        if math.fabs(self.top_z - hole.top_z) > 0.01:
+            return False
+        if math.fabs(self.bottom_z - hole.bottom_z) > 0.01:
+            return False
+        self.pts += hole.pts
+        return True
 
 class AutoProgram:
     def __init__(self):
         self.ReadFromConfig()
+        self.next_slot_cutter = 0
+        self.next_drill = 0
+        self.tools_to_add_at_end = {} # dictionary of tool id and Tool
+        self.slot_cutters = DefaultTools(self, 'slot cutters', slot_cutters, slot_cutter_positions)
+        self.drills = DefaultTools(self, 'drills', drills, drill_positions)
     
     def ReadFromConfig(self):
         config = HeeksConfig()
@@ -80,6 +163,7 @@ class AutoProgram:
         self.tag_height = config.ReadFloat('TagHeight', 1.0)
         self.tag_angle = config.ReadFloat('TagAngle', 45.0)
         self.tag_y_margin = config.ReadFloat('TagYMargin', 4.0)
+        self.big_rigid_part = config.ReadBool('BigRigidPart', False) # tick this to use the big cutter
         
     def WriteToConfig(self):
         config = HeeksConfig()
@@ -91,6 +175,7 @@ class AutoProgram:
         config.WriteFloat('TagHeight', self.tag_height)
         config.WriteFloat('TagAngle', self.tag_angle)
         config.WriteFloat('TagYMargin', self.tag_y_margin)
+        config.WriteBool('BigRigidPart', self.big_rigid_part)
     
     def Edit(self):
         dlg = AutoProgramDlg(self)
@@ -116,13 +201,74 @@ class AutoProgram:
         # move the part, so stock is at origin
         self.MovePart()
         
+        self.MakeShadow()
+        self.CutShadowInners()
         self.CutOutside()
+        
+        self.AddToolsAtEnd()
         
         if self.create_gcode:
             wx.GetApp().program.MakeGCode()
             wx.GetApp().program.BackPlot()
+            
+        wx.GetApp().frame.graphics_canvas.viewport.OnMagExtents(True, 6)
+        wx.GetApp().frame.graphics_canvas.Refresh()
         
-    def CutOutside(self):
+    def AddToolsAtEnd(self):
+        for tool_id in self.tools_to_add_at_end:
+            cad.AddUndoably(self.tools_to_add_at_end[tool_id], wx.GetApp().program.tools)
+            
+    def CutShadowInners(self):
+        curves_to_profile = []
+        geom.set_accuracy(0.1)
+        holes_to_profile = []
+        holes_to_drill = []
+        
+        for curve in self.shadow.GetCurves():
+            curve.FitArcs()
+            if curve.IsClockwise():
+                circle = curve.IsACircle(0.01)
+                if circle == None:
+                    curves_to_profile.append(curve)
+                else:
+                    hole = Hole(circle, 0.0, -self.thickness)
+                    # add to existing holes
+                    for h in holes_to_drill:
+                        if h.AddHole(hole):
+                            hole = None
+                            break
+                    if hole != None:
+                        holes_to_drill.append(hole)
+                        
+        for hole in holes_to_drill:
+            tool_index = self.drills.GetToolOfDiameter(hole.diameter)
+            if tool_index == None:
+                # no drill of this size
+                holes_to_profile.append(hole)
+                continue
+            tool_id, default_tool = self.drills.AddIfNotAdded(tool_index)
+            drilling = Drilling.Drilling()
+            drilling.tool_number = tool_id
+            for p in hole.pts:
+                new_point = cad.NewPoint(geom.Point3D(p.x, p.y, 0.0))
+                cad.AddUndoably(new_point)
+                drilling.points.append(new_point.GetID())
+            drilling.start_depth = hole.top_z
+            drilling.final_depth = hole.bottom_z
+            drilling.horizontal_feed_rate = default_tool.hfeed
+            drilling.vertical_feed_rate = default_tool.vfeed
+            drilling.spindle_speed = default_tool.spin
+            drilling.step_down = default_tool.rough_step_down
+            cad.PyIncref(drilling)
+            cad.AddUndoably(drilling, wx.GetApp().program.operations)
+            
+        for hole in holes_to_profile:
+            self.ProfileHole(hole)
+                        
+        for curve in curves_to_profile:
+            self.ProfileCurve(curve, inside = True)            
+        
+    def MakeShadow(self):
         self.part_stl = self.part.GetTris(0.1)
         self.part_box = self.part_stl.GetBox()
         self.clearance_height = self.part_box.MaxZ() + 5.0
@@ -133,32 +279,28 @@ class AutoProgram:
         self.area_done = geom.Area()
         self.solid_area = None
         self.current_top_height = None
-        self.tools_defined = {}
-
+        
+    def CutOutside(self):
         for curve in self.shadow.GetCurves():
             if not curve.IsClockwise():
                 self.ProfileCurve(curve, move_start_type = MOVE_START_TO_MIDDLE_LEFT, add_tags = True)         
-        
-    def DefineToolIfNotAlready(self, tool_id):
-        if tool_id in self.tools_defined:
-            return
-        #(6 mm Slot Cutter)
-        self.tools_defined[tool_id] = 1
-        
-        default_tools[tool_id].AddTool(tool_id)
                 
-    def ProfileCurve(self, curve, z_top = 0.0, z_bottom = None, move_start_type = MOVE_START_NOT, bottom_style = BOTTOM_THROUGH, do_finish_pass = True, add_tags = False):
+    def ProfileHole(self, hole):
+        radius = hole.diameter * 0.5
+        for p in hole.pts:
+            curve = geom.Curve()
+            curve.Append(geom.Point(p.x - radius, p.y))
+            curve.Append(geom.Vertex(1, geom.Point(p.x + radius, p.y), geom.Point(p.x, p.y)))
+            curve.Append(geom.Vertex(1, geom.Point(p.x - radius, p.y), geom.Point(p.x, p.y)))
+            self.ProfileCurve(curve, z_top = hole.top_z, z_bottom = hole.bottom_z, inside = True)
+        
+    def ProfileCurve(self, curve, z_top = 0.0, z_bottom = None, move_start_type = MOVE_START_NOT, bottom_style = BOTTOM_THROUGH, do_finish_pass = True, add_tags = False, inside = False):
         # create a sketch for the curve
         sketch = cad.NewSketchFromCurve(curve)
             
         cad.AddUndoably(sketch)
         
-        tool_id = self.GetToolForCurve(curve)
-                
-        if tool_id == None:
-            return # shouldn't happen
-
-        self.DefineToolIfNotAlready(tool_id)
+        tool_id, default_tool = self.GetToolForCurve(curve)
 
         profile = Profile.Profile(sketch.GetID())
         profile.tool_number = tool_id
@@ -167,6 +309,9 @@ class AutoProgram:
             profile.final_depth = -self.thickness
         else:
             profile.final_depth = z_bottom
+            
+        if inside == True:
+            profile.tool_on_side = Profile.PROFILE_RIGHT_OR_INSIDE
 
         if move_start_type == MOVE_START_TO_MIDDLE_LEFT:
             profile.start_given = True
@@ -179,21 +324,21 @@ class AutoProgram:
             profile.z_finish_depth = 0.1
 
         # set operation from chosen tool info
-        profile.horizontal_feed_rate = default_tools[tool_id].hfeed
-        profile.vertical_feed_rate = default_tools[tool_id].vfeed
-        profile.spindle_speed = default_tools[tool_id].spin
-        profile.step_down = default_tools[tool_id].rough_step_down
+        profile.horizontal_feed_rate = default_tool.hfeed
+        profile.vertical_feed_rate = default_tool.vfeed
+        profile.spindle_speed = default_tool.spin
+        profile.step_down = default_tool.rough_step_down
             
         if do_finish_pass:
             profile.do_finishing_pass = True
             profile.offset_extra = 0.1
-            profile.roll_radius = 0.1
-            profile.finishing_h_feed_rate = default_tools[tool_id].finish_hfeed
-            profile.finishing_step_down = default_tools[tool_id].finish_step_down
+            profile.finishing_h_feed_rate = default_tool.finish_hfeed
+            profile.finishing_step_down = default_tool.finish_step_down
+        profile.auto_roll_radius = 0.1
             
         if add_tags:
             offset_curve = geom.Curve(curve)
-            radius = default_tools[tool_id].diam * 0.5
+            radius = default_tool.diam * 0.5
             offset_curve.Offset(-radius)
             box = offset_curve.GetBox()
             left = box.MinX() - 1.0
@@ -243,7 +388,9 @@ class AutoProgram:
             cad.DeleteUndoably(object)
         for object in wx.GetApp().program.operations.GetChildren():
             cad.DeleteUndoably(object)
-        cad.CopyUndoably(wx.GetApp().program.nccode, NcCode.NcCode())
+        blank_nc = NcCode.NcCode()
+        cad.PyIncref(blank_nc)
+        wx.GetApp().CopyUndoably(wx.GetApp().program.nccode, blank_nc)
         cad.EndHistory()
         
     def AddStock(self):
@@ -306,17 +453,18 @@ class AutoProgram:
     def GetToolForCurve(self, curve, outside = True):
         r = curve.GetMaxCutterRadius()
         if r == None:
-            tool_id = self.ChoosePreferredTool()
+            cutter_index = self.ChoosePreferredCutter()
         else:
-            if default_tools[self.ChoosePreferredTool()].diam <= r*2:
-                tool_id = self.ChoosePreferredTool()
+            if self.slot_cutters.tools[self.ChoosePreferredCutter()].diam <= r*2:
+                cutter_index = self.ChoosePreferredCutter()
             else:
-                tool_id = self.GetFirstToolGreaterOrEqual(r*2)
-        
-        #d = self.GetMaxOutsideDiameter()
-        #tool = self.GetFirstToolGreaterOrEqual(d)
-        return tool_id
-    
+                cutter_index = self.slot_cutters.GetFirstToolGreaterOrEqual(r*2)
+                
+        if cutter_index == None:
+            return None # shouldn't happen
+
+        return self.slot_cutters.AddIfNotAdded(cutter_index)
+
     def GetMaxOutsideDiameter(self):
         max_diameter = None
         for curve in self.shadow.GetCurves():
@@ -327,24 +475,12 @@ class AutoProgram:
                     if max_diameter == None or d < max_diameter:
                         max_diameter = d
         return max_diameter
-    
-    def GetFirstToolGreaterOrEqual(self, d):
-        if d == None:
-            return None
-        min_d = None
-        min_d_tool = None
-        for tool in default_tools:
-            tool_diameter = default_tools[tool].diam
-            if tool_diameter == d:
-                return tool
-            if tool_diameter > d:
-                if min_d == None or tool_diameter < min_d:
-                    min_d = tool_diameter
-                    min_d_tool = tool
-        return min_d_tool
 
-    def ChoosePreferredTool(self):
-        return 3 # use the 6mm tool
+    def ChoosePreferredCutter(self):
+        if self.big_rigid_part:
+            return 0
+        else:
+            return 1
 
 def FindTagPoint(curve, line):
     # line defined by two lists of two coordinates
@@ -352,7 +488,6 @@ def FindTagPoint(curve, line):
     c2.Append(geom.Point(line[0][0], line[0][1]))
     c2.Append(geom.Point(line[1][0], line[1][1]))
     pts = curve.Intersections(c2)
-    print('pts = ' + str(pts[0]) + ', ' + str(pts[1]))
     if len(pts) == 0:
         return None
     return pts[0]
