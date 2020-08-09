@@ -275,7 +275,7 @@ def profile(curve, direction = "on", radius = 1.0, offset_extra = 0.0, roll_radi
                         a.Append(curve)
                         a.Offset(-offset)
                         
-                        for curve in a.getCurves():
+                        for curve in a.GetCurves():
                             curve_cw = curve.IsClockwise()
                             if cw != curve_cw:
                                 curve.Reverse()

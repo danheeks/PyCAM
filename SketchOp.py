@@ -28,6 +28,19 @@ class SketchOp(DepthOp):
 
         return properties
     
+    def OnGlCommands(self, select, marked, no_color):
+        if marked and not select:
+            object = cad.GetObjectFromId(cad.OBJECT_TYPE_SKETCH, self.sketch)
+            if object != None:
+                cad.Material(cad.Color(255, 255, 0)).glMaterial(1.0)
+                cad.DrawEnableLighting()
+                cad.DrawDisableDepthTesting()
+                cad.DrawEnableCullFace()
+                cad.Sketch.RenderAsExtrusion(object, self.start_depth, self.final_depth)
+                cad.DrawDisableCullFace()
+                cad.DrawEnableDepthTesting()
+                cad.DrawDisableLighting()
+    
     def DoEachSketch(self, callback, data):
         # data is a tuple, whatever you want to pass on
         # callback gets called for each separate sketch

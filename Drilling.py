@@ -12,6 +12,18 @@ import math
 
 type = 0
 
+circle_sketch = None
+arc1 = None
+arc2 = None
+
+class DotpAndPos:
+    def __init__(self, dotp, pos):
+        self.dotp = dotp
+        self.pos = pos
+        
+    def __lt__(self, rhs):
+        return self.dotp < rhs.dotp
+
 class Drilling(DepthOp):
     def __init__(self):
         DepthOp.__init__(self)
@@ -116,6 +128,58 @@ class Drilling(DepthOp):
         properties += DepthOp.GetProperties(self)
 
         return properties
+    
+    def OnGlCommands(self, select, marked, no_color):
+        if marked and not select:
+            tool = Tool.FindTool(self.tool_number)
+            if tool == None:
+                return
+            radius = tool.CuttingRadius(True)
+            global circle_sketch
+            global arc1
+            global arc2
+            
+            # get 3d position from the point objects, sorted by distance from camera
+            forwards = wx.GetApp().frame.graphics_canvas.viewport.view_point.Forwards()
+            lens_point = wx.GetApp().frame.graphics_canvas.viewport.view_point.lens_point
+            posns = []
+            for point in self.points:
+                object = cad.GetObjectFromId(cad.OBJECT_TYPE_POINT, point)
+                if object == None:
+                    continue
+                pos = object.GetStartPoint()
+                dotp = (lens_point - pos) * forwards
+                posns.append(DotpAndPos(dotp,pos))
+                
+            posns = sorted(posns)
+
+            for dotp_and_pos in posns:
+                pos = dotp_and_pos.pos
+                p0 = pos + geom.Point3D(-radius, 0, 0)
+                p1 = pos + geom.Point3D(radius, 0, 0)
+                
+                if circle_sketch == None:
+                    circle_sketch = cad.NewSketch()
+                    arc1 = cad.NewArc(p0, p1, geom.Point3D(0, 0, 1), pos)
+                    arc2 = cad.NewArc(p1, p0, geom.Point3D(0, 0, 1), pos)
+                    circle_sketch.Add( arc1 )
+                    circle_sketch.Add( arc2 )
+                else:
+                    arc1.SetStartPoint(p0)
+                    arc1.SetEndPoint(p1)
+                    arc1.SetCentrePoint(pos)
+                    arc2.SetStartPoint(p1)
+                    arc2.SetEndPoint(p0)
+                    arc2.SetCentrePoint(pos)
+                
+                cad.Material(cad.Color(255, 255, 0)).glMaterial(1.0)
+                cad.DrawEnableLighting()
+                cad.DrawDisableDepthTesting()
+                cad.DrawEnableCullFace()
+                cad.Sketch.RenderAsExtrusion(circle_sketch, self.start_depth, self.final_depth)
+                cad.DrawDisableCullFace()
+                cad.DrawEnableDepthTesting()
+                cad.DrawDisableLighting()
     
     def DoGCodeCalls(self):
         tool = Tool.FindTool(self.tool_number)
