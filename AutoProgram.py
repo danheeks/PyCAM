@@ -31,9 +31,10 @@ stock_thicknesses = {
                  }
 
 class DefaultTool:
-    def __init__(self, diam, type, hfeed, finish_hfeed, spin, vfeed, rough_step_down, finish_step_down = None):
+    def __init__(self, diam, type, cutting_length, hfeed, finish_hfeed, spin, vfeed, rough_step_down, finish_step_down = None):
         self.diam = diam
         self.type = type
+        self.cutting_length = cutting_length
         self.hfeed = hfeed
         if hfeed == None:
             self.hfeed = 200.0
@@ -62,27 +63,30 @@ slot_cutter_positions = [3,4,5,6]
 drill_positions = [1,2,7,8,9]
 
 slot_cutters = [
-    DefaultTool(16.0, TOOL_TYPE_SLOTCUTTER, 200.0, 100.0, 1800.0, 50.0, 5.0, 10.0),
-    DefaultTool(6.0, TOOL_TYPE_SLOTCUTTER, 200.0, 100.0, 3000.0, 100.0, 3.0, 6.0),
-    DefaultTool(2.0, TOOL_TYPE_SLOTCUTTER, 150.0, 75.0, 3000.0, 50.0, 1.0, 2.0),
-    DefaultTool(5.0, TOOL_TYPE_SLOTCUTTER, 200.0, 100.0, 3000.0, 100.0, 2.5, 5.0),
-    DefaultTool(3.0, TOOL_TYPE_SLOTCUTTER, 150.0, 75.0, 3000.0, 50.0, 1.5, 3.0),
+    DefaultTool(16.0, TOOL_TYPE_SLOTCUTTER, 30.0, 200.0, 100.0, 1800.0, 50.0, 5.0, 10.0), # short
+    DefaultTool(16.0, TOOL_TYPE_SLOTCUTTER, 60.0, 200.0, 100.0, 1800.0, 50.0, 5.0, 10.0), # long
+    DefaultTool(6.0, TOOL_TYPE_SLOTCUTTER, 15.0, 200.0, 100.0, 3000.0, 100.0, 3.0, 6.0), # short
+    DefaultTool(6.0, TOOL_TYPE_SLOTCUTTER, 30.0, 200.0, 100.0, 3000.0, 100.0, 3.0, 6.0), # long
+    DefaultTool(2.0, TOOL_TYPE_SLOTCUTTER, 10.0, 150.0, 75.0, 3000.0, 50.0, 1.0, 2.0),
+    DefaultTool(5.0, TOOL_TYPE_SLOTCUTTER, 25.0, 200.0, 100.0, 3000.0, 100.0, 2.5, 5.0),
+    DefaultTool(3.0, TOOL_TYPE_SLOTCUTTER, 15.0, 150.0, 75.0, 3000.0, 50.0, 1.5, 3.0),
 ]
 
 drills = [
-    DefaultTool(1.6, TOOL_TYPE_DRILL, None, None, 3000.0, 150.0, 1.0),
-    DefaultTool(1.8, TOOL_TYPE_DRILL, None, None, 3000.0, 150.0, 1.0),
-    DefaultTool(1.9, TOOL_TYPE_DRILL, None, None, 3000.0, 150.0, 1.0),
-    DefaultTool(2.0, TOOL_TYPE_DRILL, None, None, 3000.0, 150.0, 1.0),
-    DefaultTool(2.1, TOOL_TYPE_DRILL, None, None, 3000.0, 150.0, 1.0),
-    DefaultTool(2.5, TOOL_TYPE_DRILL, None, None, 3000.0, 150.0, 1.0),
-    DefaultTool(3.0, TOOL_TYPE_DRILL, None, None, 3000.0, 150.0, 1.0),
-    DefaultTool(3.2, TOOL_TYPE_DRILL, None, None, 3000.0, 150.0, 1.0),
-    DefaultTool(3.3, TOOL_TYPE_DRILL, None, None, 3000.0, 150.0, 1.0),
-    DefaultTool(3.5, TOOL_TYPE_DRILL, None, None, 3000.0, 150.0, 1.0),
-    DefaultTool(3.6, TOOL_TYPE_DRILL, None, None, 3000.0, 150.0, 1.0),
-    DefaultTool(4.0, TOOL_TYPE_DRILL, None, None, 3000.0, 150.0, 1.0),
-    DefaultTool(4.2, TOOL_TYPE_DRILL, None, None, 3000.0, 150.0, 1.0),
+    # to do change 12.0 to actual cutting lengths
+    DefaultTool(1.6, TOOL_TYPE_DRILL, 12.0, None, None, 3000.0, 150.0, 1.0),
+    DefaultTool(1.8, TOOL_TYPE_DRILL, 12.0, None, None, 3000.0, 150.0, 1.0),
+    DefaultTool(1.9, TOOL_TYPE_DRILL, 12.0, None, None, 3000.0, 150.0, 1.0),
+    DefaultTool(2.0, TOOL_TYPE_DRILL, 12.0, None, None, 3000.0, 150.0, 1.0),
+    DefaultTool(2.1, TOOL_TYPE_DRILL, 12.0, None, None, 3000.0, 150.0, 1.0),
+    DefaultTool(2.5, TOOL_TYPE_DRILL, 12.0, None, None, 3000.0, 150.0, 1.0),
+    DefaultTool(3.0, TOOL_TYPE_DRILL, 12.0, None, None, 3000.0, 150.0, 1.0),
+    DefaultTool(3.2, TOOL_TYPE_DRILL, 12.0, None, None, 3000.0, 150.0, 1.0),
+    DefaultTool(3.3, TOOL_TYPE_DRILL, 12.0, None, None, 3000.0, 150.0, 1.0),
+    DefaultTool(3.5, TOOL_TYPE_DRILL, 12.0, None, None, 3000.0, 150.0, 1.0),
+    DefaultTool(3.6, TOOL_TYPE_DRILL, 12.0, None, None, 3000.0, 150.0, 1.0),
+    DefaultTool(4.0, TOOL_TYPE_DRILL, 12.0, None, None, 3000.0, 150.0, 1.0),
+    DefaultTool(4.2, TOOL_TYPE_DRILL, 12.0, None, None, 3000.0, 150.0, 1.0),
 ]
         
 class DefaultTools:
@@ -98,7 +102,7 @@ class DefaultTools:
         if tool.added_tool_id != None:
             return tool.added_tool_id, tool
         if self.next_index >= len(self.tool_numbers):
-            wx.MessageBox('no more ' + self.name + ' available!\ntrying to add: ' + self.tools[tool_index].GetName())
+            self.failure = 'no more ' + self.name + ' available!\ntrying to add: ' + self.tools[tool_index].GetName()
             tool_id = 0
         else:
             tool_id = self.tool_numbers[self.next_index]
@@ -106,12 +110,14 @@ class DefaultTools:
             self.auto_program.tools_to_add_at_end[tool_id] = tool.NewTool(tool_id)        
         return tool_id, tool
     
-    def GetFirstToolLessThanOrEqual(self, d):
+    def GetBiggestToolLessThanOrEqual(self, d, cut_depth):
         if d == None:
             return None
         max_d = None
         max_d_tool = None
         for index in range(0, len(self.tools)):
+            if self.tools[index].cutting_length < cut_depth:
+                continue
             tool_diameter = self.tools[index].diam
             if tool_diameter == d:
                 return index
@@ -121,8 +127,10 @@ class DefaultTools:
                     max_d_tool = index
         return max_d_tool
     
-    def GetToolOfDiameter(self, d):
+    def GetToolOfDiameter(self, d, cut_depth):
         for index in range(0, len(self.tools)):
+            if self.tools[index].cutting_length < cut_depth:
+                continue
             tool_diameter = self.tools[index].diam
             if math.fabs(tool_diameter - d) < 0.01:
                 return index
@@ -155,6 +163,9 @@ class AutoProgram:
         self.tools_to_add_at_end = {} # dictionary of tool id and Tool
         self.slot_cutters = DefaultTools(self, 'slot cutters', slot_cutters, slot_cutter_positions)
         self.drills = DefaultTools(self, 'drills', drills, drill_positions)
+        self.part = None
+        self.failure = None
+        self.warnings = []
     
     def ReadFromConfig(self):
         config = HeeksConfig()
@@ -190,10 +201,7 @@ class AutoProgram:
     
     def Run(self):
         # automatically create stocks, tools, operations, g-code
-        self.part = self.GetPart()
-        if self.part == None:
-            wx.MessageBox('No Solid Found!')
-            return
+        self.GetPart()
         
         # clear existing program
         self.ClearProgram()
@@ -210,7 +218,19 @@ class AutoProgram:
         self.CutOutside()
         
         self.AddToolsAtEnd()
+
+        if self.failure:
+            wx.MessageBox(self.failure, "ERROR!")
+            return
         
+        if len(self.warnings) > 0:
+            s = ''
+            for warning in self.warnings:
+                if s:
+                    s.append('\n')
+                s.append(warning)
+            wx.MessageBox(s, 'warnings only:')
+
         if self.create_gcode:
             wx.GetApp().program.MakeGCode()
             wx.GetApp().program.BackPlot()
@@ -219,10 +239,12 @@ class AutoProgram:
         wx.GetApp().frame.graphics_canvas.Refresh()
         
     def AddToolsAtEnd(self):
+        if self.failure: return
         for tool_id in self.tools_to_add_at_end:
             cad.AddUndoably(self.tools_to_add_at_end[tool_id], wx.GetApp().program.tools)
             
     def CutShadowInners(self):
+        if self.failure: return
         curves_to_profile = []
         geom.set_accuracy(0.1)
         holes_to_profile = []
@@ -246,7 +268,7 @@ class AutoProgram:
                         holes_to_drill.append(hole)
                         
         for hole in holes_to_drill:
-            tool_index = self.drills.GetToolOfDiameter(hole.diameter)
+            tool_index = self.drills.GetToolOfDiameter(hole.diameter, cut_depth)
             if tool_index == None:
                 # no drill of this size
                 holes_to_profile.append(hole)
@@ -274,11 +296,15 @@ class AutoProgram:
             self.ProfileCurve(curve, inside = True)            
 
     def CutPatches(self):
+        if self.failure: return
         pockets_to_add = []
         
         for ma in self.part_stl.GetMachiningAreas():
             if ma.face_type == geom.FaceFlatType.Flat:
-                cutter_index = self.ChoosePreferredCutter()
+                cut_depth = ma.top - ma.bottom
+                cutter_index = self.ChoosePreferredCutter(cut_depth)
+                if self.failure:
+                    return
                 offset = self.slot_cutters.tools[cutter_index].diam + 0.1
                 
                 a = geom.Area(ma.area)
@@ -311,6 +337,7 @@ class AutoProgram:
             cad.AddUndoably(pocket, wx.GetApp().program.operations)
         
     def MakeShadow(self):
+        if self.failure: return
         self.part_stl = self.part.GetTris(0.1)
         self.part_box = self.part_stl.GetBox()
         self.clearance_height = self.part_box.MaxZ() + 5.0
@@ -323,6 +350,7 @@ class AutoProgram:
         self.current_top_height = None
         
     def CutOutside(self):
+        if self.failure: return
         for curve in self.shadow.GetCurves():
             if not curve.IsClockwise():
                 self.ProfileCurve(curve, move_start_type = MOVE_START_TO_MIDDLE_LEFT, add_tags = True)         
@@ -350,8 +378,10 @@ class AutoProgram:
             
         cad.AddUndoably(sketch)
         
-        tool_id, default_tool = self.GetToolForCurve(curve, not inside)
-
+        cut_depth = z_top - z_bottom
+        tool_id, default_tool = self.GetToolForCurve(curve, not inside, cut_depth)
+        if self.failure:
+            return
         profile = Profile.Profile(sketch.GetID())
         profile.tool_number = tool_id
         profile.start_depth = z_top
@@ -422,6 +452,9 @@ class AutoProgram:
         cad.AddUndoably(profile, wx.GetApp().program.operations)
 
     def ClearProgram(self):
+        if self.failure:
+            return
+        
         # check if there are any exisiting operations in the program
         if wx.GetApp().program.operations.GetNumChildren() > 0:
             if wx.MessageBox('The program already has operations. Do you want to continue and overwrite them?', style = wx.YES_NO) != wx.YES:
@@ -444,13 +477,17 @@ class AutoProgram:
         cad.EndHistory()
         
     def AddStock(self):
+        if self.failure: return
+        
         self.part_box = self.part.GetBox()
         if not self.material in stock_thicknesses:
-            raise NameError('material not found in stock: ' + self.material)
+            self.failure = 'material not found in stock: ' + self.material
+            return
             
         thicknesses = stock_thicknesses[self.material]
         if len(thicknesses) == 0:
-            raise NameError('no stock available for material, material: ' + self.material)
+            self.failure = 'no stock available for material, material: ' + self.material
+            return
             
         for thickness in thicknesses:
             if thickness >= self.part_box.Depth():
@@ -469,9 +506,10 @@ class AutoProgram:
                 self.thickness = thickness
                 return
             
-        raise NameError('part too thick to make: material: ' + self.material + ', part thickness: ' + str(self.part_box.Depth()) + ', thickest stock available: ' + thicknesses[-1])
+        self.failure = 'part too thick to make: material: ' + self.material + ', part thickness: ' + str(self.part_box.Depth()) + ', thickest stock available: ' + thicknesses[-1]
                 
     def MovePart(self):
+        if self.failure: return
         part_box = self.part.GetBox()
         mat = geom.Matrix()
         # move down with bottom left corner at x_margin, y_margin and z top at z0
@@ -481,9 +519,11 @@ class AutoProgram:
     def GetPart(self):
         for object in cad.GetObjects():
             if object.GetIDGroupType() == cad.OBJECT_TYPE_STL_SOLID:
-                return object
-        return None
-        
+                self.part = object
+                break
+        if self.part == None:
+            self.failure = 'No Solid Found!'
+       
     def MakeStockArea(self, a, extra_xminus, extra_yminus, extra_xplus, extra_yplus):
         box = a.GetBox()
         stock_area = geom.Area()
@@ -500,20 +540,25 @@ class AutoProgram:
         stock_area.Append(c)
         return stock_area        
 
-    def GetToolForCurve(self, curve, outside = True):
+    def GetToolForCurve(self, curve, outside, cut_depth):
         r = curve.GetMaxCutterRadius(outside)
         
+        preferred_cutter = self.ChoosePreferredCutter(cut_depth)
+        if self.failure:
+            return
         if r == None:
-            cutter_index = self.ChoosePreferredCutter()
+            cutter_index = preferred_cutter
         else:
-            if self.slot_cutters.tools[self.ChoosePreferredCutter()].diam <= r*2:
-                cutter_index = self.ChoosePreferredCutter()
+            if self.slot_cutters.tools[preferred_cutter].diam <= r*2:
+                cutter_index = preferred_cutter
             else:
-                cutter_index = self.slot_cutters.GetFirstToolLessThanOrEqual(r*2)
-                
-        if cutter_index == None:
-            wx.MessageBox('couldnt choose cutter for curve')
-            return 0, None # shouldn't happen
+                cutter_index = self.slot_cutters.GetBiggestToolLessThanOrEqual(r*2, cut_depth)
+                if cutter_index == None:
+                    sketch = cad.NewSketchFromCurve(curve)
+                    cad.AddUndoably(sketch)
+                    cad.Select(sketch)
+                    self.failure = 'couldnt find tool of diameter ' + str(r*2) + ' or less with cut depth of ' + str(cut_depth) + '\nsee sketch ' + str(sketch.GetID())
+                    return 0, None
 
         return self.slot_cutters.AddIfNotAdded(cutter_index)
 
@@ -528,11 +573,23 @@ class AutoProgram:
                         max_diameter = d
         return max_diameter
 
-    def ChoosePreferredCutter(self):
+    def ChoosePreferredCutter(self, cut_depth):
         if self.big_rigid_part:
-            return 0
+            if cut_depth <= slot_cutters[0].cutting_length:
+                return 0 # short 16mm
+            elif cut_depth <= slot_cutters[1].cutting_length:
+                return 1 # long 16mm
+            else:
+                longest_preferred_index = 1
         else:
-            return 1
+            if cut_depth <= slot_cutters[2].cutting_length:
+                return 2 # short 6mm
+            elif cut_depth <= slot_cutters[1].cutting_length:
+                return 3 # long 6mm
+            else:
+                longest_preferred_index = 3
+        
+        self.failure = 'cut depth of ' + str(cut_depth) + ' is too deep for preferred ' + str(slot_cutters[longest_preferred_index].diameter) + 'mm cutter, which has cutting length of ' + str(slot_cutters[longest_preferred_index].cutting_length)
 
 def FindTagPoint(curve, line):
     # line defined by two lists of two coordinates

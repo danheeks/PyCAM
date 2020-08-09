@@ -35,7 +35,7 @@ class Pocket(SketchOp):
         self.zig_angle = 0.0
         self.zig_unidirectional = False
         self.entry_move = ENTRY_STYLE_PLUNGE
-        
+
     def WriteXml(self):
         cad.BeginXmlChild('params')
         cad.SetXmlValue('step', self.step_over)
@@ -49,7 +49,7 @@ class Pocket(SketchOp):
         cad.SetXmlValue('entry_move', self.entry_move)
         cad.EndXmlChild()
         SketchOp.WriteXml(self)
-        
+
     def ReadXml(self):
         child_element = cad.GetFirstXmlChild()
         while child_element != None:
@@ -65,10 +65,10 @@ class Pocket(SketchOp):
                 self.entry_move = cad.GetXmlInt('entry_move', self.entry_move)
             child_element = cad.GetNextXmlChild()
         SketchOp.ReadXml(self)
-        
+
     def CallsObjListReadXml(self):
         return False
-        
+
     def ReadDefaultValues(self):
         SketchOp.ReadDefaultValues(self)
         config = HeeksConfig()
@@ -81,7 +81,7 @@ class Pocket(SketchOp):
         self.zig_angle = config.ReadFloat("ZigAngle", 0.0)
         self.zig_unidirectional = config.ReadBool("ZigUnidirectional", False)
         self.entry_move = config.ReadInt("DecentStrategy", ENTRY_STYLE_PLUNGE)
-        
+
     def WriteDefaultValues(self):
         SketchOp.WriteDefaultValues(self)
         config = HeeksConfig()
@@ -94,30 +94,30 @@ class Pocket(SketchOp):
         config.WriteFloat("ZigAngle", self.zig_angle)
         config.WriteBool("ZigUnidirectional", self.zig_unidirectional)
         config.WriteInt("DecentStrategy", self.entry_move)
-        
+
     def TypeName(self):
         return "Pocket"
 
     def GetType(self):
         return type
-    
+
     def op_icon(self):
         # the name of the PNG file in the HeeksCNC icons folder
         return "pocket"
-    
+
     def HasEdit(self):
         return True
-        
+
     def Edit(self):
         import PocketDlg
         res =  PocketDlg.Do(self)
         return res
-        
+
     def MakeACopy(self):
         copy = Pocket(self.sketch)
         copy.CopyFrom(self)
         return copy
-    
+
     def CopyFrom(self, object):
         SketchOp.CopyFrom(self, object)
         self.step_over = object.step_over
@@ -128,7 +128,7 @@ class Pocket(SketchOp):
         self.zig_angle = object.zig_angle
         self.zig_unidirectional = object.zig_unidirectional
         self.entry_move = object.entry_move
-            
+
     def GetProperties(self):
         properties = []
 
@@ -141,31 +141,30 @@ class Pocket(SketchOp):
         properties.append(PyProperty("Use Zig Zag", 'use_zig_zag', self))
         properties.append(PyProperty("Zig Angle", 'zig_angle', self))
         properties.append(PyProperty("Unidirectional", 'zig_unidirectional', self))
-        
+
         properties += SketchOp.GetProperties(self)
 
         return properties
-    
+
     def DoGCodeCallsForSketch(self, sketch, data):
         cut_mode, depth_params, tool_diameter = data
-        
+
         a = sketch.GetArea()
-        
+
         area_funcs.pocket(a, tool_diameter/2, self.material_allowance/wx.GetApp().program.units, self.step_over/wx.GetApp().program.units, depth_params, self.from_center != 0, self.keep_tool_down_if_poss, self.use_zig_zag, self.zig_angle)
-        
+
         rapid(z = self.clearance_height)
-        
-    
+
+
     def DoGCodeCalls(self):
+        failure = self.CheckToolExists()
+        if failure: return failure
         tool = Tool.FindTool(self.tool_number)
-        if tool == None:
-            wx.MessageBox('Cannot generate G-Code for profile without a tool assigned')
-            return
         
         depth_params = self.GetDepthParams()
         tool_diameter = tool.CuttingRadius(True) * 2.0
         SpeedOp.DoGCodeCalls(self)
-        
+
         self.DoEachSketch(self.DoGCodeCallsForSketch, (self.cut_mode, depth_params, tool_diameter))
 
 

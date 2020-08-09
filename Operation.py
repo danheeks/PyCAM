@@ -5,6 +5,7 @@ import cad
 import wx
 from Object import PyProperty
 from Object import PyPropertyLength
+import Tool
 
 class Operation(CamObject):
     def __init__(self):
@@ -86,3 +87,11 @@ class Operation(CamObject):
         properties += CamObject.GetProperties(self)
 
         return properties
+    
+    def CheckToolExists(self):
+        # returns failure message or None for success
+        if self.tool_number == 0:
+            return 'No tool defined for operation!'
+        tool = Tool.FindTool(self.tool_number)
+        if tool == None:
+            return 'Tool number ' + str(self.tool_number) + ' does not exist'

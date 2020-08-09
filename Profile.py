@@ -50,17 +50,17 @@ class Profile(SketchOp):
         self.extend_at_end = 0.0
         self.lead_in_line_len = 0.0
         self.lead_out_line_len = 0.0
-        
+
     def TypeName(self):
         return "Profile"
 
     def GetType(self):
         return type
-    
+
     def op_icon(self):
         # the name of the PNG file in the HeeksCNC icons folder
         return "profile"
-    
+
     def HasEdit(self):
         return True
 
@@ -68,13 +68,13 @@ class Profile(SketchOp):
         import ProfileDlg
         res =  ProfileDlg.Do(self)
         return res
-        
+
     def MakeACopy(self):
         copy = Profile(self.sketch)
         cad.PyIncref(copy)
         copy.CopyFrom(self)
         return copy
-    
+
     def CopyFrom(self, object):
         SketchOp.CopyFrom(self, object)
         self.tool_on_side = object.tool_on_side
@@ -100,7 +100,7 @@ class Profile(SketchOp):
         self.finishing_h_feed_rate = object.finishing_h_feed_rate
         self.finishing_cut_mode = object.finishing_cut_mode
         self.finishing_step_down = object.finishing_step_down
-        
+
     def WriteXml(self):
         cad.BeginXmlChild('params')
         cad.SetXmlValue('side', self.tool_on_side)
@@ -141,7 +141,7 @@ class Profile(SketchOp):
         cad.SetXmlValue('finishing_step_down', self.finishing_step_down)
         cad.EndXmlChild()
         SketchOp.WriteXml(self)
-        
+
     def ReadXml(self):
         child_element = cad.GetFirstXmlChild()
         while child_element != None:
@@ -180,14 +180,14 @@ class Profile(SketchOp):
             if child_element == 'Tags':
                 self.tags = cad.GetXmlObject()
                 self.Add(self.tags)
-                
+
             child_element = cad.GetNextXmlChild()
 
         SketchOp.ReadXml(self)
-        
+
     def CallsObjListReadXml(self):
         return False
-        
+
     def ReadDefaultValues(self):
         SketchOp.ReadDefaultValues(self)
         config = HeeksConfig()
@@ -205,7 +205,7 @@ class Profile(SketchOp):
         self.extend_at_end = config.ReadFloat("ExtendAtEnd", 0.0)
         self.lead_in_line_len = config.ReadFloat("LeadInLineLen", 0.0)
         self.lead_out_line_len = config.ReadFloat("LeadOutLineLen", 0.0)
-        
+
     def WriteDefaultValues(self):
         SketchOp.WriteDefaultValues(self)
         config = HeeksConfig()
@@ -223,7 +223,7 @@ class Profile(SketchOp):
         config.WriteFloat("ExtendAtEnd", self.extend_at_end)
         config.WriteFloat("LeadInLineLen", self.lead_in_line_len)
         config.WriteFloat("LeadOutLineLen", self.lead_out_line_len)
-            
+
     def GetProperties(self):
         properties = []
 
@@ -270,14 +270,14 @@ class Profile(SketchOp):
         properties.append(PyProperty("Finishing Feed Rate", 'finishing_h_feed_rate', self))
         properties.append(PyChoiceProperty("Finish Cut Mode", 'finishing_cut_mode', ['Conventional', 'Climb'], self))
         properties.append(PyPropertyLength("Finishing Step Down", 'finishing_step_down', self))
-        
+
         properties += SketchOp.GetProperties(self)
 
         return properties
-    
+
     def DoGCodeCallsForSketch(self, object, data):
         cut_mode, depth_params, tool_diameter, roll_radius, offset_extra, cutting_edge_angle = data
-        
+
         # decide if we need to reverse the kurve
         reversed = False
         initially_ccw = False
@@ -291,9 +291,9 @@ class Profile(SketchOp):
             if self.spindle_speed<0:reversed = not reversed
             if cut_mode == PROFILE_CONVENTIONAL: reversed = not reversed
             if self.tool_on_side == PROFILE_RIGHT_OR_INSIDE: reversed = not reversed
-            
+
         curve = object.GetCurve()
-        
+
         if self.start_given or self.end_given:
             start = None
             if self.start_given:
@@ -310,19 +310,19 @@ class Profile(SketchOp):
 
         if initially_ccw != reversed:
             curve.Reverse()
-            
+
         if ( not self.start_given ) and ( not self.end_given ):
             kurve_funcs.set_good_start_point(curve, reversed)
-            
+
         # start - assume we are at a suitable clearance height
-        
+
         # get offset side string
         side_string = 'on'
         if self.tool_on_side == PROFILE_LEFT_OR_OUTSIDE:
             side_string = 'right' if reversed else 'left'
         elif self.tool_on_side == PROFILE_RIGHT_OR_INSIDE:
             side_string = 'left' if reversed else 'right'
-            
+
         # roll on
         if self.tool_on_side == PROFILE_LEFT_OR_OUTSIDE or self.tool_on_side == PROFILE_RIGHT_OR_INSIDE:
             if self.auto_roll_on:
@@ -331,7 +331,7 @@ class Profile(SketchOp):
                 roll_on = geom.Point(self.roll_on_point.x/wx.GetApp().program.units, self.roll_on_point.ywx.GetApp().program.units)
         else:
             roll_on = None
-            
+
         # roll off
         if self.tool_on_side == PROFILE_LEFT_OR_OUTSIDE or self.tool_on_side == PROFILE_RIGHT_OR_INSIDE:
             if self.auto_roll_off:
@@ -340,47 +340,46 @@ class Profile(SketchOp):
                 roll_off = geom.Point(self.roll_off_point.x/wx.GetApp().program.units, self.roll_off_point.ywx.GetApp().program.units)
         else:
             roll_off = None
-            
+
         tags_cleared = False
         for tag in self.GetTags():
             if not tags_cleared:
                 kurve_funcs.clear_tags()
             tags_cleared = True
             kurve_funcs.add_tag(geom.Point(tag.pos.x / wx.GetApp().program.units, tag.pos.y / wx.GetApp().program.units), tag.width / wx.GetApp().program.units, tag.angle * math.pi / 180.0, tag.height / wx.GetApp().program.units)
-        
+
         # extend_at_start, extend_at_end
         extend_at_start = self.extend_at_start / wx.GetApp().program.units
         extend_at_end = self.extend_at_end / wx.GetApp().program.units
-        
+
         # lead in lead out line length
         lead_in_line_len = self.lead_in_line_len / wx.GetApp().program.units
         lead_out_line_len = self.lead_out_line_len / wx.GetApp().program.units
-        
+
         # profile the kurve
         kurve_funcs.profile(curve, side_string, tool_diameter / 2, offset_extra, roll_radius, roll_on, roll_off, depth_params, extend_at_start,extend_at_end,lead_in_line_len,lead_out_line_len)
-        
+
         # do we need this here
         absolute()
 
     def DoGCodeCallsForPass(self, finishing_pass):
+        failure = self.CheckToolExists()
+        if failure: return failure
         tool = Tool.FindTool(self.tool_number)
-        if tool == None:
-            wx.MessageBox('Cannot generate G-Code for profile without a tool assigned')
-            return
-        
+
         depthparams = self.GetDepthParams()
         if not finishing_pass or self.only_finishing_pass:
             SpeedOp.DoGCodeCalls(self)
-        
+
         if self.auto_roll_on or self.auto_roll_off:
             roll_radius = self.auto_roll_radius / wx.GetApp().program.units
         else:
             roll_radius = None
-                
+
         depth_params = self.GetDepthParams()
         tool_diameter = tool.CuttingRadius(True) * 2.0
         cutting_edge_angle = tool.cutting_edge_angle
-            
+
         if finishing_pass:
             feedrate_hv(self.finishing_h_feed_rate / wx.GetApp().program.units, self.vertical_feed_rate / wx.GetApp().program.units)
             flush_nc()
@@ -389,17 +388,17 @@ class Profile(SketchOp):
             depth_params.z_finish_depth = 0.0
         else:
             offset_extra = self.offset_extra /  wx.GetApp().program.units
-            
+
         cut_mode = self.finishing_cut_mode if finishing_pass else self.cut_mode
-        
+
         self.DoEachSketch(self.DoGCodeCallsForSketch, (cut_mode, depth_params, tool_diameter, roll_radius, offset_extra, cutting_edge_angle))
-                    
+
     def GetTags(self):
         if self.tags == None:
             return []
         else:
             return self.tags.GetChildren()
-            
+
     def DoGCodeCalls(self):
         # roughing pass
         if not self.do_finishing_pass or not self.only_finishing_pass:
@@ -408,7 +407,7 @@ class Profile(SketchOp):
         # finishing pass
         if self.do_finishing_pass:
             self.DoGCodeCallsForPass(True)
-            
+
     def AddMissingChildren(self):
         # add tags
         self.tags = Tags.Tags()
@@ -418,17 +417,17 @@ class TagDrawing(cad.Drawing):
     def __init__(self):
         cad.Drawing.__init__(self)
         self.profile = None
-        
+
     # cad.InputMode's overridden method
     def GetTitle(self):
         return "Tag Drawing"
-    
+
     def IsAnAddLevel(self, level):
         return True
-    
+
     def NumberOfSteps(self):
         return 1
-        
+
     def CalculateItem(self, end):
         if end.type == cad.DigitizeType.DIGITIZE_NO_ITEM_TYPE:
             return False
@@ -443,9 +442,8 @@ class TagDrawing(cad.Drawing):
             self.TempObject().pos.x = end.point.x
             self.TempObject().pos.y = end.point.y
         return True
-            
+
     def GetOwnerForDrawingObjects(self):
         return self.profile.tags
-        
-tag_drawing = TagDrawing()        
-            
+
+tag_drawing = TagDrawing()

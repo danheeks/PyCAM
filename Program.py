@@ -255,11 +255,15 @@ class Program(CamObject):
                 # to do          if(surface && !surface->m_same_for_each_pattern_position)ApplySurfaceToText(python, surface, surfaces_written);
                 # to do          ApplyPatternToText(python, op->m_pattern, patterns_written);
                 # to do          if(surface && surface->m_same_for_each_pattern_position)ApplySurfaceToText(python, surface, surfaces_written);
-                op.DoGCodeCalls()
+                failure = op.DoGCodeCalls()
                 # to do          if(surface && surface->m_same_for_each_pattern_position)python << _T("attach.attach_end()\n");
                 # to do          if(op->m_pattern != 0)python << _T("transform.transform_end()\n");
                 # to do          if(surface && !surface->m_same_for_each_pattern_position)python << _T("attach.attach_end()\n");
                 # to do          theApp.m_attached_to_surface = NULL;
+                if failure:
+                    wx.MessageBox(failure)
+                    cad.Select(op)
+                    return
         
         program_end()
         

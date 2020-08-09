@@ -40,6 +40,7 @@ class SketchOp(DepthOp):
                 cad.DrawDisableCullFace()
                 cad.DrawEnableDepthTesting()
                 cad.DrawDisableLighting()
+        DepthOp.OnGlCommands(self, select, marked, no_color)
     
     def DoEachSketch(self, callback, data):
         # data is a tuple, whatever you want to pass on
