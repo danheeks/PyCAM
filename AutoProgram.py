@@ -66,7 +66,7 @@ slot_cutters = [
     DefaultTool(16.0, TOOL_TYPE_SLOTCUTTER, 30.0, 200.0, 100.0, 1800.0, 50.0, 5.0, 10.0), # short
     DefaultTool(16.0, TOOL_TYPE_SLOTCUTTER, 60.0, 200.0, 100.0, 1800.0, 50.0, 5.0, 10.0), # long
     DefaultTool(6.0, TOOL_TYPE_SLOTCUTTER, 15.0, 200.0, 100.0, 3000.0, 100.0, 3.0, 6.0), # short
-    DefaultTool(6.0, TOOL_TYPE_SLOTCUTTER, 30.0, 200.0, 100.0, 3000.0, 100.0, 3.0, 6.0), # long
+    DefaultTool(6.0, TOOL_TYPE_SLOTCUTTER, 40.0, 200.0, 100.0, 3000.0, 100.0, 3.0, 6.0), # long
     DefaultTool(2.0, TOOL_TYPE_SLOTCUTTER, 10.0, 150.0, 75.0, 3000.0, 50.0, 1.0, 2.0),
     DefaultTool(5.0, TOOL_TYPE_SLOTCUTTER, 25.0, 200.0, 100.0, 3000.0, 100.0, 2.5, 5.0),
     DefaultTool(3.0, TOOL_TYPE_SLOTCUTTER, 15.0, 150.0, 75.0, 3000.0, 50.0, 1.5, 3.0),
@@ -268,6 +268,7 @@ class AutoProgram:
                         holes_to_drill.append(hole)
                         
         for hole in holes_to_drill:
+            cut_depth = hole.top_z - hole.bottom_z
             tool_index = self.drills.GetToolOfDiameter(hole.diameter, cut_depth)
             if tool_index == None:
                 # no drill of this size
@@ -545,7 +546,7 @@ class AutoProgram:
         
         preferred_cutter = self.ChoosePreferredCutter(cut_depth)
         if self.failure:
-            return
+            return 0, None
         if r == None:
             cutter_index = preferred_cutter
         else:
