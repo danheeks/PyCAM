@@ -379,7 +379,11 @@ class AutoProgram:
             
         cad.AddUndoably(sketch)
         
-        cut_depth = z_top - z_bottom
+        if z_bottom == None:
+            cut_depth = self.thickness
+        else:
+            cut_depth = z_top - z_bottom
+        
         tool_id, default_tool = self.GetToolForCurve(curve, not inside, cut_depth)
         if self.failure:
             return

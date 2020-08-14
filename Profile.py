@@ -412,6 +412,14 @@ class Profile(SketchOp):
         # add tags
         self.tags = Tags.Tags()
         self.Add(self.tags)
+        
+    def OnGlCommands(self, select, marked, no_color):
+        if self.tags:
+            object = self.tags.GetFirstChild()
+            while object:
+                object.OnGlCommands(select, marked, no_color)
+                object = self.tags.GetNextChild()
+        SketchOp.OnGlCommands(self, select, marked, no_color)
 
 class TagDrawing(cad.Drawing):
     def __init__(self):
