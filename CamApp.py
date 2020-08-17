@@ -301,14 +301,15 @@ class CamApp(SolidApp):
         import webbrowser
         webbrowser.open_new(temporaary_filepath)
 
-    def OnOpenGCodeFile(self):
+    def OnOpenGCodeFile(self, e):
         import wx
-        dialog = wx.FileDialog(self.cad.frame, "Open G-Code file", wildcard = "G-Code files" + " |*.*")
+        dialog = wx.FileDialog(self.frame, "Open G-Code file", wildcard = "G-Code files" + " |*.*")
         dialog.CentreOnParent()
         
         if dialog.ShowModal() == wx.ID_OK:
-            from PyProcess import HeeksPyBackplot
-            HeeksPyBackplot(dialog.GetPath())
+            self.program.output_file_name_follows_data_file_name = False
+            self.program.output_file = dialog.GetPath()
+            self.program.BackPlot()
 
     def OnViewOutput(self, e):
         pane_info = self.aui_manager.GetPane(self.output_window)

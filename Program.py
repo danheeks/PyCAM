@@ -21,26 +21,46 @@ type = 0
 class Program(CamObject):
     def __init__(self):
         CamObject.__init__(self, type)
-        config = HeeksConfig()
-        self.units = config.ReadFloat("ProgramUnits", 1.0) # set to 25.4 for inches
-        self.alternative_machines_file = config.Read("ProgramAlternativeMachinesFile", "")
+        self.units = 1.0 # set to 25.4 for inches
+        self.alternative_machines_file = ""
         self.raw_material = RawMaterial()    #// for material hardness - to determine feeds and speeds.
-        machine_name = config.Read("ProgramMachine", "LinuxCNC")
-        self.machine = self.GetMachine(machine_name)
+        self.machine = self.GetMachine("LinuxCNC")
         import wx
-        default_output_file = str((wx.StandardPaths.Get().GetTempDir() + "/test.tap").replace('\\', '/'))
-        self.output_file = config.Read("ProgramOutputFile", default_output_file)  #  // NOTE: Only relevant if the filename does NOT follow the data file's name.
-        self.output_file_name_follows_data_file_name = config.ReadBool("OutputFileNameFollowsDataFileName", True) #    // Just change the extension to determine the NC file name
-        self.path_control_mode = config.ReadInt("ProgramPathControlMode", PATH_CONTROL_UNDEFINED)
-        self.motion_blending_tolerance = config.ReadFloat("ProgramMotionBlendingTolerance", 0.0001)    # Only valid if m_path_control_mode == eBestPossibleSpeed
-        self.naive_cam_tolerance = config.ReadFloat("ProgramNaiveCamTolerance", 0.0001)        # Only valid if m_path_control_mode == eBestPossibleSpeed
+        self.output_file = str((wx.StandardPaths.Get().GetTempDir() + "/test.tap").replace('\\', '/')) #  // NOTE: Only relevant if the filename does NOT follow the data file's name.
+        self.output_file_name_follows_data_file_name = True #    // Just change the extension to determine the NC file name
+        self.path_control_mode = PATH_CONTROL_UNDEFINED
+        self.motion_blending_tolerance = 0.0001   # Only valid if m_path_control_mode == eBestPossibleSpeed
+        self.naive_cam_tolerance = 0.0001        # Only valid if m_path_control_mode == eBestPossibleSpeed
+        self.ReadDefaultValues()
         self.tools = None
         self.patterns = None
         self.surfaces = None
         self.stocks = None
         self.operations = None
         self.nccode = None
-        #self.simulation = None
+        
+    def ReadDefaultValues(self):
+        config = HeeksConfig()
+        self.units = config.ReadFloat("ProgramUnits", self.units)
+        self.alternative_machines_file = config.Read("ProgramAlternativeMachinesFile", self.alternative_machines_file)
+        self.machine = self.GetMachine(config.Read("ProgramMachine", self.machine.description))
+        self.output_file = config.Read("ProgramOutputFile", self.output_file)
+        self.output_file_name_follows_data_file_name = config.ReadBool("OutputFileNameFollowsDataFileName", self.output_file_name_follows_data_file_name)
+        self.path_control_mode = config.ReadInt("ProgramPathControlMode", self.path_control_mode)
+        self.motion_blending_tolerance = config.ReadFloat("ProgramMotionBlendingTolerance", self.motion_blending_tolerance)
+        self.naive_cam_tolerance = config.ReadFloat("ProgramNaiveCamTolerance", self.naive_cam_tolerance)
+
+        
+    def WriteDefaultValues(self):
+        config = HeeksConfig()
+        config.WriteFloat("ProgramUnits", self.units)
+        config.Write("ProgramAlternativeMachinesFile", self.alternative_machines_file)
+        config.Write("ProgramMachine", self.machine.description)
+        config.Write("ProgramOutputFile", self.output_file)
+        config.WriteBool("OutputFileNameFollowsDataFileName", self.output_file_name_follows_data_file_name)
+        config.WriteInt("ProgramPathControlMode", self.path_control_mode)
+        config.WriteFloat("ProgramMotionBlendingTolerance", self.motion_blending_tolerance)
+        config.WriteFloat("ProgramNaiveCamTolerance", self.naive_cam_tolerance)
         
     def TypeName(self):
         return "Program"
@@ -178,11 +198,11 @@ class Program(CamObject):
     def ReadXml(self):
         self.machine = self.GetMachine( cad.GetXmlValue('machine') )
         self.output_file = cad.GetXmlValue('output_file')
-        self.output_file_name_follows_data_file_name = bool(cad.GetXmlValue('output_file'))
-        self.units = float(cad.GetXmlValue('units'))
-        self.path_control_mode = int(cad.GetXmlValue('ProgramPathControlMode'))
-        self.motion_blending_tolerance = float(cad.GetXmlValue('ProgramMotionBlendingTolerance'))
-        self.naive_cam_tolerance = float(cad.GetXmlValue('ProgramNaiveCamTolerance'))
+        self.output_file_name_follows_data_file_name = cad.GetXmlBool('output_file_name_follows_data_file_name')
+        self.units = cad.GetXmlFloat('units')
+        self.path_control_mode = cad.GetXmlInt('ProgramPathControlMode')
+        self.motion_blending_tolerance = cad.GetXmlFloat('ProgramMotionBlendingTolerance')
+        self.naive_cam_tolerance = cad.GetXmlFloat('ProgramNaiveCamTolerance')
         
         CamObject.ReadXml(self)
         
@@ -272,6 +292,7 @@ class Program(CamObject):
         machine_module = __import__('nc.' + self.machine.reader, fromlist = ['dummy'])
         parser = machine_module.Parser(NcCode.NcCodeWriter(self.nccode))
         self.nccode.Clear()
+        print('self.GetOutputFileName() = ' + self.GetOutputFileName())
         parser.Parse(self.GetOutputFileName())
         wx.GetApp().output_window.SetNcCodeObject(self.nccode.nc_code)
         cad.Repaint()

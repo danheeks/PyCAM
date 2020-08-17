@@ -31,6 +31,8 @@ class Parser:
         self.need_m6_for_t_change = True
         self.pattern_main = re.compile('([(!;].*|\s+|[a-zA-Z0-9_:](?:[+-])?\d*(?:\.\d*)?|\w\#\d+|\(.*?\)|\#\d+\=(?:[+-])?\d*(?:\.\d*)?)')
         self.file_in = None
+        self.line_number = 0
+        self.file_name = ''
         
     def __del__(self):
         if self.file_in != None:
@@ -38,9 +40,22 @@ class Parser:
 
     ############################################################################
     ##  Internals
+    
+    def eval_float(self, value):
+        try:
+            return float(value)
+        except:
+            raise NameError( "expecting a number at line " + str(self.line_number) + ' but got this:\n' + value + '\nfile: ' + self.file_name)
+    
+    def eval_int(self, number):
+        try:
+            return int(number)
+        except:
+            raise NameError( "expecting a number at line " + str(self.line_number) + ' but got this:\n' + value + '\nfile: ' + self.file_name)
 
     def readline(self):
         self.line = self.file_in.readline().rstrip()
+        self.line_number += 1
         if (len(self.line)) : return True
         else : return False
 
@@ -66,6 +81,7 @@ class Parser:
         return self.pattern_main.findall(self.line)
         
     def Parse(self, name):
+        self.file_name = name
         self.file_in = open(name, 'r')
         
         self.path_col = None

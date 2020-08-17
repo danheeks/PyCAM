@@ -24,22 +24,22 @@ class Parser(nc.Parser):
         word = word.upper()
         if (word[0] == 'A'):
             self.col = "axis"
-            self.a = eval(word[1:])
+            self.a = self.eval_float(word[1:])
             self.move = True
         elif (word[0] == 'B'):
             self.col = "axis"
-            self.b = eval(word[1:])
+            self.b = self.eval_float(word[1:])
             self.move = True
         elif (word[0] == 'C'):
             self.col = "axis"
-            self.c = eval(word[1:])
+            self.c = self.eval_float(word[1:])
             self.move = True
         elif (word[0] == 'F'):
             self.col = "axis"
             self.writer.feedrate(word[1:])
         elif (word[0] == 'H'):
             self.col = "axis"
-            self.h = eval(word[1:])
+            self.h = self.eval_int(word[1:])
             self.move = True
         elif (word == 'G0' or word == 'G00'):
             self.path_col = "rapid"
@@ -104,15 +104,15 @@ class Parser(nc.Parser):
         elif (word[0] == 'G') : col = "prep"
         elif (word[0] == 'I'):
             self.col = "axis"
-            self.i = eval(word[1:])
+            self.i = self.eval_float(word[1:])
             self.move = True
         elif (word[0] == 'J'):
             self.col = "axis"
-            self.j = eval(word[1:])
+            self.j = self.eval_float(word[1:])
             self.move = True
         elif (word[0] == 'K'):
             self.col = "axis"
-            self.k = eval(word[1:])
+            self.k = self.eval_float(word[1:])
             self.move = True
         elif (word[0] == 'M') : self.col = "misc"
         elif (word[0] == 'N') : self.col = "blocknum"
@@ -120,34 +120,34 @@ class Parser(nc.Parser):
         elif (word[0] == 'P'):
              if (self.no_move != True):
                  self.col = "axis"
-                 self.p = eval(word[1:])
+                 self.p = self.eval_float(word[1:])
                  self.move = True
         elif (word[0] == 'Q'):
              if (self.no_move != True):
                  self.col = "axis"
-                 self.q = eval(word[1:])
+                 self.q = self.eval_float(word[1:])
                  self.move = True
         elif (word[0] == 'R'):
             self.col = "axis"
-            self.r = eval(word[1:])
+            self.r = self.eval_float(word[1:])
             self.move = True
         elif (word[0] == 'S'):
             self.col = "axis"
             self.writer.spindle(word[1:], (float(word[1:]) >= 0.0))
         elif (word[0] == 'T') :
             self.col = "tool"
-            self.writer.tool_change( eval(word[1:]) )
+            self.writer.tool_change( self.eval_int(word[1:]) )
         elif (word[0] == 'X'):
             self.col = "axis"
-            self.x = eval(word[1:])
+            self.x = self.eval_float(word[1:])
             self.move = True
         elif (word[0] == 'Y'):
             self.col = "axis"
-            self.y = eval(word[1:])
+            self.y = self.eval_float(word[1:])
             self.move = True
         elif (word[0] == 'Z'):
             self.col = "axis"
-            self.z = eval(word[1:])
+            self.z = self.eval_float(word[1:])
             self.move = True
         elif (word[0] == '(') : (self.col, self.cdata) = ("comment", True)
         elif (word[0] == '!') : (self.col, self.cdata) = ("comment", True)

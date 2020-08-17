@@ -7,3 +7,4 @@
 <Machine post="hpgl3d" reader="hpgl3d_read" suffix=".tap" description="HPGL3D"/>
 <Machine post="mc1000vf" reader="iso_read" suffix=".txt" description="MC-1000VF"/>
 <Machine post="heiden" reader="heiden_read" suffix=".h" description="Heidenhain"/>
+<Machine post="Fanuc3000" reader="Fanuc3000_read" suffix=".tap" description="Fanuc3000 in progress"/>
