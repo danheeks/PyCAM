@@ -1,6 +1,7 @@
 import wx
 from wx import glcanvas
 import cam
+import cad
 import Mouse
 
 class OutputWindow(glcanvas.GLCanvas):
@@ -15,8 +16,8 @@ class OutputWindow(glcanvas.GLCanvas):
         self.Bind(wx.EVT_SCROLLWIN_THUMBRELEASE, self.OnScrollRelease)
         self.Bind(wx.EVT_SCROLLWIN_LINEUP, self.OnScrollLineUp)
         self.Bind(wx.EVT_SCROLLWIN_LINEDOWN, self.OnScrollLineDown)
-        
         self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
+        self.Bind(wx.EVT_LEFT_DOWN, self.OnLeftDown)
         self.Resize()
 
     def OnSize(self, event):
@@ -57,6 +58,16 @@ class OutputWindow(glcanvas.GLCanvas):
         self.SetScrollBarToCurrentLine()
         self.Refresh()            
 
+    def OnLeftDown(self, event):
+        # select the block clicked on
+        line_number = self.viewport.GetCurrentLine() + event.y / self.viewport.GetPixelsPerLine()
+        block = self.viewport.GetBlockAtLine(int(line_number))
+        cad.ClearSelection()
+        cad.Select(block)
+        self.viewport.SelectLine(line_number, False)
+        wx.GetApp().frame.graphics_canvas.Refresh()
+        self.Refresh()
+        
     def OnEraseBackground(self, event):
         pass # Do nothing, to avoid flashing on MSW
 

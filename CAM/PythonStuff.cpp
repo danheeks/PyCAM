@@ -50,6 +50,11 @@ void SetNcCodeType(int type)
 	CNCCode::m_type = type;
 }
 
+int GetNcCodeBlockType()
+{
+	return CNCCodeBlock::m_type;
+}
+
 void SetNcCodeBlockType(int type)
 {
 	CNCCodeBlock::m_type = type;
@@ -179,9 +184,9 @@ void AddPathObject(ColouredPath& path, PathObject& path_object)
 
 		boost::python::class_<CNCCodeBlock, boost::python::bases<HeeksObj>, boost::noncopyable>("NcCodeBlock")
 			.def(boost::python::init<CNCCodeBlock>())
-			.def_readwrite("formatted", &CNCCodeBlock::m_formatted)
 			.def_readwrite("to_pos", &CNCCodeBlock::m_to_pos)
 			.def_readwrite("from_pos", &CNCCodeBlock::m_from_pos)
+			.def_readwrite("line_number", &CNCCodeBlock::m_line_number)
 			.def("GetTexts", &CncCodeBlockGetTexts)
 			.def("Text", &CncCodeBlockGetText)
 			.def("GetLineStrips", &CncCodeBlockGetLineStrips)
@@ -223,11 +228,14 @@ void AddPathObject(ColouredPath& path, PathObject& path_object)
 			.def("Render", &CNCCodeViewport::Render)
 			.def("GetCurrentLine", &CNCCodeViewport::GetCurrentLine)
 			.def("SetCurrentLine", &CNCCodeViewport::SetCurrentLine)
+			.def("GetSelectedLine", &CNCCodeViewport::GetSelectedLine)
+			.def("SelectLine", &CNCCodeViewport::SelectLine)
 			.def("SetNcCode", &CNCCodeViewport::SetNcCode)
 			.def("GetLinesPerPage", &CNCCodeViewport::GetLinesPerPage)
 			.def("GetNumberOfLines", &CNCCodeViewport::GetNumberOfLines)
 			.def("GetPixelsPerLine", &CNCCodeViewport::GetPixelsPerLine)
 			.def("SetPixelsPerLine", &CNCCodeViewport::SetPixelsPerLine)
+			.def("GetBlockAtLine", &CNCCodeViewport::GetBlockAtLine, boost::python::return_value_policy<boost::python::reference_existing_object>());
 			;
 
 		boost::python::enum_<ColorEnum>("ColorEnum")
@@ -251,6 +259,7 @@ void AddPathObject(ColouredPath& path, PathObject& path_object)
 		boost::python::def("SetApp", SetApp);
 		boost::python::def("GetNcCodeType", GetNcCodeType);
 		boost::python::def("SetNcCodeType", SetNcCodeType);
+		boost::python::def("GetNcCodeBlockType", GetNcCodeBlockType);
 		boost::python::def("SetNcCodeBlockType", SetNcCodeBlockType);
 		boost::python::def("CncColor", CncColor);
 		boost::python::def("GetTextColor", CNCCodeGetTextColor);

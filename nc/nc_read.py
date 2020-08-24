@@ -18,6 +18,7 @@ class Parser:
 
     def __init__(self, writer):
         self.writer = writer
+        writer.parser = self
         self.currentx = None
         self.currenty = None
         self.currentz = None

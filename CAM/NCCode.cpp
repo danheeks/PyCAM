@@ -13,6 +13,7 @@
 #include "Curve.h"
 #include "Picking.h"
 #include "HeeksFont.h"
+#include "GripData.h"
 
 #include <memory>
 #include <sstream>
@@ -83,14 +84,21 @@ void PathLine::glVertices()
 
 void PathArc::GetBox(CBox &box)
 {
-	if(IsIncluded(Point3d(0,1,0)))
-		box.Insert(CNCCode::prev_point.x + m_c.x, CNCCode::prev_point.y + m_c.y + m_radius, 0);
-	if(IsIncluded(Point3d(0,-1,0)))
-		box.Insert(CNCCode::prev_point.x + m_c.x, CNCCode::prev_point.y + m_c.y - m_radius, 0);
-	if(IsIncluded(Point3d(1,0,0)))
-		box.Insert(CNCCode::prev_point.x + m_c.x + m_radius, CNCCode::prev_point.y + m_c.y, 0);
-	if(IsIncluded(Point3d(-1,0,0)))
-		box.Insert(CNCCode::prev_point.x + m_c.x - m_radius, CNCCode::prev_point.y + m_c.y, 0);
+	if (CNCCode::prev_point_valid)
+	{
+		double dist = Point(m_point.x, m_point.y).dist(Point(CNCCode::prev_point.x, CNCCode::prev_point.y));
+		if (dist > TOLERANCE)
+		{
+			if (IsIncluded(Point3d(0, 1, 0)))
+				box.Insert(CNCCode::prev_point.x + m_c.x, CNCCode::prev_point.y + m_c.y + m_radius, 0);
+			if (IsIncluded(Point3d(0, -1, 0)))
+				box.Insert(CNCCode::prev_point.x + m_c.x, CNCCode::prev_point.y + m_c.y - m_radius, 0);
+			if (IsIncluded(Point3d(1, 0, 0)))
+				box.Insert(CNCCode::prev_point.x + m_c.x + m_radius, CNCCode::prev_point.y + m_c.y, 0);
+			if (IsIncluded(Point3d(-1, 0, 0)))
+				box.Insert(CNCCode::prev_point.x + m_c.x - m_radius, CNCCode::prev_point.y + m_c.y, 0);
+		}
+	}
 
 	PathObject::GetBox(box);
 }
@@ -229,6 +237,9 @@ void PathArc::glVertices()
 
 void PathArc::Interpolate(const unsigned int number_of_points, std::list<Point3d>& points ) const
 {
+	if (Point(m_point.x, m_point.y) == Point(CNCCode::prev_point.x, CNCCode::prev_point.y))
+		return;
+
 	double sx = -m_c.x;
 	double sy = -m_c.y;
 	// e = cs + se = -c + e - s
@@ -326,6 +337,8 @@ void ColouredPath::GetBox(CBox &box)
 	{
 		PathObject* po= *It;
 		po->GetBox(box);
+		CNCCode::prev_point = po->m_point;
+		CNCCode::prev_point_valid = true;
 	}
 }
 
@@ -462,29 +475,23 @@ void CNCCodeBlock::AppendText(std::wstring& str)
 	str.append(L"\n");
 }
 
-#if 0
-void CNCCodeBlock::FormatText(wxTextCtrl *textCtrl, bool highlighted, bool force_format)
+void CNCCodeBlock::GetGripperPositionsTransformed(std::list<GripData> *list, bool just_for_endof)
 {
-	if (m_formatted && !force_format) return;
-	int i = m_from_pos;
-	for(std::list<ColouredText>::iterator It = m_text.begin(); It != m_text.end(); It++)
+	for (std::list<ColouredPath>::iterator It = m_line_strips.begin(); It != m_line_strips.end(); It++)
 	{
-		ColouredText &text = *It;
-		HeeksColor &col = CNCCode::Color(text.m_color_type);
-		wxColour c(col.red, col.green, col.blue);
-		int len = text.m_str.size();
-
-		wxFont font(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, _T("Lucida Console"), wxFONTENCODING_SYSTEM);
-		wxTextAttr ta(c);
-		ta.SetFont(font);
-		if(highlighted)ta.SetBackgroundColour(wxColour(218, 242, 142));
-		else ta.SetBackgroundColour(wxColour(255, 255, 255));
-		textCtrl->SetStyle(i, i+len, ta);
-		i += len;
+		ColouredPath& line_strip = *It;
+		for (std::list< PathObject* >::const_iterator It = line_strip.m_points.begin(); It != line_strip.m_points.end(); It++)
+		{
+			PathObject* object = *It;
+			list->push_back(GripData(GripperTypeTranslate, object->m_point, NULL));
+		}
 	}
-	m_formatted = true;
 }
-#endif
+
+void CNCCodeBlock::GetProperties(std::list<Property *> *list)
+{
+
+}
 
 long CNCCode::pos = 0;
 // static
@@ -591,6 +598,7 @@ void CNCCode::GetBox(CBox &box)
 {
 	if(!m_box.m_valid)
 	{
+		CNCCode::prev_point_valid = false;
 		for(std::list<CNCCodeBlock*>::iterator It = m_blocks.begin(); It != m_blocks.end(); It++)
 		{
 			CNCCodeBlock* block = *It;
@@ -678,6 +686,7 @@ void CNCCode::ReadFromXML(TiXmlElement* element)
 
 	CNCCodeBlock::multiplier = 1.0;
 	CNCCode::prev_point = Point3d(0, 0, 0);
+	int line_number = 0;
 
 	// loop through all the objects
 	for(TiXmlElement* pElem = TiXmlHandle(element).FirstChildElement().Element() ; pElem;	pElem = pElem->NextSiblingElement())
@@ -687,8 +696,10 @@ void CNCCode::ReadFromXML(TiXmlElement* element)
 		{
 			CNCCodeBlock* new_object = new CNCCodeBlock;
 			new_object->ReadFromXML(pElem);
+			new_object->m_line_number = line_number;
 			m_blocks.push_back(new_object);
 			new_object->m_owner = this;
+			line_number++;
 		}
 	}
 
@@ -717,54 +728,6 @@ void CNCCode::DestroyGLLists(void)
 	}
 }
 
-#if 0
-// to do
-void CNCCode::SetTextCtrl(wxTextCtrl *textCtrl)
-{
-	textCtrl->Clear();
-
-	textCtrl->Freeze();
-
-	wxFont font(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, _T("Lucida Console"), wxFONTENCODING_SYSTEM);
-	wxTextAttr ta;
-	ta.SetFont(font);
-	textCtrl->SetDefaultStyle(ta);
-
-	std::wstring str;
-	for(std::list<CNCCodeBlock*>::iterator It = m_blocks.begin(); It != m_blocks.end(); It++)
-	{
-		CNCCodeBlock* block = *It;
-		block->AppendText(str);
-	}
-	textCtrl->SetValue(str);
-
-#ifndef WIN32
-	// for Windows, this is done in COutputTextCtrl::OnPaint
-	for(std::list<CNCCodeBlock*>::iterator It = m_blocks.begin(); It != m_blocks.end(); It++)
-	{
-		CNCCodeBlock* block = *It;
-		block->FormatText(textCtrl, block == m_highlighted_block, false);
-	}
-#endif
-
-	textCtrl->Thaw();
-}
-
-void CNCCode::FormatBlocks(wxTextCtrl *textCtrl, int i0, int i1)
-{
-	textCtrl->Freeze();
-	for(std::list<CNCCodeBlock*>::iterator It = m_blocks.begin(); It != m_blocks.end(); It++)
-	{
-		CNCCodeBlock* block = *It;
-		if (i0 <= block->m_from_pos && block->m_from_pos <= i1)
-			block->FormatText(textCtrl, block == m_highlighted_block, false);
-	}
-	textCtrl->Thaw();
-}
-#endif
-
-
-
 void CNCCode::HighlightBlock(long pos)
 {
 	SetHighlightedBlock(NULL);
@@ -785,6 +748,12 @@ void CNCCode::SetHighlightedBlock(CNCCodeBlock* block)
 {
 //	if(m_highlighted_block)m_highlighted_block->FormatText(wxGetApp().m_output_canvas->m_textCtrl, false, true);
 	m_highlighted_block = block;
+	if (m_gl_list)
+	{
+		glDeleteLists(m_gl_list, 1);
+		m_gl_list = 0;
+	}
+
 //	if(m_highlighted_block)m_highlighted_block->FormatText(wxGetApp().m_output_canvas->m_textCtrl, true, true);
 }
 
@@ -810,7 +779,7 @@ void CNCCodeViewport::Render()
 
 	glOrtho(0.0f, m_w, 0.0f, m_h, 0.0f, 1.0f);
 
-	int lines_to_draw = GetLinesPerPage() + 1;
+	double lines_to_draw = GetLinesPerPage() + 1;
 	int start_line = (int)m_current_line;
 	double extra = m_current_line - start_line;
 
@@ -820,9 +789,23 @@ void CNCCodeViewport::Render()
 	std::list<CNCCodeBlock*>::iterator It = m_nc_code->m_blocks.begin();
 	std::advance(It, start_line);
 	glColor3ub(0, 0, 0);
-	for (int i = 0; i < lines_to_draw; i++)
+	int line_number = start_line;
+	for (int i = 0; i < lines_to_draw; i++, line_number++)
 	{
 		CNCCodeBlock* block = *It;
+		if (line_number == (int)m_selected_line)
+		{
+			// draw a rectangle
+			glColor3ub(128, 192, 192);
+			glBegin(GL_QUADS);
+			double y0 = m_pixels_per_line * -0.1;
+			double y1 = m_pixels_per_line * 0.9;
+			glVertex2d(0, y0);
+			glVertex2d(m_w, y0);
+			glVertex2d(m_w, y1);
+			glVertex2d(0, y1);
+			glEnd();
+		}
 		glPushMatrix();
 		glScaled(m_pixels_per_line * 0.7, m_pixels_per_line * 0.7, 0);
 		for (std::list<ColouredText>::iterator TextIt = block->m_text.begin(); TextIt != block->m_text.end(); TextIt++)
@@ -845,9 +828,46 @@ void CNCCodeViewport::SetNcCode(CNCCode *nc_code)
 	m_nc_code = nc_code;
 }
 
-int CNCCodeViewport::GetLinesPerPage()
+void CNCCodeViewport::SelectLine(double line, bool jump_to_line)
 {
-	return (int)(((double)m_h + 0.5) / m_pixels_per_line);
+	m_selected_line = line;
+
+	if (jump_to_line)
+	{
+		m_current_line = line - GetLinesPerPage() * 0.5;
+		if (m_current_line < 0.0)m_current_line = 0.0;
+		double last_first_line = m_nc_code->m_blocks.size() - GetLinesPerPage();
+		if (m_current_line > last_first_line)m_current_line = last_first_line;
+	}
+
+	int i = 1;
+	for (std::list<CNCCodeBlock*>::iterator It = m_nc_code->m_blocks.begin(); It != m_nc_code->m_blocks.end(); It++, i++)
+	{
+		if (i > line)
+		{
+			m_nc_code->SetHighlightedBlock(*It);
+			break;
+		}
+	}
+}
+
+CNCCodeBlock* CNCCodeViewport::GetBlockAtLine(int line_number)
+{
+	if (m_nc_code == NULL)
+		return NULL;
+
+	if (m_nc_code->m_blocks.size() <= (size_t)line_number)
+		return NULL;
+
+	std::list<CNCCodeBlock*>::iterator It = m_nc_code->m_blocks.begin();
+	std::advance(It, line_number);
+
+	return *It;
+}
+
+double CNCCodeViewport::GetLinesPerPage()
+{
+	return ((double)m_h + 0.5) / m_pixels_per_line;
 }
 
 int CNCCodeViewport::GetNumberOfLines()

@@ -319,6 +319,30 @@ class CamApp(SolidApp):
         
     def OnUpdateViewOutput(self, e):
         e.Check(self.aui_manager.GetPane(self.output_window).IsShown())
+    
+    def OnLeftClick(self, event):
+        # check for nc code block clicked
+        filter = cad.Filter()
+        filter.AddType(cam.GetNcCodeBlockType())
+        objects = cad.ObjectsUnderWindow(cad.IRect(self.select_mode.button_down_point.x, self.select_mode.button_down_point.y), False, True, filter, False)
+        if len(objects):
+            block = objects[0]
+            cad.ClearSelection()
+            cad.Select(block)
+            block.__class__ = cam.NcCodeBlock
+            self.output_window.viewport.SelectLine(block.line_number, True)
+            wx.GetApp().frame.graphics_canvas.Refresh()
+            self.output_window.Refresh()
+            return            
+        
+        program = wx.GetApp().program
+        if program != None:
+            nccode = program.nccode
+            if nccode != None:
+                nccode.nc_code.SetHighlightedBlock(None)
+        
+        # do the default click behaviour
+        SolidApp.OnLeftClick(self, event)
 
         
 def ReadNCCodeColorsFromConfig():

@@ -122,9 +122,9 @@ public:
 	long m_from_pos, m_to_pos; // position of block in text ctrl
 	static double multiplier;
 	static int m_type;
-	bool m_formatted;
+	int m_line_number;
 
-	CNCCodeBlock():m_from_pos(-1), m_to_pos(-1), m_formatted(false) {}
+	CNCCodeBlock() :m_from_pos(-1), m_to_pos(-1), m_line_number(-1){}
 
 	// HeeksObj's virtual functions
 	int GetType()const{ return m_type; }
@@ -136,6 +136,8 @@ public:
 	void WriteToXML(TiXmlElement *element);
 	void ReadFromXML(TiXmlElement *element);
 	void AppendText(std::wstring& str);
+	void GetGripperPositionsTransformed(std::list<GripData> *list, bool just_for_endof);
+	void GetProperties(std::list<Property *> *list);
 
 };
 
@@ -208,20 +210,24 @@ class CNCCodeViewport
 	CNCCode* m_nc_code;
 	int m_w;
 	int m_h;
-	double m_current_line;
+	double m_current_line; // the line at the top of the viewport, zero based
+	double m_selected_line;
 	double m_pixels_per_line;
 
 public:
-	CNCCodeViewport() :m_nc_code(NULL), m_w(0), m_h(0), m_current_line(0.0), m_pixels_per_line(13.0){}
+	CNCCodeViewport() :m_nc_code(NULL), m_w(0), m_h(0), m_current_line(0.0), m_selected_line(0.0), m_pixels_per_line(13.0){}
 
 	void SetSize(int w, int h){ m_w = w; m_h = h; }
 	int GetWidth(){ return m_w; }
 	int GetHeight(){ return m_h; }
 	void Render();// this does all the OpenGL commands
-	double GetCurrentLine(){ return m_current_line; }
+	double GetCurrentLine()const{ return m_current_line; }
 	void SetCurrentLine(double line){ m_current_line = line; }
+	double GetSelectedLine()const{ return m_selected_line; }
+	void SelectLine(double line, bool jump_to_line);
+	CNCCodeBlock* GetBlockAtLine(int line_number); // zero based
 	void SetNcCode(CNCCode *nc_code);
-	int GetLinesPerPage();
+	double GetLinesPerPage();
 	int GetNumberOfLines();
 	double GetPixelsPerLine(){ return m_pixels_per_line; }
 	void SetPixelsPerLine(double p){ m_pixels_per_line = p; }

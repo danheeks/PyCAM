@@ -56,6 +56,10 @@ class Stock(CamObject):
         return self.box
         
     def WriteXml(self):
+        for solid in self.solids:
+            cad.BeginXmlChild('solid')
+            cad.SetXmlValue('id', solid)
+            cad.EndXmlChild()
         CamObject.WriteXml(self)
         
     def ReadXml(self):
