@@ -292,7 +292,6 @@ class Program(CamObject):
         machine_module = __import__('nc.' + self.machine.reader, fromlist = ['dummy'])
         parser = machine_module.Parser(NcCode.NcCodeWriter(self.nccode))
         self.nccode.Clear()
-        print('self.GetOutputFileName() = ' + self.GetOutputFileName())
         parser.Parse(self.GetOutputFileName())
         wx.GetApp().output_window.SetNcCodeObject(self.nccode.nc_code)
         cad.Repaint()

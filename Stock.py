@@ -69,4 +69,4 @@ class Stock(CamObject):
                 solid = cad.GetXmlInt('id')
                 self.solids.append(solid)
             child_element = cad.GetNextXmlChild()
-        CamObject.ReadXml(self)
+        #CamObject.ReadXml(self)

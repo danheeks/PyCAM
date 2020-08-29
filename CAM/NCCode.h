@@ -129,7 +129,7 @@ public:
 	// HeeksObj's virtual functions
 	int GetType()const{ return m_type; }
 	const wchar_t* GetTypeString(void) const { return L"NC Code Block"; }
-	const wchar_t* GetXMLTypeString(){ return L"ncblock"; }
+	const wchar_t* GetXMLTypeString()const{ return L"ncblock"; }
 	HeeksObj *MakeACopy(void)const;
 	void glCommands(bool select, bool marked, bool no_color);
 	void GetBox(CBox &box);
@@ -179,7 +179,7 @@ public:
 	// HeeksObj's virtual functions
 	int GetType()const{ return m_type; }
 	const wchar_t* GetTypeString(void) const { return L"NC Code"; }
-	const wchar_t* GetXMLTypeString(){ return L"nccode"; }
+	const wchar_t* GetXMLTypeString()const{ return L"nccode"; }
 	void glCommands(bool select, bool marked, bool no_color);
 	void GetBox(CBox &box);
 	const wchar_t* GetIconFilePath();
