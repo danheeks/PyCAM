@@ -19,7 +19,7 @@ from consts import *
 MOVE_START_NOT = 0
 MOVE_START_TO_MIDDLE_LEFT = 1
 
-BOTTOM_NONE = 0
+BOTTOM_NORMAL = 0
 BOTTOM_THROUGH = 1
 BOTTOM_POCKET = 2
 
@@ -70,6 +70,7 @@ slot_cutters = [
     DefaultTool(2.0, TOOL_TYPE_SLOTCUTTER, 10.0, 150.0, 75.0, 3000.0, 50.0, 1.0, 2.0),
     DefaultTool(5.0, TOOL_TYPE_SLOTCUTTER, 25.0, 200.0, 100.0, 3000.0, 100.0, 2.5, 5.0),
     DefaultTool(3.0, TOOL_TYPE_SLOTCUTTER, 15.0, 150.0, 75.0, 3000.0, 50.0, 1.5, 3.0),
+    DefaultTool(4.0, TOOL_TYPE_SLOTCUTTER, 12.0, 200.0, 100.0, 3000.0, 50.0, 1.5, 3.0),
 ]
 
 drills = [
@@ -154,6 +155,9 @@ class Hole:
             return False
         self.pts += hole.pts
         return True
+    
+    def __str__(self):
+        return 'Hole - diameter = ' + str(self.diameter) + ' at pts: ' + str(self.pts)
 
 class AutoProgram:
     def __init__(self):
@@ -298,44 +302,38 @@ class AutoProgram:
 
     def CutPatches(self):
         if self.failure: return
-        pockets_to_add = []
         
         for ma in self.part_stl.GetMachiningAreas():
             if ma.face_type == geom.FaceFlatType.Flat:
                 cut_depth = ma.top - ma.bottom
                 cutter_index = self.ChoosePreferredCutter(cut_depth)
-                if self.failure:
-                    return
                 offset = self.slot_cutters.tools[cutter_index].diam + 0.1
-                
                 a = geom.Area(ma.area)
                 a.Offset(-offset)
                 a.Subtract(self.area_done)
                 
                 if ma.bottom < -0.001:
                     # pocket area
-                    sketch = cad.NewSketchFromArea(a)
-                    cad.AddUndoably(sketch)
-                    tool_id, default_tool = self.slot_cutters.AddIfNotAdded(cutter_index)
-                    pocket = Pocket.Pocket(sketch.GetID())
-                    pocket.tool_number = tool_id
-                    pocket.step_over = self.slot_cutters.tools[cutter_index].diam * 0.5
-                    pocket.start_depth = 0.0
-                    pocket.final_depth = ma.bottom
-                    pocket.horizontal_feed_rate = default_tool.hfeed
-                    pocket.vertical_feed_rate = default_tool.vfeed
-                    pocket.spindle_speed = default_tool.spin
-                    pocket.step_down = default_tool.rough_step_down
-                    pockets_to_add.insert(0, pocket)
+                    max_diam = self.GetMaxPocketCutterRadius(ma.area) * 2.0
+                    if (max_diam != None) and (self.slot_cutters.tools[cutter_index].diam > max_diam):
+                        cutter_index = self.slot_cutters.GetBiggestToolLessThanOrEqual(max_diam, cut_depth)
+                        if cutter_index == None:
+                            sketch = cad.NewSketchFromArea(ma.area)
+                            cad.AddUndoably(sketch)
+                            cad.Select(sketch)
+                            self.failure = 'CutPatches could not find tool of diameter ' + str(max_diam) + ' or less with cut depth of ' + str(cut_depth) + '\nsee sketch ' + str(sketch.GetID())
+                    if self.failure:
+                        return
+
+                    if self.PocketCanBeDoneWithProfileOp(a, cutter_index):
+                        self.ProfileCurve(a.GetCurves()[0], cutter_index = cutter_index, z_bottom = ma.bottom, inside = True)
+                    else:
+                        self.PocketArea(a, cutter_index, z_bottom = ma.bottom)
                     
                 self.area_done.Union(ma.area)
             else:
                 # handle 3d surfaces
                 pass
-            
-        for pocket in pockets_to_add:
-            cad.PyIncref(pocket)
-            cad.AddUndoably(pocket, wx.GetApp().program.operations)
         
     def MakeShadow(self):
         if self.failure: return
@@ -365,18 +363,18 @@ class AutoProgram:
             curve.Append(geom.Vertex(1, geom.Point(p.x - radius, p.y), geom.Point(p.x, p.y)))
             self.ProfileCurve(curve, z_top = hole.top_z, z_bottom = hole.bottom_z, inside = True)
         
-    def ProfileCurve(self, curve, z_top = 0.0, z_bottom = None, move_start_type = MOVE_START_NOT, bottom_style = BOTTOM_THROUGH, do_finish_pass = True, add_tags = False, inside = False):
+    def ProfileCurve(self, curve, cutter_index = None, do_fit_arcs = True, z_top = 0.0, z_bottom = None, move_start_type = MOVE_START_NOT, bottom_style = BOTTOM_THROUGH, do_finish_pass = True, only_finishing = False, add_tags = False, inside = False):
         
         #check for thin artifact curves
         if math.fabs(curve.GetArea()) < 0.1:
             return
         
-        geom.set_accuracy(0.1)
-        curve.FitArcs()
-        
+        if do_fit_arcs:
+            geom.set_accuracy(0.1)
+            curve.FitArcs()
+
         # create a sketch for the curve
         sketch = cad.NewSketchFromCurve(curve)
-            
         cad.AddUndoably(sketch)
         
         if z_bottom == None:
@@ -384,7 +382,10 @@ class AutoProgram:
         else:
             cut_depth = z_top - z_bottom
         
-        tool_id, default_tool = self.GetToolForCurve(curve, not inside, cut_depth)
+        if cutter_index == None:
+            tool_id, default_tool = self.GetToolForCurve(curve, not inside, cut_depth)
+        else:
+            tool_id, default_tool = self.slot_cutters.AddIfNotAdded(cutter_index)
         if self.failure:
             return
         profile = Profile.Profile(sketch.GetID())
@@ -403,10 +404,7 @@ class AutoProgram:
             box = curve.GetBox()
             profile.start = geom.Point3D(box.MinX(), (box.MinY() + box.MaxY())*0.5, 0.0)
             
-        if bottom_style == BOTTOM_THROUGH:
-            profile.z_thru_depth = 1.0 # to do, use more of the tool?
-        elif bottom_style == BOTTOM_POCKET:
-            profile.z_finish_depth = 0.1
+        self.SetDepthOpBottomFromStyle(profile, bottom_style)
 
         # set operation from chosen tool info
         profile.horizontal_feed_rate = default_tool.hfeed
@@ -416,6 +414,7 @@ class AutoProgram:
             
         if do_finish_pass:
             profile.do_finishing_pass = True
+            profile.only_finishing_pass = only_finishing
             profile.offset_extra = 0.1
             profile.finishing_h_feed_rate = default_tool.finish_hfeed
             profile.finishing_step_down = default_tool.finish_step_down
@@ -455,6 +454,34 @@ class AutoProgram:
 
         cad.PyIncref(profile)
         cad.AddUndoably(profile, wx.GetApp().program.operations)
+        
+    def PocketArea(self, a, cutter_index, do_fit_arcs = True, z_top = 0.0, z_bottom = None, bottom_style = BOTTOM_NORMAL, do_finish_pass = True):
+        # add the sketch to pocket or profile
+        sketch = cad.NewSketchFromArea(a)
+        cad.AddUndoably(sketch)
+        
+        # add the tool
+        tool_id, default_tool = self.slot_cutters.AddIfNotAdded(cutter_index)
+        
+        pocket = Pocket.Pocket(sketch.GetID())
+        pocket.tool_number = tool_id
+        pocket.step_over = self.slot_cutters.tools[cutter_index].diam * 0.5
+        pocket.start_depth = z_top
+        pocket.final_depth = z_bottom
+        pocket.horizontal_feed_rate = default_tool.hfeed
+        pocket.vertical_feed_rate = default_tool.vfeed
+        pocket.spindle_speed = default_tool.spin
+        pocket.step_down = default_tool.rough_step_down
+        
+        self.SetDepthOpBottomFromStyle(pocket, bottom_style)
+
+        cad.AddUndoably(pocket, wx.GetApp().program.operations)
+
+    def SetDepthOpBottomFromStyle(self, depthop, bottom_style):
+        if bottom_style == BOTTOM_THROUGH:
+            depthop.z_thru_depth = 1.0 # to do, use more of the tool?
+        elif bottom_style == BOTTOM_POCKET:
+            depthop.z_finish_depth = 0.1
 
     def ClearProgram(self):
         if self.failure:
@@ -577,7 +604,28 @@ class AutoProgram:
                     if max_diameter == None or d < max_diameter:
                         max_diameter = d
         return max_diameter
-
+    
+    def GetMaxPocketCutterRadius(self, area):
+        max_diam = None
+        for curve in area.GetCurves():
+            curve.FitArcs()
+            outer = curve.IsClockwise()
+            diam = curve.GetMaxCutterRadius(outer)
+            if (diam != None) and (max_diam == None or diam < max_diam):
+                max_diam = diam
+        if max_diam != None:
+            max_diam -= 0.11 # make sure there is room to offset the area inwards without it disappearing, also with room for a roughing pass
+        return max_diam
+    
+    def PocketCanBeDoneWithProfileOp(self, a, cutter_index):
+        # if the area disappears when offset inwards by the cutter diameter, then it's fine to just profile the area
+        a_copy = geom.Area(a)
+        a_copy.Offset(slot_cutters[cutter_index].diam * 0.95)
+        if a_copy.NumCurves() == 0:
+            return True
+        
+        return False
+    
     def ChoosePreferredCutter(self, cut_depth):
         if self.big_rigid_part:
             if cut_depth <= slot_cutters[0].cutting_length:
