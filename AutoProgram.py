@@ -314,7 +314,8 @@ class AutoProgram:
                 
                 if ma.bottom < -0.001:
                     # pocket area
-                    max_diam = self.GetMaxPocketCutterRadius(ma.area) * 2.0
+                    max_diam = self.GetMaxPocketCutterRadius(ma.area)
+                    if max_diam != None: max_diam *= 2.0 # radius to diameter
                     if (max_diam != None) and (self.slot_cutters.tools[cutter_index].diam > max_diam):
                         cutter_index = self.slot_cutters.GetBiggestToolLessThanOrEqual(max_diam, cut_depth)
                         if cutter_index == None:
@@ -618,11 +619,12 @@ class AutoProgram:
         return max_diam
     
     def PocketCanBeDoneWithProfileOp(self, a, cutter_index):
-        # if the area disappears when offset inwards by the cutter diameter, then it's fine to just profile the area
-        a_copy = geom.Area(a)
-        a_copy.Offset(slot_cutters[cutter_index].diam * 0.95)
-        if a_copy.NumCurves() == 0:
-            return True
+        # if the area is a simple single curve and disappears when offset inwards by the cutter diameter, then it's fine to just profile the area
+        if a.NumCurves() == 1:
+            a_copy = geom.Area(a)
+            a_copy.Offset(slot_cutters[cutter_index].diam * 0.95)
+            if a_copy.NumCurves() == 0:
+                return True
         
         return False
     
