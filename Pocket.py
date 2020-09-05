@@ -164,7 +164,10 @@ class Pocket(SketchOp):
         depth_params = self.GetDepthParams()
         tool_diameter = tool.CuttingRadius(True) * 2.0
         SpeedOp.DoGCodeCalls(self)
-
-        self.DoEachSketch(self.DoGCodeCallsForSketch, (self.cut_mode, depth_params, tool_diameter))
+        
+        object = cad.GetObjectFromId(cad.OBJECT_TYPE_SKETCH, self.sketch)
+        
+        if object != None:
+            self.DoGCodeCallsForSketch(object, (self.cut_mode, depth_params, tool_diameter))
 
 
