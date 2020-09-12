@@ -133,7 +133,7 @@ class DefaultTools:
             if self.tools[index].cutting_length < cut_depth:
                 continue
             tool_diameter = self.tools[index].diam
-            if math.fabs(tool_diameter - d) < 0.01:
+            if math.fabs(tool_diameter - d) < self.precision:
                 return index
         return None
 
@@ -147,11 +147,11 @@ class Hole:
         
     def AddHole(self, hole):
         # returns True if it added the hole's position to this hole
-        if math.fabs(self.diameter - hole.diameter) > 0.01:
+        if math.fabs(self.diameter - hole.diameter) > self.precision:
             return False
-        if math.fabs(self.top_z - hole.top_z) > 0.01:
+        if math.fabs(self.top_z - hole.top_z) > self.precision:
             return False
-        if math.fabs(self.bottom_z - hole.bottom_z) > 0.01:
+        if math.fabs(self.bottom_z - hole.bottom_z) > self.precision:
             return False
         self.pts += hole.pts
         return True
@@ -182,6 +182,7 @@ class AutoProgram:
         self.tag_angle = config.ReadFloat('TagAngle', 45.0)
         self.tag_y_margin = config.ReadFloat('TagYMargin', 4.0)
         self.big_rigid_part = config.ReadBool('BigRigidPart', False) # tick this to use the big cutter
+        self.precision = config.ReadFloat('Precision', 0.1)
         
     def WriteToConfig(self):
         config = HeeksConfig()
@@ -194,6 +195,7 @@ class AutoProgram:
         config.WriteFloat('TagAngle', self.tag_angle)
         config.WriteFloat('TagYMargin', self.tag_y_margin)
         config.WriteBool('BigRigidPart', self.big_rigid_part)
+        config.WriteFloat('Precision', self.precision)
     
     def Edit(self):
         dlg = AutoProgramDlg(self)
@@ -250,15 +252,13 @@ class AutoProgram:
     def CutShadowInners(self):
         if self.failure: return
         curves_to_profile = []
-        geom.set_accuracy(0.1)
         holes_to_profile = []
         holes_to_drill = []
         
         shadow_curves = self.shadow.GetCurves()
         for curve in shadow_curves:
-            curve.FitArcs()
             if curve.IsClockwise():
-                circle = curve.IsACircle(0.01)
+                circle = curve.IsACircle(self.precision)
                 if circle == None:
                     curves_to_profile.append(curve)
                 else:
@@ -338,11 +338,14 @@ class AutoProgram:
         
     def MakeShadow(self):
         if self.failure: return
-        self.part_stl = self.part.GetTris(0.1)
+        self.part_stl = self.part.GetTris(self.precision)
         self.part_box = self.part_stl.GetBox()
         self.clearance_height = self.part_box.MaxZ() + 5.0
         mat = geom.Matrix()
+        geom.set_fitarcs(False) # make sure FitArcs only happens when making the g-code
         self.shadow = self.part_stl.Shadow(mat, False)
+        sketch = cad.NewSketchFromArea(self.shadow)
+        cad.AddUndoably(sketch)
         self.shadow.Reorder()
         self.stock_area = self.MakeStockArea(self.shadow, self.x_margin, self.y_margin, self.x_margin, self.y_margin)
         self.area_done = geom.Area()
@@ -364,16 +367,12 @@ class AutoProgram:
             curve.Append(geom.Vertex(1, geom.Point(p.x - radius, p.y), geom.Point(p.x, p.y)))
             self.ProfileCurve(curve, z_top = hole.top_z, z_bottom = hole.bottom_z, inside = True)
         
-    def ProfileCurve(self, curve, cutter_index = None, do_fit_arcs = True, z_top = 0.0, z_bottom = None, move_start_type = MOVE_START_NOT, bottom_style = BOTTOM_THROUGH, do_finish_pass = True, only_finishing = False, add_tags = False, inside = False):
+    def ProfileCurve(self, curve, cutter_index = None, z_top = 0.0, z_bottom = None, move_start_type = MOVE_START_NOT, bottom_style = BOTTOM_THROUGH, do_finish_pass = True, only_finishing = False, add_tags = False, inside = False):
         
         #check for thin artifact curves
         if math.fabs(curve.GetArea()) < 0.1:
             return
         
-        if do_fit_arcs:
-            geom.set_accuracy(0.1)
-            curve.FitArcs()
-
         # create a sketch for the curve
         sketch = cad.NewSketchFromCurve(curve)
         cad.AddUndoably(sketch)
@@ -456,7 +455,7 @@ class AutoProgram:
         cad.PyIncref(profile)
         cad.AddUndoably(profile, wx.GetApp().program.operations)
         
-    def PocketArea(self, a, cutter_index, do_fit_arcs = True, z_top = 0.0, z_bottom = None, bottom_style = BOTTOM_NORMAL, do_finish_pass = True):
+    def PocketArea(self, a, cutter_index, z_top = 0.0, z_bottom = None, bottom_style = BOTTOM_NORMAL, do_finish_pass = True):
         # add the sketch to pocket or profile
         sketch = cad.NewSketchFromArea(a)
         cad.AddUndoably(sketch)
@@ -590,7 +589,7 @@ class AutoProgram:
                     sketch = cad.NewSketchFromCurve(curve)
                     cad.AddUndoably(sketch)
                     cad.Select(sketch)
-                    self.failure = 'couldnt find tool of diameter ' + str(r*2) + ' or less with cut depth of ' + str(cut_depth) + '\nsee sketch ' + str(sketch.GetID())
+                    self.failure = 'GetToolForCurve couldnt find tool of diameter ' + str(r*2) + ' or less with cut depth of ' + str(cut_depth) + '\nsee sketch ' + str(sketch.GetID())
                     return 0, None
 
         return self.slot_cutters.AddIfNotAdded(cutter_index)
@@ -609,9 +608,8 @@ class AutoProgram:
     def GetMaxPocketCutterRadius(self, area):
         max_diam = None
         for curve in area.GetCurves():
-            curve.FitArcs()
             outer = curve.IsClockwise()
-            diam = curve.GetMaxCutterRadius(outer)
+            diam = curve.GetMaxCutterRadius(outer, self.precision)
             if (diam != None) and (max_diam == None or diam < max_diam):
                 max_diam = diam
         if max_diam != None:
