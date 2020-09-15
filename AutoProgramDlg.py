@@ -36,7 +36,7 @@ class AutoProgramDlg(HDialog):
 
         # add right controls
         cut_mode_choices = []
-        for material in AutoProgram.stock_thicknesses:
+        for material in auto_program.stock_thicknesses:
             cut_mode_choices.append(material)
         self.cmbMaterial = wx.ComboBox(self, choices = cut_mode_choices)
         self.MakeLabelAndControl("Material", self.cmbMaterial).AddToSizer(self.sizerRight)

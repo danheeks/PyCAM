@@ -138,7 +138,7 @@ public:
 	void AppendText(std::wstring& str);
 	void GetGripperPositionsTransformed(std::list<GripData> *list, bool just_for_endof);
 	void GetProperties(std::list<Property *> *list);
-
+	int PickPriority(){ return 2; }; // 2 for edges
 };
 
 class CNCCode :public HeeksObj

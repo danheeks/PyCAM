@@ -24,12 +24,6 @@ BOTTOM_THROUGH = 1
 BOTTOM_POCKET = 2
 
 
-stock_thicknesses = {
-                 'Acetal':[5.0, 6.0, 10.0, 20.0, 30.0, 40.0],
-                 'Alu Alloy':[2.0, 3.0, 4.0, 5.0, 6.0, 10.0, 16.0, 20.0, 30.0, 40.0],
-                 'Mild Steel':[2.0, 3.0, 4.0, 5.0, 6.0],
-                 }
-
 class DefaultTool:
     def __init__(self, diam, type, cutting_length, hfeed, finish_hfeed, spin, vfeed, rough_step_down, finish_step_down = None):
         self.diam = diam
@@ -62,33 +56,7 @@ class DefaultTool:
 slot_cutter_positions = [3,4,5,6]
 drill_positions = [1,2,7,8,9]
 
-slot_cutters = [
-    DefaultTool(16.0, TOOL_TYPE_SLOTCUTTER, 30.0, 200.0, 100.0, 1800.0, 50.0, 5.0, 10.0), # short
-    DefaultTool(16.0, TOOL_TYPE_SLOTCUTTER, 60.0, 200.0, 100.0, 1800.0, 50.0, 5.0, 10.0), # long
-    DefaultTool(6.0, TOOL_TYPE_SLOTCUTTER, 15.0, 200.0, 100.0, 3000.0, 100.0, 3.0, 6.0), # short
-    DefaultTool(6.0, TOOL_TYPE_SLOTCUTTER, 40.0, 200.0, 100.0, 3000.0, 100.0, 3.0, 6.0), # long
-    DefaultTool(2.0, TOOL_TYPE_SLOTCUTTER, 10.0, 150.0, 75.0, 3000.0, 50.0, 1.0, 2.0),
-    DefaultTool(5.0, TOOL_TYPE_SLOTCUTTER, 25.0, 200.0, 100.0, 3000.0, 100.0, 2.5, 5.0),
-    DefaultTool(3.0, TOOL_TYPE_SLOTCUTTER, 15.0, 150.0, 75.0, 3000.0, 50.0, 1.5, 3.0),
-    DefaultTool(4.0, TOOL_TYPE_SLOTCUTTER, 12.0, 200.0, 100.0, 3000.0, 50.0, 1.5, 3.0),
-]
-
-drills = [
-    # to do change 12.0 to actual cutting lengths
-    DefaultTool(1.6, TOOL_TYPE_DRILL, 12.0, None, None, 3000.0, 150.0, 1.0),
-    DefaultTool(1.8, TOOL_TYPE_DRILL, 12.0, None, None, 3000.0, 150.0, 1.0),
-    DefaultTool(1.9, TOOL_TYPE_DRILL, 12.0, None, None, 3000.0, 150.0, 1.0),
-    DefaultTool(2.0, TOOL_TYPE_DRILL, 12.0, None, None, 3000.0, 150.0, 1.0),
-    DefaultTool(2.1, TOOL_TYPE_DRILL, 12.0, None, None, 3000.0, 150.0, 1.0),
-    DefaultTool(2.5, TOOL_TYPE_DRILL, 12.0, None, None, 3000.0, 150.0, 1.0),
-    DefaultTool(3.0, TOOL_TYPE_DRILL, 12.0, None, None, 3000.0, 150.0, 1.0),
-    DefaultTool(3.2, TOOL_TYPE_DRILL, 12.0, None, None, 3000.0, 150.0, 1.0),
-    DefaultTool(3.3, TOOL_TYPE_DRILL, 12.0, None, None, 3000.0, 150.0, 1.0),
-    DefaultTool(3.5, TOOL_TYPE_DRILL, 12.0, None, None, 3000.0, 150.0, 1.0),
-    DefaultTool(3.6, TOOL_TYPE_DRILL, 12.0, None, None, 3000.0, 150.0, 1.0),
-    DefaultTool(4.0, TOOL_TYPE_DRILL, 12.0, None, None, 3000.0, 150.0, 1.0),
-    DefaultTool(4.2, TOOL_TYPE_DRILL, 12.0, None, None, 3000.0, 150.0, 1.0),
-]
+BIG_CUTTER_DIAMETER = 6.0 # maximum cutter diameter allowed when big_rigid_part is not ticked, otherwise allow any size tool
         
 class DefaultTools:
     def __init__(self, auto_program, name, tools, tool_numbers):
@@ -128,14 +96,48 @@ class DefaultTools:
                     max_d_tool = index
         return max_d_tool
     
-    def GetToolOfDiameter(self, d, cut_depth):
+    def GetToolOfDiameter(self, d, cut_depth, precision):
         for index in range(0, len(self.tools)):
             if self.tools[index].cutting_length < cut_depth:
                 continue
             tool_diameter = self.tools[index].diam
-            if math.fabs(tool_diameter - d) < self.precision:
+            if math.fabs(tool_diameter - d) < precision:
                 return index
         return None
+    
+    def GetDiamMapShortest(self, cut_depth, max_cutter_diameter):
+        # map of diameter to found index for checking smallest cutter length
+        index = 0
+        diam_map = {} # map of diameter to found index for checking smallest cutter length
+        for tool in self.tools:
+            if max_cutter_diameter == None or max_cutter_diameter >= tool.diam:
+                if tool.cutting_length >= cut_depth:
+                    if tool.diam in diam_map:
+                        # tool diameter already in map
+                        existing_tool = self.tools[diam_map[tool.diam]]
+                        if tool.cutting_length < existing_tool.cutting_length:
+                            # replace map enty with shorter tool
+                            diam_map[tool_diam] = index
+                    else:
+                        diam_map[tool.diam] = index
+            index += 1
+        return diam_map
+    
+    def BiggestShortest(self, cut_depth, max_cutter_diameter):
+        diam_map = self.GetDiamMapShortest(cut_depth, max_cutter_diameter)
+        # return first
+        for d in sorted(diam_map.keys(), reverse = True):
+            return diam_map[d]
+        return None        
+            
+    def GetPatchCutters(self, cut_depth, max_cutter_diameter):
+        diam_map = self.GetDiamMapShortest(cut_depth, max_cutter_diameter)
+            
+        # make the list from the map
+        cutters = []
+        for d in sorted(diam_map.keys(), reverse = True):
+            cutters.append(diam_map[d])
+        return cutters
 
 class Hole:
     # used to group found features
@@ -145,13 +147,13 @@ class Hole:
         self.bottom_z = bottom_z
         self.pts = [circle.c]
         
-    def AddHole(self, hole):
+    def AddHole(self, hole, precision):
         # returns True if it added the hole's position to this hole
-        if math.fabs(self.diameter - hole.diameter) > self.precision:
+        if math.fabs(self.diameter - hole.diameter) > precision:
             return False
-        if math.fabs(self.top_z - hole.top_z) > self.precision:
+        if math.fabs(self.top_z - hole.top_z) > precision:
             return False
-        if math.fabs(self.bottom_z - hole.bottom_z) > self.precision:
+        if math.fabs(self.bottom_z - hole.bottom_z) > precision:
             return False
         self.pts += hole.pts
         return True
@@ -165,11 +167,41 @@ class AutoProgram:
         self.next_slot_cutter = 0
         self.next_drill = 0
         self.tools_to_add_at_end = {} # dictionary of tool id and Tool
-        self.slot_cutters = DefaultTools(self, 'slot cutters', slot_cutters, slot_cutter_positions)
-        self.drills = DefaultTools(self, 'drills', drills, drill_positions)
+        self.slot_cutters = DefaultTools(self, 'slot cutters', [
+    DefaultTool(16.0, TOOL_TYPE_SLOTCUTTER, 30.0, 200.0, 100.0, 1800.0, 50.0, 5.0, 10.0), # short
+    DefaultTool(16.0, TOOL_TYPE_SLOTCUTTER, 60.0, 200.0, 100.0, 1800.0, 50.0, 5.0, 10.0), # long
+    DefaultTool(6.0, TOOL_TYPE_SLOTCUTTER, 15.0, 200.0, 100.0, 3000.0, 100.0, 3.0, 6.0), # short
+    DefaultTool(6.0, TOOL_TYPE_SLOTCUTTER, 40.0, 200.0, 100.0, 3000.0, 100.0, 3.0, 6.0), # long
+    DefaultTool(5.0, TOOL_TYPE_SLOTCUTTER, 25.0, 200.0, 100.0, 3000.0, 100.0, 2.5, 5.0),
+    DefaultTool(4.0, TOOL_TYPE_SLOTCUTTER, 12.0, 200.0, 100.0, 3000.0, 50.0, 1.5, 3.0),
+    DefaultTool(3.0, TOOL_TYPE_SLOTCUTTER, 15.0, 150.0, 75.0, 3000.0, 50.0, 1.5, 3.0),
+    DefaultTool(2.0, TOOL_TYPE_SLOTCUTTER, 10.0, 150.0, 75.0, 3000.0, 50.0, 1.0, 2.0),
+], slot_cutter_positions)
+        self.drills = DefaultTools(self, 'drills', [
+    # to do change 12.0 to actual cutting lengths
+    DefaultTool(1.6, TOOL_TYPE_DRILL, 12.0, None, None, 3000.0, 150.0, 1.0),
+    DefaultTool(1.8, TOOL_TYPE_DRILL, 12.0, None, None, 3000.0, 150.0, 1.0),
+    DefaultTool(1.9, TOOL_TYPE_DRILL, 12.0, None, None, 3000.0, 150.0, 1.0),
+    DefaultTool(2.0, TOOL_TYPE_DRILL, 12.0, None, None, 3000.0, 150.0, 1.0),
+    DefaultTool(2.1, TOOL_TYPE_DRILL, 12.0, None, None, 3000.0, 150.0, 1.0),
+    DefaultTool(2.5, TOOL_TYPE_DRILL, 12.0, None, None, 3000.0, 150.0, 1.0),
+    DefaultTool(3.0, TOOL_TYPE_DRILL, 12.0, None, None, 3000.0, 150.0, 1.0),
+    DefaultTool(3.2, TOOL_TYPE_DRILL, 12.0, None, None, 3000.0, 150.0, 1.0),
+    DefaultTool(3.3, TOOL_TYPE_DRILL, 12.0, None, None, 3000.0, 150.0, 1.0),
+    DefaultTool(3.5, TOOL_TYPE_DRILL, 12.0, None, None, 3000.0, 150.0, 1.0),
+    DefaultTool(3.6, TOOL_TYPE_DRILL, 12.0, None, None, 3000.0, 150.0, 1.0),
+    DefaultTool(4.0, TOOL_TYPE_DRILL, 12.0, None, None, 3000.0, 150.0, 1.0),
+    DefaultTool(4.2, TOOL_TYPE_DRILL, 12.0, None, None, 3000.0, 150.0, 1.0),
+], drill_positions)
         self.part = None
         self.failure = None
         self.warnings = []
+        self.stock_thicknesses = {
+                 'Acetal':[5.0, 6.0, 10.0, 20.0, 30.0, 40.0],
+                 'Alu Alloy':[2.0, 3.0, 4.0, 5.0, 6.0, 10.0, 16.0, 20.0, 30.0, 40.0],
+                 'Mild Steel':[2.0, 3.0, 4.0, 5.0, 6.0],
+                 }
+
     
     def ReadFromConfig(self):
         config = HeeksConfig()
@@ -265,7 +297,7 @@ class AutoProgram:
                     hole = Hole(circle, 0.0, -self.thickness)
                     # add to existing holes
                     for h in holes_to_drill:
-                        if h.AddHole(hole):
+                        if h.AddHole(hole, self.precision):
                             hole = None
                             break
                     if hole != None:
@@ -273,7 +305,7 @@ class AutoProgram:
                         
         for hole in holes_to_drill:
             cut_depth = hole.top_z - hole.bottom_z
-            tool_index = self.drills.GetToolOfDiameter(hole.diameter, cut_depth)
+            tool_index = self.drills.GetToolOfDiameter(hole.diameter, cut_depth, self.precision)
             if tool_index == None:
                 # no drill of this size
                 holes_to_profile.append(hole)
@@ -305,36 +337,76 @@ class AutoProgram:
         
         for ma in self.part_stl.GetMachiningAreas():
             if ma.face_type == geom.FaceFlatType.Flat:
-                cut_depth = ma.top - ma.bottom
-                cutter_index = self.ChoosePreferredCutter(cut_depth)
-                offset = self.slot_cutters.tools[cutter_index].diam + 0.1
-                a = geom.Area(ma.area)
-                a.Offset(-offset)
-                a.Subtract(self.area_done)
-                
                 if ma.bottom < -0.001:
                     # pocket area
-                    max_diam = self.GetMaxPocketCutterRadius(ma.area)
-                    if max_diam != None: max_diam *= 2.0 # radius to diameter
-                    if (max_diam != None) and (self.slot_cutters.tools[cutter_index].diam > max_diam):
-                        cutter_index = self.slot_cutters.GetBiggestToolLessThanOrEqual(max_diam, cut_depth)
-                        if cutter_index == None:
-                            sketch = cad.NewSketchFromArea(ma.area)
-                            cad.AddUndoably(sketch)
-                            cad.Select(sketch)
-                            self.failure = 'CutPatches could not find tool of diameter ' + str(max_diam) + ' or less with cut depth of ' + str(cut_depth) + '\nsee sketch ' + str(sketch.GetID())
-                    if self.failure:
-                        return
-
-                    if self.PocketCanBeDoneWithProfileOp(a, cutter_index):
-                        self.ProfileCurve(a.GetCurves()[0], cutter_index = cutter_index, z_bottom = ma.bottom, inside = True)
-                    else:
-                        self.PocketArea(a, cutter_index, z_bottom = ma.bottom)
                     
-                self.area_done.Union(ma.area)
+                    print('accuracy = ' + str(geom.get_accuracy()))
+                    
+                    # get a list of cutters ordered by biggest diameter first
+                    cut_depth = ma.top - ma.bottom
+                    patch_cutters = self.GetPatchCutters(cut_depth)
+                    
+                    # store area remaining to be cut, starting with the machining area's area
+                    area_remaining = geom.Area(ma.area)
+                    
+                    for cutter_index in patch_cutters:
+                        # start with the remaining area
+                        a = geom.Area(area_remaining)
+                        
+                        # offset it outwards
+                        cutter_radius = self.slot_cutters.tools[cutter_index].diam * 0.5
+                        offset = cutter_radius + 0.1
+                        a.Offset(-offset)
+                        
+                        print('accuracy = ' + str(geom.get_accuracy()))
+                    
+                        # subtract area already done ( areas above this one )
+                        a.Subtract(self.area_done)
+
+                        if self.PocketCanBeDoneWithProfileOp(a, cutter_index):
+                            self.ProfileCurve(a.GetCurves()[0], cutter_index = cutter_index, z_bottom = ma.bottom, inside = True)
+                        else:
+                            self.PocketArea(a, cutter_index, z_bottom = ma.bottom)
+                            
+                        # calculate the remaining area
+                        a.Offset(cutter_radius) # offset inwards
+                        
+                        # output sketch just for debugging
+                        s = cad.NewSketchFromArea(a)
+                        s.SetTitle('area cut by ' + str(cutter_radius * 2) + 'mm cutter, offset inwards')
+                        cad.AddUndoably(s)
+
+                        
+                        a.Offset(-cutter_radius)# offset outwards ( rounds off the corners )
+
+                        print('accuracy = ' + str(geom.get_accuracy()))
+                    
+                        # output sketch just for debugging
+                        s = cad.NewSketchFromArea(a)
+                        s.SetTitle('area cut by  ' + str(cutter_radius * 2) + 'mm cutter, offset back outwards')
+                        cad.AddUndoably(s)
+                        
+                        # output sketch just for debugging
+                        s = cad.NewSketchFromArea(area_remaining)
+                        s.SetTitle('area_remaining before subtraction')
+                        cad.AddUndoably(s)
+                        
+                        
+                        area_remaining.Subtract(a)
+
+                        # output sketch just for debugging
+                        s = cad.NewSketchFromArea(area_remaining)
+                        s.SetTitle('area_remaining after subtraction')
+                        cad.AddUndoably(s)
+                        
+                        if area_remaining.NumCurves() == 0:
+                            # nothing left to cut
+                            break                    
             else:
                 # handle 3d surfaces
                 pass
+            
+            self.area_done.Union(ma.area)
         
     def MakeShadow(self):
         if self.failure: return
@@ -348,7 +420,7 @@ class AutoProgram:
         cad.AddUndoably(sketch)
         self.shadow.Reorder()
         self.stock_area = self.MakeStockArea(self.shadow, self.x_margin, self.y_margin, self.x_margin, self.y_margin)
-        self.area_done = geom.Area()
+        self.area_done = geom.Area() # area_done starts empty, then is the area at the top ( top face ), then gets added to by each descending area until it should end up the same as the shadow of the part
         self.solid_area = None
         self.current_top_height = None
         
@@ -512,11 +584,11 @@ class AutoProgram:
         if self.failure: return
         
         self.part_box = self.part.GetBox()
-        if not self.material in stock_thicknesses:
+        if not self.material in self.stock_thicknesses:
             self.failure = 'material not found in stock: ' + self.material
             return
             
-        thicknesses = stock_thicknesses[self.material]
+        thicknesses = self.stock_thicknesses[self.material]
         if len(thicknesses) == 0:
             self.failure = 'no stock available for material, material: ' + self.material
             return
@@ -573,7 +645,7 @@ class AutoProgram:
         return stock_area        
 
     def GetToolForCurve(self, curve, outside, cut_depth):
-        r = curve.GetMaxCutterRadius(outside)
+        r = curve.GetMaxCutterRadius(outside, self.precision)
         
         preferred_cutter = self.ChoosePreferredCutter(cut_depth)
         if self.failure:
@@ -620,29 +692,24 @@ class AutoProgram:
         # if the area is a simple single curve and disappears when offset inwards by the cutter diameter, then it's fine to just profile the area
         if a.NumCurves() == 1:
             a_copy = geom.Area(a)
-            a_copy.Offset(slot_cutters[cutter_index].diam * 0.95)
+            a_copy.Offset(self.slot_cutters[cutter_index].diam * 0.95)
             if a_copy.NumCurves() == 0:
                 return True
         
         return False
     
     def ChoosePreferredCutter(self, cut_depth):
-        if self.big_rigid_part:
-            if cut_depth <= slot_cutters[0].cutting_length:
-                return 0 # short 16mm
-            elif cut_depth <= slot_cutters[1].cutting_length:
-                return 1 # long 16mm
-            else:
-                longest_preferred_index = 1
-        else:
-            if cut_depth <= slot_cutters[2].cutting_length:
-                return 2 # short 6mm
-            elif cut_depth <= slot_cutters[1].cutting_length:
-                return 3 # long 6mm
-            else:
-                longest_preferred_index = 3
+        # return the cutter_index of the biggest tool allowed, with the smallest cutting length, where there are multiple same diameter cutters
+        cutter_found = None
+        index = self.slot_cutters.BiggestShortest(cut_depth = cut_depth, max_cutter_diameter = None if self.big_rigid_part else BIG_CUTTER_DIAMETER)
         
-        self.failure = 'cut depth of ' + str(cut_depth) + ' is too deep for preferred ' + str(slot_cutters[longest_preferred_index].diameter) + 'mm cutter, which has cutting length of ' + str(slot_cutters[longest_preferred_index].cutting_length)
+        if index != None:
+            return index
+        
+        self.failure = 'no cutter long enough for cut depth - ' + str(cut_depth)
+        
+    def GetPatchCutters(self, cut_depth):
+        return self.slot_cutters.GetPatchCutters(cut_depth, max_cutter_diameter = None if self.big_rigid_part else BIG_CUTTER_DIAMETER)
 
 def FindTagPoint(curve, line):
     # line defined by two lists of two coordinates
