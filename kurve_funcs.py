@@ -273,7 +273,7 @@ def profile(curve, direction = "on", radius = 1.0, offset_extra = 0.0, roll_radi
                         using_area_for_offset = True
                         a = geom.Area()
                         a.Append(curve)
-                        a.Offset(-offset)
+                        a.Offset(-offset if cw else offset)
                         
                         for curve in a.GetCurves():
                             curve_cw = curve.IsClockwise()
