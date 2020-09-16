@@ -340,8 +340,6 @@ class AutoProgram:
                 if ma.bottom < -0.001:
                     # pocket area
                     
-                    print('accuracy = ' + str(geom.get_accuracy()))
-                    
                     # get a list of cutters ordered by biggest diameter first
                     cut_depth = ma.top - ma.bottom
                     patch_cutters = self.GetPatchCutters(cut_depth)
@@ -358,10 +356,9 @@ class AutoProgram:
                         offset = cutter_radius + 0.1
                         a.Offset(-offset)
                         
-                        print('accuracy = ' + str(geom.get_accuracy()))
-                    
                         # subtract area already done ( areas above this one )
                         a.Subtract(self.area_done)
+                        
 
                         if self.PocketCanBeDoneWithProfileOp(a, cutter_index):
                             self.ProfileCurve(a.GetCurves()[0], cutter_index = cutter_index, z_bottom = ma.bottom, inside = True)
@@ -370,36 +367,13 @@ class AutoProgram:
                             
                         # calculate the remaining area
                         a.Offset(cutter_radius) # offset inwards
-                        
-                        # output sketch just for debugging
-                        s = cad.NewSketchFromArea(a)
-                        s.SetTitle('area cut by ' + str(cutter_radius * 2) + 'mm cutter, offset inwards')
-                        cad.AddUndoably(s)
-
-                        
                         a.Offset(-cutter_radius)# offset outwards ( rounds off the corners )
-
-                        print('accuracy = ' + str(geom.get_accuracy()))
-                    
-                        # output sketch just for debugging
-                        s = cad.NewSketchFromArea(a)
-                        s.SetTitle('area cut by  ' + str(cutter_radius * 2) + 'mm cutter, offset back outwards')
-                        cad.AddUndoably(s)
-                        
-                        # output sketch just for debugging
-                        s = cad.NewSketchFromArea(area_remaining)
-                        s.SetTitle('area_remaining before subtraction')
-                        cad.AddUndoably(s)
-                        
-                        
                         area_remaining.Subtract(a)
-
-                        # output sketch just for debugging
-                        s = cad.NewSketchFromArea(area_remaining)
-                        s.SetTitle('area_remaining after subtraction')
-                        cad.AddUndoably(s)
                         
-                        if area_remaining.NumCurves() == 0:
+                        check_area = geom.Area(area_remaining)
+                        check_area.Offset(0.1)
+                        
+                        if check_area.NumCurves() == 0:
                             # nothing left to cut
                             break                    
             else:
@@ -528,6 +502,16 @@ class AutoProgram:
         cad.AddUndoably(profile, wx.GetApp().program.operations)
         
     def PocketArea(self, a, cutter_index, z_top = 0.0, z_bottom = None, bottom_style = BOTTOM_NORMAL, do_finish_pass = True):
+        tool_radius = self.slot_cutters.tools[cutter_index].diam * 0.5
+
+        # test to see if area would disappear when offset inwards
+        check_area = geom.Area(a)
+        check_area.Offset(tool_radius)
+        if check_area.NumCurves() == 0:
+            # there is no point pocketing this area as there would be no toolpath
+            print('disappeared')
+            return
+         
         # add the sketch to pocket or profile
         sketch = cad.NewSketchFromArea(a)
         cad.AddUndoably(sketch)
@@ -537,7 +521,7 @@ class AutoProgram:
         
         pocket = Pocket.Pocket(sketch.GetID())
         pocket.tool_number = tool_id
-        pocket.step_over = self.slot_cutters.tools[cutter_index].diam * 0.5
+        pocket.step_over = tool_radius
         pocket.start_depth = z_top
         pocket.final_depth = z_bottom
         pocket.horizontal_feed_rate = default_tool.hfeed
@@ -692,7 +676,7 @@ class AutoProgram:
         # if the area is a simple single curve and disappears when offset inwards by the cutter diameter, then it's fine to just profile the area
         if a.NumCurves() == 1:
             a_copy = geom.Area(a)
-            a_copy.Offset(self.slot_cutters[cutter_index].diam * 0.95)
+            a_copy.Offset(self.slot_cutters.tools[cutter_index].diam * 0.95)
             if a_copy.NumCurves() == 0:
                 return True
         
