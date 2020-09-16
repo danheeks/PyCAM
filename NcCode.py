@@ -48,7 +48,7 @@ class NcCode(CamObject):
         self.nc_code.OnGlCommands(select, marked, no_color)
         
     def KillGLLists(self):
-        self.nc_code.KillGLLists()
+        self.nc_code.DestroyGLLists()
         
 #    def GetBox(self):
 #        if self.box == None:
