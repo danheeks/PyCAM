@@ -138,12 +138,27 @@ class CamApp(SolidApp):
         object.pos.y = pos.y
         cad.Repaint()
         
+    def ClearUnusedTools(self, program):
+        to_delete = []
+        used_set = {}
+        for op in program.operations.GetChildren():
+            used_set[op.tool_number] = True
+            
+        for tool in program.tools.GetChildren():
+            if tool.tool_number not in used_set:
+                to_delete.append(tool)
+                
+        if len(to_delete)>0:
+            cad.DeleteObjectsUndoably(to_delete)
+        
     def GetObjectTools(self, object, control_pressed, from_tree_canvas = False):
         tools = SolidApp.GetObjectTools(self, object, control_pressed, from_tree_canvas)
         if object.GetType() == Profile.type:
             tools.append(CamContextTool.CamObjectContextTool(object, "Add Tags", "addtag", self.AddTags))
         if object.GetType() == Tag.type:
             tools.append(CamContextTool.CamObjectContextTool(object, "Pick new position", "tagpos", self.RepositionTag))
+        if object.GetType() == Program.type or object.GetType() == Tools.type:
+            tools.append(CamContextTool.CamObjectContextTool(self.program, "Clear Unused Tools", "optoolclear", self.ClearUnusedTools))
         return tools
         
     def AddExtraRibbonPages(self, ribbon):
