@@ -303,11 +303,12 @@ class CamApp(SolidApp):
     def OnAutoProgram(self, event):
         try:
             from AutoProgram import AutoProgram
-            a = AutoProgram()
-            if a.Edit():
-                a.Run()
         except:
             wx.MessageBox('This is a commercial feature. Download it from here. ( website URL to do... )')
+            return
+        a = AutoProgram()
+        if a.Edit():
+            a.Run()
         
     def OnCreateGCode(self, e):
         self.program.MakeGCode()
