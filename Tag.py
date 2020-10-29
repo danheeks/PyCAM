@@ -80,6 +80,7 @@ class Tag(CamObject):
         
     def OnGlCommands(self, select, marked, no_color):
         if not no_color: cad.DrawColor(cad.Color(0,0,0))
-        cad.DrawSymbol(1, self.pos.x, self.pos.y, 0.0)
         cad.DrawSymbol(3 if marked or cad.ObjectMarked(self) else 0, self.pos.x, self.pos.y, 0.0)
+        if not no_color: cad.DrawColor(cad.Color(0,255,0))
+        cad.DrawSymbol(1, self.pos.x, self.pos.y, 0.0)
     
