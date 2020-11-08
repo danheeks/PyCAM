@@ -1,11 +1,10 @@
-import wx
 import os
 import sys
-from nc.nc import *
-
 cam_dir = os.path.dirname(os.path.realpath(__file__))
 pycad_dir = os.path.realpath(cam_dir + '/../PyCAD')
 sys.path.append(pycad_dir)
+import wx
+from nc.nc import *
 import cad
 import cam
 
@@ -66,10 +65,10 @@ class CamApp(SolidApp):
         SolidApp.__init__(self)
         
     def GetAppTitle(self):
-        return 'CAM ( Computer Aided Manufacturing )'
+        return 'Heeks2 ( Computer Aided Manufacturing )'
        
     def GetAppConfigName(self):
-        return 'HeeksCAM'
+        return 'Heeks2'
  
     def RegisterObjectTypes(self):
         SolidApp.RegisterObjectTypes(self)

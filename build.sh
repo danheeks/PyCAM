@@ -1,3 +1,4 @@
+TEMP_FOLDER=/tmp/Heeks2
 cd ~/PyCAD
 git pull
 cd CAD/build
@@ -17,58 +18,82 @@ cp cam.so ../../
 
 # make zip file
 cd ../../../
-rm -r /tmp/Heeks2
+rm -r $TEMP_FOLDER
 rm Heeks2.zip
-mkdir /tmp/Heeks2
-mkdir /tmp/Heeks2/PyCAD
-cp PyCAD/*.py /tmp/Heeks2/PyCAD
-cp PyCAD/heekscad.png /tmp/Heeks2/PyCAD
-cp PyCAD/cad.so /tmp/Heeks2/PyCAD
-cp PyCAD/geom.so /tmp/Heeks2/PyCAD
-cp PyCAD/step.so /tmp/Heeks2/PyCAD
-mkdir /tmp/Heeks2/PyCAD/bitmaps
-mkdir /tmp/Heeks2/PyCAD/bitmaps/angle
-mkdir /tmp/Heeks2/PyCAD/bitmaps/mirror
-mkdir /tmp/Heeks2/PyCAD/icons
-cp PyCAD/bitmaps/*.png /tmp/Heeks2/PyCAD/bitmaps
-cp PyCAD/bitmaps/angle/*.png /tmp/Heeks2/PyCAD/bitmaps/angle
-cp PyCAD/bitmaps/mirror/*.png /tmp/Heeks2/PyCAD/bitmaps/mirror
-cp PyCAD/icons/*.png /tmp/Heeks2/PyCAD/icons
-mkdir /tmp/Heeks2/PyCAM
-mkdir /tmp/Heeks2/PyCAM/icons
-mkdir /tmp/Heeks2/PyCAM/bitmaps
-mkdir /tmp/Heeks2/PyCAM/bitmaps/depthop
-mkdir /tmp/Heeks2/PyCAM/bitmaps/drilling
-mkdir /tmp/Heeks2/PyCAM/bitmaps/pattern
-mkdir /tmp/Heeks2/PyCAM/bitmaps/pocket
-mkdir /tmp/Heeks2/PyCAM/bitmaps/profile
-mkdir /tmp/Heeks2/PyCAM/bitmaps/stock
-mkdir /tmp/Heeks2/PyCAM/bitmaps/surface
-mkdir /tmp/Heeks2/PyCAM/bitmaps/tool
-mkdir /tmp/Heeks2/PyCAM/nc
-cp PyCAM/*.py /tmp/Heeks2/PyCAM
-cp PyCAM/cam.so /tmp/Heeks2/PyCAM
-cp PyCAM/default.tooltable /tmp/Heeks2/PyCAM
-cp PyCAM/bitmaps/*.png /tmp/Heeks2/PyCAM/bitmaps
-cp PyCAM/bitmaps/depthop/*.png /tmp/Heeks2/PyCAM/bitmaps/depthop
-cp PyCAM/bitmaps/drilling/*.png /tmp/Heeks2/PyCAM/bitmaps/drilling
-cp PyCAM/bitmaps/pattern/*.png /tmp/Heeks2/PyCAM/bitmaps/pattern
-cp PyCAM/bitmaps/pocket/*.png /tmp/Heeks2/PyCAM/bitmaps/pocket
-cp PyCAM/bitmaps/profile/*.png /tmp/Heeks2/PyCAM/bitmaps/profile
-cp PyCAM/bitmaps/stock/*.png /tmp/Heeks2/PyCAM/bitmaps/stock
-cp PyCAM/bitmaps/surface/*.png /tmp/Heeks2/PyCAM/bitmaps/surface
-cp PyCAM/bitmaps/*.png /tmp/Heeks2/PyCAM/bitmaps/tool
-cp PyCAM/icons/*.png /tmp/Heeks2/PyCAM/icons
-cp PyCAM/nc/*.py /tmp/Heeks2/PyCAM/nc
-cp PyCAM/nc/*.xml /tmp/Heeks2/PyCAM/nc
+mkdir $TEMP_FOLDER
+mkdir $TEMP_FOLDER/PyCAD
+cp PyCAD/*.py $TEMP_FOLDER/PyCAD
+cp PyCAD/heekscad.png $TEMP_FOLDER/PyCAD
+cp PyCAD/cad.so $TEMP_FOLDER/PyCAD
+cp PyCAD/geom.so $TEMP_FOLDER/PyCAD
+cp PyCAD/step.so $TEMP_FOLDER/PyCAD
+mkdir $TEMP_FOLDER/PyCAD/bitmaps
+mkdir $TEMP_FOLDER/PyCAD/bitmaps/angle
+mkdir $TEMP_FOLDER/PyCAD/bitmaps/mirror
+mkdir $TEMP_FOLDER/PyCAD/icons
+cp PyCAD/bitmaps/*.png $TEMP_FOLDER/PyCAD/bitmaps
+cp PyCAD/bitmaps/angle/*.png $TEMP_FOLDER/PyCAD/bitmaps/angle
+cp PyCAD/bitmaps/mirror/*.png $TEMP_FOLDER/PyCAD/bitmaps/mirror
+cp PyCAD/icons/*.png $TEMP_FOLDER/PyCAD/icons
+
+# copy wx - to do only user what is needed
+mkdir $TEMP_FOLDER/lib
+mkdir $TEMP_FOLDER/lib/wx
+echo 'copying wx files'
+SITE_PACKAGES=/home/pi/.local/lib/python3.7/site-packages
+cp $SITE_PACKAGES/wx/*.py $TEMP_FOLDER/lib/wx
+cp $SITE_PACKAGES/wx/*.so $TEMP_FOLDER/lib/wx
+cp $SITE_PACKAGES/wx/*.so.4 $TEMP_FOLDER/lib/wx
+
+# copy reportlab
+cd PyCAM
+python coppy.py $SITE_PACKAGES/reportlab $TEMP_FOLDER/lib/reportlab
+cd ../
+
+# copy boost and opencascade libraries
+echo 'copy other libraries'
+cp /usr/local/lib/*.so.11 $TEMP_FOLDER/lib
+cp /usr/local/lib/libboost_python37.so.1.73.0 $TEMP_FOLDER/lib
+
+echo 'copying PyCAM'
+mkdir $TEMP_FOLDER/PyCAM
+mkdir $TEMP_FOLDER/PyCAM/icons
+mkdir $TEMP_FOLDER/PyCAM/bitmaps
+mkdir $TEMP_FOLDER/PyCAM/bitmaps/depthop
+mkdir $TEMP_FOLDER/PyCAM/bitmaps/drilling
+mkdir $TEMP_FOLDER/PyCAM/bitmaps/pattern
+mkdir $TEMP_FOLDER/PyCAM/bitmaps/pocket
+mkdir $TEMP_FOLDER/PyCAM/bitmaps/profile
+mkdir $TEMP_FOLDER/PyCAM/bitmaps/stock
+mkdir $TEMP_FOLDER/PyCAM/bitmaps/surface
+mkdir $TEMP_FOLDER/PyCAM/bitmaps/tool
+mkdir $TEMP_FOLDER/PyCAM/nc
+cp PyCAM/*.py $TEMP_FOLDER/PyCAM
+cp PyCAM/cam.so $TEMP_FOLDER/PyCAM
+cp PyCAM/default.tooltable $TEMP_FOLDER/PyCAM
+cp PyCAM/bitmaps/*.png $TEMP_FOLDER/PyCAM/bitmaps
+cp PyCAM/bitmaps/depthop/*.png $TEMP_FOLDER/PyCAM/bitmaps/depthop
+cp PyCAM/bitmaps/drilling/*.png $TEMP_FOLDER/PyCAM/bitmaps/drilling
+cp PyCAM/bitmaps/pattern/*.png $TEMP_FOLDER/PyCAM/bitmaps/pattern
+cp PyCAM/bitmaps/pocket/*.png $TEMP_FOLDER/PyCAM/bitmaps/pocket
+cp PyCAM/bitmaps/profile/*.png $TEMP_FOLDER/PyCAM/bitmaps/profile
+cp PyCAM/bitmaps/stock/*.png $TEMP_FOLDER/PyCAM/bitmaps/stock
+cp PyCAM/bitmaps/surface/*.png $TEMP_FOLDER/PyCAM/bitmaps/surface
+cp PyCAM/bitmaps/tool/*.png $TEMP_FOLDER/PyCAM/bitmaps/tool
+cp PyCAM/icons/*.png $TEMP_FOLDER/PyCAM/icons
+cp PyCAM/nc/*.py $TEMP_FOLDER/PyCAM/nc
+cp PyCAM/nc/*.xml $TEMP_FOLDER/PyCAM/nc
 
 # make a run file
-touch /tmp/Heeks2/run.sh
-chmod u+x /tmp/Heeks2/run.sh
-echo 'cd PyCAM'>>/tmp/Heeks2/run.sh
-echo 'python3 test.py'>>/tmp/Heeks2/run.sh
-echo 'read -p "press Enter to finish..."'>>/tmp/Heeks2/run.sh
+touch $TEMP_FOLDER/run.sh
+chmod u+x $TEMP_FOLDER/run.sh
+echo 'export LD_LIBRARY_PATH="../lib"'>>$TEMP_FOLDER/run.sh
+echo 'cd PyCAM'>>$TEMP_FOLDER/run.sh
+echo 'python3 test.py'>>$TEMP_FOLDER/run.sh
+echo 'read -p "press Enter to finish..."'>>$TEMP_FOLDER/run.sh
 
 cd /tmp
-zip -r /home/pi/Heeks2.zip Heeks2
+echo 'making zip file...'
+zip -r -q /home/pi/Heeks2.zip Heeks2
+echo 'finished'
 
