@@ -240,6 +240,32 @@ def add_CRC_end_line(curve,roll_on_curve,roll_off_curve,radius,direction,crc_end
 
 using_area_for_offset = False
 
+        
+def area_str(self):
+    self.WriteDxf('c:\\tmp\\sketch.dxf')
+
+    try:
+        f = open('c:\\tmp\\area_str.txt', 'rb')
+        f.close()
+    except:
+        f = open('c:\\tmp\\area_str.txt', 'wb')
+        f.close()
+    
+        import _thread
+        _thread.start_new_thread(start_pycad, (self,))
+    return 'ok'
+
+def curve_str(self):
+    area = geom.Area()
+    area.Append(self)
+    return area.str()
+    
+import platform
+if platform.system() == 'Windows':
+    geom.Area.__str__ = area_str
+    geom.Curve.__str__ = curve_str
+
+
 # profile command,
 # direction should be 'left' or 'right' or 'on'
 def profile(curve, direction = "on", radius = 1.0, offset_extra = 0.0, roll_radius = 2.0, roll_on = None, roll_off = None, depthparams = None, extend_at_start = 0.0, extend_at_end = 0.0, lead_in_line_len=0.0,lead_out_line_len= 0.0):
@@ -265,6 +291,7 @@ def profile(curve, direction = "on", radius = 1.0, offset_extra = 0.0, roll_radi
             if math.fabs(offset) > 0.00005:
                 if direction == "right":
                     offset = -offset
+                geom.Curve.__str__ = curve_str
                 offset_success = offset_curve.Offset(offset)
                 if offset_success == False:
                     global using_area_for_offset

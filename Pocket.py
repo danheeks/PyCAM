@@ -135,7 +135,7 @@ class Pocket(SketchOp):
         properties.append(PyPropertyLength("Step Over", 'step_over', self))
         properties.append(PyPropertyLength("Material Allowance", 'material_allowance', self))
         properties.append(PyChoiceProperty("Cut Mode", 'cut_mode', ['Conventional', 'Climb'], self))
-        properties.append(PyChoiceProperty("Starting Place", 'from_center', ['Conventional', 'Climb'], self))
+        properties.append(PyChoiceProperty("Starting Place", 'from_center', ['Center', 'Boundary'], self, [True, False]))
         properties.append(PyChoiceProperty("Entry Move", 'entry_move', ['Plunge', 'Ramp', 'Helical'], self, [0,1,2]))
         properties.append(PyProperty("Keep Tool Down", 'keep_tool_down_if_poss', self))
         properties.append(PyProperty("Use Zig Zag", 'use_zig_zag', self))

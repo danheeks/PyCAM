@@ -27,106 +27,11 @@ class Tool(CamObject):
         self.diameter = diameter
         self.material = TOOL_MATERIAL_UNDEFINED
         self.tool_length_offset = 0.0
-        
-        '''
-        // also m_corner_radius, see below, is used for turning tools and milling tools
-
-
-        /**
-                The next three parameters describe the cutting surfaces of the bit.
-
-                The two radii go from the centre of the bit -> flat radius -> corner radius.
-                The vertical_cutting_edge_angle is the angle between the centre line of the
-                milling bit and the angle of the outside cutting edges.  For an end-mill, this
-                would be zero.  i.e. the cutting edges are parallel to the centre line
-                of the milling bit.  For a chamfering bit, it may be something like 45 degrees.
-                i.e. 45 degrees from the centre line which has both cutting edges at 2 * 45 = 90
-                degrees to each other
-
-                For a ball-nose milling bit we would have
-                        - m_corner_radius = m_diameter / 2
-                        - m_flat_radius = 0    // No middle bit at the bottom of the cutter that remains flat
-                                                // before the corner radius starts.
-                        - m_vertical_cutting_edge_angle = 0
-
-                For an end-mill we would have
-                        - m_corner_radius = 0
-                        - m_flat_radius = m_diameter / 2
-                        - m_vertical_cutting_edge_angle = 0
-
-                For a chamfering bit we would have
-                        - m_corner_radius = 0
-                        - m_flat_radius = 0    // sharp pointed end.  This may be larger if we can't use the centre point.
-                        - m_vertical_cutting_edge_angle = 45    // degrees from centre line of tool
-         */
-        '''
         self.corner_radius = 0.0
         self.flat_radius = 0.0
         self.cutting_edge_angle = 0.0
         self.cutting_edge_height = 0.0    # How far, from the bottom of the cutter, do the flutes extend?
-        self.max_advance_per_revolution = 0.0
-        '''    // This is the maximum distance a tool should advance during a single
-                                                // revolution.  This value is often defined by the manufacturer in
-                                                // terms of an advance no a per-tooth basis.  This value, however,
-                                                // must be expressed on a per-revolution basis.  i.e. we don't want
-                                                // to maintain the number of cutting teeth so a per-revolution
-                                                // value is easier to use.
-        '''
         self.automatically_generate_title = True    #// Set to true by default but reset to false when the user edits the title.
-        '''
-        // The following coordinates relate ONLY to touch probe tools.  They describe
-        // the error the probe tool has in locating an X,Y point.  These values are
-        // added to a probed point's location to find the actual point.  The values
-        // should come from calibrating the touch probe.  i.e. set machine position
-        // to (0,0,0), drill a hole and then probe for the centre of the hole.  The
-        // coordinates found by the centre finding operation should be entered into
-        // these values verbatim.  These will represent how far off concentric the
-        // touch probe's tip is with respect to the quil.  Of course, these only
-        // make sense if the probe's body is aligned consistently each time.  I will
-        // ASSUME this is correct.
-        '''
-        self.probe_offset_x = 0.0
-        self.probe_offset_y = 0.0
-        '''
-        // The following  properties relate to the extrusions created by a reprap style 3D printer.
-        // using temperature, speed, and the height of the nozzle, and the nozzle size it's possible to create
-        // many different sizes and shapes of extrusion.
-        typedef std::pair< eExtrusionMaterial_t, wxString > ExtrusionMaterialDescription_t
-        typedef std::vector<ExtrusionMaterialDescription_t > ExtrusionMaterialsList_t
-
-        static ExtrusionMaterialsList_t GetExtrusionMaterialsList()
-        {
-                ExtrusionMaterialsList_t ExtrusionMaterials_list
-
-                ExtrusionMaterials_list.push_back( ExtrusionMaterialDescription_t( eABS, wxString(_("ABS Plastic")) ))
-                ExtrusionMaterials_list.push_back( ExtrusionMaterialDescription_t( ePLA, wxString(_("PLA Plastic")) ))
-                ExtrusionMaterials_list.push_back( ExtrusionMaterialDescription_t( eHDPE, wxString(_("HDPE Plastic")) ))
-
-                return(ExtrusionMaterials_list)
-        }
-        '''
-        self.extrusion_material = EXTRUSION_MATERIAL_ABS
-        self.feedrate = 0.0
-        self.layer_height = 0.1
-        self.width_over_thickness = 1.0
-        self.temperature = 200
-        self.flowrate = 10
-        self.filament_diameter = 0.2
-        '''
-        // The gradient is the steepest angle at which this tool can plunge into the material.  Many
-        // tools behave better if they are slowly ramped down into the material.  This gradient
-        // specifies the steepest angle of decsent.  This is expected to be a negative number indicating
-        // the 'rise / run' ratio.  Since the 'rise' will be downward, it will be negative.
-        // By this measurement, a drill bit's straight plunge would have an infinite gradient (all rise, no run).
-        // To cater for this, a value of zero will indicate a straight plunge.
-        '''
-        self.gradient = 0.0
-        '''
-        // properties for tapping tools
-        int m_direction    // 0.. right hand tapping, 1..left hand tapping
-        double m_pitch     // in units/rev
-        '''
-        
         if title != None:
             self.title = title
         else:
@@ -142,6 +47,13 @@ class Tool(CamObject):
     
     def GetTitle(self):
         return self.title
+    
+    def CanEditString(self):
+        print('Tool.CanEditString -> return value = ' + str(not self.automatically_generate_title))
+        return not self.automatically_generate_title
+    
+    def OnEditString(self, new_title):
+        self.title = str(new_title)
 
     def icon(self):
         # the name of the PNG file in the HeeksCNC icons folder
@@ -158,6 +70,13 @@ class Tool(CamObject):
         self.diameter = object.diameter
         self.material = object.material
         self.tool_length_offset = object.tool_length_offset
+        self.corner_radius = object.corner_radius
+        self.flat_radius = object.flat_radius
+        self.cutting_edge_angle = object.cutting_edge_angle
+        self.cutting_edge_height = object.cutting_edge_height
+        self.automatically_generate_title = object.automatically_generate_title
+        self.title = object.title
+            
         CamObject.CopyFrom(self, object)
     
     def ResetParametersToReasonableValues(self):

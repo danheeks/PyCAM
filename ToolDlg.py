@@ -3,7 +3,6 @@ from HDialog import HTypeObjectDropDown
 from HDialog import HControl
 import wx
 import Tool
-from HDialog import ComboBoxBinded
 from NiceTextCtrl import LengthCtrl
 from NiceTextCtrl import DoubleCtrl
 from consts import *
@@ -16,7 +15,8 @@ class ToolDlg(HeeksObjDlg):
         self.txtToolNumber = wx.TextCtrl(self)
         self.MakeLabelAndControl("Tool Number", self.txtToolNumber).AddToSizer(self.sizerLeft)
         
-        self.cmbMaterial = ComboBoxBinded(self, choices = ["High Speed Steel", "Carbide"])
+        self.cmbMaterial = wx.ComboBox(self, choices = ["High Speed Steel", "Carbide"])
+        self.Bind(wx.EVT_COMBOBOX, self.OnComboMaterial, self.cmbMaterial)
         self.MakeLabelAndControl("Tool Material", self.cmbMaterial).AddToSizer(self.sizerLeft)
         
         self.cmbToolType = wx.ComboBox(self, choices = Tool.GetToolTypeNames())
@@ -25,6 +25,7 @@ class ToolDlg(HeeksObjDlg):
         
         self.lgthDiameter = LengthCtrl(self)
         self.MakeLabelAndControl("Diameter", self.lgthDiameter).AddToSizer(self.sizerLeft)
+        self.Bind(wx.EVT_TEXT, self.OnDiamChange, self.lgthDiameter)
         
         self.lgthToolLengthOffset = LengthCtrl(self)
         self.MakeLabelAndControl("Tool Length Offset", self.lgthToolLengthOffset).AddToSizer(self.sizerLeft)
@@ -46,7 +47,7 @@ class ToolDlg(HeeksObjDlg):
     def AddRightControls(self):            
         self.txtTitle = wx.TextCtrl(self, wx.ID_ANY)
         self.MakeLabelAndControl('Title', self.txtTitle).AddToSizer(self.sizerRight)
-        self.cmbTitleType = ComboBoxBinded(self, choices = ["Leave manually assigned title", "Automatically Generate Title"])
+        self.cmbTitleType = wx.ComboBox(self, choices = ["Leave manually assigned title", "Automatically Generate Title"])
         self.MakeLabelAndControl("Title Type", self.cmbTitleType).AddToSizer(self.sizerRight)
         
         HeeksObjDlg.AddRightControls(self)
@@ -143,6 +144,11 @@ class ToolDlg(HeeksObjDlg):
 
     def OnComboToolType(self, e):
         self.EnableAndSetCornerFlatAndAngle()
+        self.SetTitleFromControls()
+        HeeksObjDlg.SetPicture(self)
+        
+    def OnComboMaterial(self, e):
+        self.SetTitleFromControls()
         HeeksObjDlg.SetPicture(self)
         
     def EnableAndSetCornerFlatAndAngle(self):
@@ -175,4 +181,18 @@ class ToolDlg(HeeksObjDlg):
             self.lgthFlatRadius.SetValue(self.object.flat_radius)
             self.lgthCuttingEdgeAngle.Enable()
             self.lgthCuttingEdgeAngle.SetValue(self.object.cutting_edge_angle)
-        
+            
+    def SetTitleFromControls(self):
+        if self.ignore_event_functions:
+            return
+        save_object = self.object
+        self.object = self.object.MakeACopy()
+        self.GetData()
+        self.ignore_event_functions = True
+        self.object.ResetTitle()
+        self.txtTitle.SetValue(self.object.title)
+        self.object = save_object
+        self.ignore_event_functions = False
+            
+    def OnDiamChange(self, e):
+        self.SetTitleFromControls()
