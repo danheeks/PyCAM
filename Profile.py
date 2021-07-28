@@ -279,7 +279,7 @@ class Profile(SketchOp):
         cut_mode, depth_params, tool_diameter, roll_radius, offset_extra, cutting_edge_angle = data
 
         # decide if we need to reverse the kurve
-        reversed = False
+        direction_reversed = False
         initially_ccw = False
         if self.tool_on_side != PROFILE_ON:
             if object.GetType() == cad.OBJECT_TYPE_CIRCLE:
@@ -288,9 +288,9 @@ class Profile(SketchOp):
                 order = object.GetSketchOrder()
                 if order == cad.SketchOrderType.SketchOrderTypeCloseCCW:
                     initially_ccw = True
-            if self.spindle_speed<0:reversed = not reversed
-            if cut_mode == PROFILE_CONVENTIONAL: reversed = not reversed
-            if self.tool_on_side == PROFILE_RIGHT_OR_INSIDE: reversed = not reversed
+            if self.spindle_speed<0:direction_reversed = not direction_reversed
+            if cut_mode == PROFILE_CONVENTIONAL: direction_reversed = not direction_reversed
+            if self.tool_on_side == PROFILE_RIGHT_OR_INSIDE: direction_reversed = not direction_reversed
 
         curve = object.GetCurve()
 
@@ -308,20 +308,20 @@ class Profile(SketchOp):
         if curve.NumVertices() <= 1:
             raise NameError("sketch has no spans! object = " + object.GetTitle() + ' curve = ' + str(curve))
 
-        if initially_ccw != reversed:
+        if initially_ccw != direction_reversed:
             curve.Reverse()
 
         if ( not self.start_given ) and ( not self.end_given ):
-            kurve_funcs.set_good_start_point(curve, reversed)
+            kurve_funcs.set_good_start_point(curve, direction_reversed)
 
         # start - assume we are at a suitable clearance height
 
         # get offset side string
         side_string = 'on'
         if self.tool_on_side == PROFILE_LEFT_OR_OUTSIDE:
-            side_string = 'right' if reversed else 'left'
+            side_string = 'right' if direction_reversed else 'left'
         elif self.tool_on_side == PROFILE_RIGHT_OR_INSIDE:
-            side_string = 'left' if reversed else 'right'
+            side_string = 'left' if direction_reversed else 'right'
 
         # roll on
         if self.tool_on_side == PROFILE_LEFT_OR_OUTSIDE or self.tool_on_side == PROFILE_RIGHT_OR_INSIDE:

@@ -113,6 +113,10 @@ class CamApp(SolidApp):
         SolidApp.OnNewOrOpen(self, open)
 
         self.AddProgramIfThereIsntOne()
+        
+        # link the output window to program's nc code obect
+        self.output_window.SetNcCodeObject(self.program.nccode.nc_code)
+
 #         if open == False:
 #             self.frame.OnOpenFilepath('c:/users/dan heeks/downloads/two points.heeks', False)
             
@@ -184,12 +188,12 @@ class CamApp(SolidApp):
 
         panel = RB.RibbonPanel(page, wx.ID_ANY, 'Tools', ribbon.Image('tools'))
         toolbar = RB.RibbonButtonBar(panel)
-        Ribbon.AddToolBarTool(toolbar, 'Drill', 'drill', 'Add a Drill', self.NewProfileOp)
-        Ribbon.AddToolBarTool(toolbar, 'Centre Drill', 'centredrill', 'Add a Centre Drill', self.NewProfileOp)
-        Ribbon.AddToolBarTool(toolbar, 'End Mill', 'endmill', 'Add an End Mill', self.NewProfileOp)
-        Ribbon.AddToolBarTool(toolbar, 'Slot Drill', 'slotdrill', 'Add a Slot Drill', self.NewProfileOp)
-        Ribbon.AddToolBarTool(toolbar, 'Ball End Mill', 'ballmill', 'Add a Ball Mill', self.NewProfileOp)
-        Ribbon.AddToolBarTool(toolbar, 'Chamfer Mill', 'chamfmill', 'Add a Chamfer Mill', self.NewProfileOp)
+        Ribbon.AddToolBarTool(toolbar, 'Drill', 'drill', 'Add a Drill', self.NewDrill)
+        Ribbon.AddToolBarTool(toolbar, 'Centre Drill', 'centredrill', 'Add a Centre Drill', self.NewCentreDrill)
+        Ribbon.AddToolBarTool(toolbar, 'End Mill', 'endmill', 'Add an End Mill', self.NewEndMill)
+        Ribbon.AddToolBarTool(toolbar, 'Slot Drill', 'slotdrill', 'Add a Slot Drill', self.NewSlotDrill)
+        Ribbon.AddToolBarTool(toolbar, 'Ball End Mill', 'ballmill', 'Add a Ball Mill', self.NewBallMill)
+        Ribbon.AddToolBarTool(toolbar, 'Chamfer Mill', 'chamfmill', 'Add a Chamfer Mill', self.NewChamferMill)
 
         panel = RB.RibbonPanel(page, wx.ID_ANY, 'G-Code', ribbon.Image('code'))
         toolbar = RB.RibbonButtonBar(panel)
@@ -298,6 +302,41 @@ class CamApp(SolidApp):
         new_object = Surface.Surface()
         new_object.SetID(cad.GetNextID(Surface.type))
         self.EditAndAddOp(new_object)
+
+    def EditAndAddTool(self, tool):
+        if tool.Edit():
+            cad.StartHistory()
+            cad.AddUndoably(tool, self.program.tools, None)
+            cad.EndHistory()
+        
+    def AddNewTool(self, tool_type):
+        # find next available tool number
+        max_tool_number = 0
+        for object in self.program.tools.GetChildren():
+            if object.tool_number > max_tool_number:
+                max_tool_number = object.tool_number
+
+        # Add a new tool
+        new_object = Tool.Tool(tool_number = max_tool_number + 1, type = tool_type)
+        self.EditAndAddTool(new_object)
+            
+    def NewDrill(self, e):
+        self.AddNewTool(Tool.TOOL_TYPE_DRILL)
+            
+    def NewCentreDrill(self, e):
+        self.AddNewTool(Tool.TOOL_TYPE_CENTREDRILL)
+            
+    def NewEndMill(self, e):
+        self.AddNewTool(Tool.TOOL_TYPE_ENDMILL)
+            
+    def NewSlotDrill(self, e):
+        self.AddNewTool(Tool.TOOL_TYPE_SLOTCUTTER)
+            
+    def NewBallMill(self, e):
+        self.AddNewTool(Tool.TOOL_TYPE_BALLENDMILL)
+            
+    def NewChamferMill(self, e):
+        self.AddNewTool(Tool.TOOL_TYPE_CHAMFER)
         
     def OnAutoProgram(self, event):
         if not os.path.isfile('AutoProgram.py'):

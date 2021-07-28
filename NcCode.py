@@ -71,7 +71,6 @@ class NcCode(CamObject):
 
     def ReadXml(self):
         self.nc_code.ReadXml()
-        wx.GetApp().output_window.SetNcCodeObject(self.nc_code)
         
     def WriteXml(self):
         self.nc_code.WriteXml()

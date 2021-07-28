@@ -5,7 +5,25 @@ import cad
 import wx
 from Object import PyProperty
 from Object import PyPropertyLength
+from Object import PyChoiceProperty
 import Tool
+
+class PyToolProperty(PyChoiceProperty):
+    def __init__(self, op):
+        # a choice property which lets you choose a drop-down of tool names and updates the op's tool_number attribute
+        choices = ['None']
+        alternative_values = [0]
+        obj_list = wx.GetApp().program.tools
+        if obj_list != None:
+            obj = obj_list.GetFirstChild()
+            while obj:
+                if obj.GetIDGroupType() == Tool.type:
+                    choices.append(obj.GetTitle())
+                    alternative_values.append(obj.tool_number)
+                obj = obj_list.GetNextChild()
+        
+        PyChoiceProperty.__init__(self, 'Tool', 'tool_number', choices, op, alternative_values)
+
 
 class Operation(CamObject):
     def __init__(self):
@@ -80,7 +98,7 @@ class Operation(CamObject):
 
         properties.append(PyProperty("Comment", 'comment', self))
         properties.append(PyProperty("Active", 'active', self))
-        properties.append(PyProperty("Tool Number", 'tool_number', self))
+        properties.append(PyToolProperty(self))
         properties.append(PyProperty("Pattern", 'pattern', self))
         properties.append(PyProperty("Surface", 'surface', self))
         
