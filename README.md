@@ -4,4 +4,4 @@ Dan Heeks's experimental CAD/CAM software built on Dan's PyCAD for the Raspberry
 ### see wiki for building instructions ###
 [Raspberry Pi build](https://github.com/danheeks/PyCAM/wiki/Raspberry-Pi-build)
 ### HeeksCNC ###
-If I get it all working, I'll be calling it HeeksCNC2, but I don't plan to change the source code projects names
+If I get it all working, I'll be calling it HeeksCNC, but I don't plan to change the source code projects names
