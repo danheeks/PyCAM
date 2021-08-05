@@ -88,6 +88,7 @@ cp PyCAM/nc/*.xml $TEMP_FOLDER/PyCAM/nc
 touch $TEMP_FOLDER/run.sh
 chmod u+x $TEMP_FOLDER/run.sh
 echo 'export LD_LIBRARY_PATH="../lib"'>>$TEMP_FOLDER/run.sh
+echo 'export PYTHONPATH="../lib"'>>$TEMP_FOLDER/run.sh
 echo 'cd PyCAM'>>$TEMP_FOLDER/run.sh
 echo 'python3 test.py'>>$TEMP_FOLDER/run.sh
 echo 'read -p "press Enter to finish..."'>>$TEMP_FOLDER/run.sh
