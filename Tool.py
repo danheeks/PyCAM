@@ -49,7 +49,6 @@ class Tool(CamObject):
         return self.title
     
     def CanEditString(self):
-        print('Tool.CanEditString -> return value = ' + str(not self.automatically_generate_title))
         return not self.automatically_generate_title
     
     def OnEditString(self, new_title):
