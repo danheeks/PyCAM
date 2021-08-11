@@ -40,7 +40,18 @@ class OutputWindow(glcanvas.GLCanvas):
                 new_pixels_per_line = 10.0
             elif new_pixels_per_line > 150.0:
                 new_pixels_per_line = 150.0
+                
+            old_lines_per_page = self.viewport.GetLinesPerPage()
+            
+            # set the new scale
             self.viewport.SetPixelsPerLine( new_pixels_per_line )
+            
+            # move to keep the middle in the middle
+            
+            new_lines_per_page = self.viewport.GetLinesPerPage()
+            lines_shift = (new_lines_per_page - old_lines_per_page) * (float(event.GetY()) / self.viewport.GetHeight())
+            self.viewport.SetCurrentLine(self.viewport.GetCurrentLine() - lines_shift)            
+            
             if self.viewport.GetCurrentLine() > self.GetLastLineToScrollTo():
                 self.viewport.SetCurrentLine(self.GetLastLineToScrollTo())
         else:
