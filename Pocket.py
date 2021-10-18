@@ -150,6 +150,7 @@ class Pocket(SketchOp):
         cut_mode, depth_params, tool_diameter = data
 
         a = sketch.GetArea()
+        a.Reorder()
 
         area_funcs.pocket(a, tool_diameter/2, self.material_allowance/wx.GetApp().program.units, self.step_over/wx.GetApp().program.units, depth_params, self.from_center != 0, self.keep_tool_down_if_poss, self.use_zig_zag, self.zig_angle)
 

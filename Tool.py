@@ -19,6 +19,14 @@ tool_types_for_choices = [
                           [TOOL_TYPE_ENGRAVER, 'Engraving Bit'],
                           ]
 
+class ToolPyPropertyLength(PyPropertyLength):
+    def __init__(self, title, value_name, object):
+        PyPropertyLength.__init__(self, title, value_name, object)
+
+    def SetFloat(self, value):
+        PyPropertyLength.SetFloat(self, value)
+        self.pyobj.ResetTitle()
+
 class Tool(CamObject):
     def __init__(self, diameter = 3.0, title = None, tool_number = 0, type = TOOL_TYPE_SLOTCUTTER):
         CamObject.__init__(self, type)
