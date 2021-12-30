@@ -99,6 +99,7 @@ class Creator(nc.nc.Creator):
         self.output_comment_before_tool_change = True
         self.output_arcs_as_lines = False
         self.m_codes_on_their_own_line = False
+        self.output_time_created = False
         
     ############################################################################
     ##  Codes
@@ -259,6 +260,10 @@ class Creator(nc.nc.Creator):
         if self.PROGRAM() != None:
             self.write((self.PROGRAM() % id) + self.SPACE() + (self.COMMENT(name)))
             self.write('\n')
+        if self.output_time_created:
+            import datetime
+            now = datetime.datetime.now()
+            self.write(self.COMMENT('Created by ' + self.GetTitle() + ' post processor ' + str(now.strftime("%Y/%m/%d %H:%M"))) + '\n')
         self.program_id = id
         self.program_name = name
 

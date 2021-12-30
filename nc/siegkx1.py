@@ -6,17 +6,22 @@
 #
 # Dan Heeks, 5th March 2009
 
-import nc
-import iso_modal
+import nc.nc
+import nc.iso_modal
 import math
+import datetime
+
+now = datetime.datetime.now()
 
 ################################################################################
-class Creator(iso_modal.Creator):
+class Creator(nc.iso_modal.Creator):
 
     def __init__(self):
-        iso_modal.Creator.__init__(self)
+        nc.iso_modal.Creator.__init__(self)
         self.output_tool_definitions = False
-            
-################################################################################
+        self.output_time_created = True
 
-nc.creator = Creator()
+    def GetTitle(self):
+        return 'siegkx1'
+
+nc.nc.creator = Creator()

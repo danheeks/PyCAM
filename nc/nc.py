@@ -25,6 +25,9 @@ class Creator:
 
     def __init__(self):
         pass
+    
+    def GetTitle(self):
+        return 'nc'
 
     ############################################################################
     ##  Internals

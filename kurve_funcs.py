@@ -292,16 +292,21 @@ def profile(curve, direction = "on", radius = 1.0, offset_extra = 0.0, roll_radi
                 if direction == "right":
                     offset = -offset
                 geom.Curve.__str__ = curve_str
+                
+                if offset_curve.IsClosed():
+                    # calculate the closed offset to see if the area disappears          
+                    cw = curve.IsClockwise()
+                    a = geom.Area()
+                    a.Append(curve)
+                    a.Offset(-offset if cw else offset)
+                    if a.NumCurves() == 0:
+                        raise NameError("tool too big to profile curve")
+                
                 offset_success = offset_curve.Offset(offset)
                 if offset_success == False:
                     global using_area_for_offset
                     if curve.IsClosed() and (using_area_for_offset == False):
-                        cw = curve.IsClockwise()
-                        using_area_for_offset = True
-                        a = geom.Area()
-                        a.Append(curve)
-                        a.Offset(-offset if cw else offset)
-                        
+                        using_area_for_offset = True                        
                         for curve in a.GetCurves():
                             curve_cw = curve.IsClockwise()
                             if cw != curve_cw:
@@ -311,7 +316,7 @@ def profile(curve, direction = "on", radius = 1.0, offset_extra = 0.0, roll_radi
                         using_area_for_offset = False
                         return                    
                     else:
-                        raise NameError( "couldn't offset kurve " + str(offset_curve) )
+                        raise NameError( "couldn't offset curve " + str(offset_curve) )
             
     # extend curve
     if extend_at_start > 0.0:

@@ -6,8 +6,8 @@ from Object import PyProperty
 type = 0
 
 class ScriptOp(Operation):
-    def __init__(self, tool_number = -1, operation_type = cad.OBJECT_TYPE_UNKNOWN):
-        Operation.__init__(self, tool_number, operation_type)
+    def __init__(self):
+        Operation.__init__(self)
         self.str = ''
         self.ReadDefaultValues()
         
