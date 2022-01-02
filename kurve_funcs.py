@@ -240,6 +240,12 @@ def add_CRC_end_line(curve,roll_on_curve,roll_off_curve,radius,direction,crc_end
 
 using_area_for_offset = False
 
+def start_pycad(a):
+    import subprocess
+    subprocess.call(['C:\\Users\\Dan Heeks\\AppData\\Local\\Programs\\Python\\Python36-32\\python', 'viewer.py', 'c:\\tmp\\sketch.dxf'], cwd = 'C:\\Dev\\AutoProgram')
+    import os
+    os.remove('c:\\tmp\\area_str.txt')        
+        
         
 def area_str(self):
     self.WriteDxf('c:\\tmp\\sketch.dxf')
@@ -297,7 +303,12 @@ def profile(curve, direction = "on", radius = 1.0, offset_extra = 0.0, roll_radi
                     # calculate the closed offset to see if the area disappears          
                     cw = curve.IsClockwise()
                     a = geom.Area()
-                    a.Append(curve)
+                    if cw:
+                        ccw_curve = geom.Curve(curve)
+                        ccw_curve.Reverse()
+                        a.Append(ccw_curve)
+                    else:
+                        a.Append(curve)
                     a.Offset(-offset if cw else offset)
                     if a.NumCurves() == 0:
                         raise NameError("tool too big to profile curve")
