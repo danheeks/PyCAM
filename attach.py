@@ -7,7 +7,7 @@
 import recreator
 import ocl
 import ocl_funcs
-import nc
+import nc.nc
 
 attached = False
 units = 1.0
@@ -83,7 +83,7 @@ class Creator(recreator.Redirector):
         self.path = ocl.Path()
         
     def rapid(self, x=None, y=None, z=None, a=None, b=None, c=None ):
-        if z != None:
+        if z != None and self.z != None:
             if z < self.z:
                 return
         recreator.Redirector.rapid(self, x, y, z, a, b, c)
@@ -121,14 +121,14 @@ def attach_begin():
     global attached
     if attached == True:
         attach_end()
-    nc.creator = Creator(nc.creator)
+    nc.nc.creator = Creator(nc.nc.creator)
     recreator.units = units
     attached = True
-    nc.creator.pdcf = None
-    nc.creator.path = None
+    nc.nc.creator.pdcf = None
+    nc.nc.creator.path = None
 
 def attach_end():
     global attached
-    nc.creator.cut_path()
-    nc.creator = nc.creator.original
+    nc.nc.creator.cut_path()
+    nc.nc.creator = nc.nc.creator.original
     attached = False

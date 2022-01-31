@@ -67,3 +67,18 @@ class Pattern(CamObject):
         self.x_shift2 = cad.GetXmlFloat('x_shift2', self.x_shift2)
         self.y_shift2 = cad.GetXmlFloat('y_shift2', self.y_shift2)
         CamObject.ReadXml(self)
+
+    def GetMatrices(self, matrices):
+        m2 = geom.Matrix()
+        shift_m2 = geom.Matrix()
+        shift_m2.Translate(geom.Point3D(self.x_shift2, self.y_shift2, 0.0))
+        shift_m1 = geom.Matrix()
+        shift_m1.Translate(geom.Point3D(self.x_shift1, self.y_shift1, 0.0))
+
+        for j in range( 0, self.copies2):
+            m = geom.Matrix(m2)
+            for i in range(0, self.copies1):
+                matrices.append(m)
+                m = m * shift_m1
+            m2 = m2 * shift_m2
+    

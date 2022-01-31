@@ -1,6 +1,7 @@
 from CamObject import CamObject
 import geom
 import cad
+import Stocks
 
 type = 0
 
@@ -35,6 +36,12 @@ class Stock(CamObject):
         CamObject.CopyFrom(self, object)
         self.solids = []
         self.solids += object.solids
+        
+    def CanAddTo(self, owner):
+        return owner.GetType() == Stocks.type
+    
+    def PreferredPasteTarget(self):
+        return wx.GetApp().program.stocks
         
     def GetBox(self):
         self.box = geom.Box3D()

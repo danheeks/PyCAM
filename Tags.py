@@ -26,3 +26,6 @@ class Tags(CamObject):
         copy = Tags()
         copy.CopyFrom(self)
         return copy
+    
+    def CallsObjListReadXml(self):
+        return True

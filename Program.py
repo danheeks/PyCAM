@@ -14,7 +14,9 @@ import cad
 from Object import PyProperty
 from nc.nc import *
 import Surface
+import Pattern
 import cam
+import geom
 
 type = 0
 
@@ -77,6 +79,9 @@ class Program(CamObject):
     
     def CanBeDeleted(self):
         return False
+    
+    def CallsObjListReadXml(self):
+        return True
     
     def add_initial_children(self):
         # add tools, operations, etc.
@@ -241,13 +246,50 @@ class Program(CamObject):
     
     def AutoExpand(self):
         return True
+
+    def ApplyPatternToText(self, p, patterns_written):
+        pattern = cad.GetObjectFromId(Pattern.type, p)
+        if pattern != None:
+            # write a transform redirector
+            import transform
+            transform.transform_begin(pattern.GetMatrices())
+
+    def ApplySurfaceToText(self, surface, surfaces_written):
+        if not surface in surfaces_written:
+            surfaces_written[surface] = True
+            
+            tris = geom.Stl()
+            
+            for solid in surface.solids:
+                o = cad.GetObjectFromId(cad.OBJECT_TYPE_STL_SOLID, solid)
+                tris += o.GetTris(surface.tolerance)
+
+            # name the stl file
+            import tempfile
+            temp_filename = tempfile.gettempdir()+'/surface%d.stl' % self.number_for_stl_file
+            self.number_for_stl_file += 1
     
+            # write stl file
+            tris.WriteStl(temp_filename)
+            
+            import attach
+            import ocl_funcs
+            
+            attach.units = self.units
+            attach.attach_begin()
+            import nc.nc
+            nc.nc.creator.stl = ocl_funcs.STLSurfFromFile(temp_filename)
+            nc.nc.creator.minz = -10000.0
+            nc.nc.creator.material_allowance = surface.material_allowance
+
+        wx.GetApp().attached_to_surface = surface
+
     def MakeGCode(self):
         wx.GetApp().attached_to_surface = None
-        wx.GetApp().number_for_stl_file = 1
+        self.number_for_stl_file = 1
         wx.GetApp().tool_number = 0
-        
-        #exec('import nc.emc2b', globals())
+
+        # import the relevant machine        
         machine_module = __import__('nc.' + self.machine.post, fromlist = ['dummy'])
         import importlib
         importlib.reload(machine_module)
@@ -268,18 +310,24 @@ class Program(CamObject):
         
         for tool in self.tools.GetChildren():
             tool.DoGCodeCalls()
+            
+        surfaces_written = {}
+        patterns_written = {}
 
         for op in self.operations.GetChildren():
             if op.active:
-                # to do          surface = cad.GetObjectFromId(Surface.type, op.surface)
-                # to do          if(surface && !surface->m_same_for_each_pattern_position)ApplySurfaceToText(python, surface, surfaces_written);
-                # to do          ApplyPatternToText(python, op->m_pattern, patterns_written);
-                # to do          if(surface && surface->m_same_for_each_pattern_position)ApplySurfaceToText(python, surface, surfaces_written);
+                surface = cad.GetObjectFromId(Surface.type, op.surface)
+                if surface != None: import attach
+                surface_apply_before_pattern = (surface != None) and not surface.same_for_each_pattern_position 
+                surface_apply_after_pattern = (surface != None) and surface.same_for_each_pattern_position 
+                if surface_apply_before_pattern: self.ApplySurfaceToText(surface, surfaces_written)
+                self.ApplyPatternToText(op.pattern, patterns_written)
+                if surface_apply_after_pattern: self.ApplySurfaceToText(surface, surfaces_written)
                 failure = op.DoGCodeCalls()
-                # to do          if(surface && surface->m_same_for_each_pattern_position)python << _T("attach.attach_end()\n");
-                # to do          if(op->m_pattern != 0)python << _T("transform.transform_end()\n");
-                # to do          if(surface && !surface->m_same_for_each_pattern_position)python << _T("attach.attach_end()\n");
-                # to do          theApp.m_attached_to_surface = NULL;
+                if surface_apply_after_pattern: attach.attach_end()
+                if op.pattern != 0: transform.transform_end()
+                if surface_apply_before_pattern: attach.attach_end()
+                wx.GetApp().attached_to_surface = None
                 if failure:
                     wx.MessageBox(failure)
                     cad.Select(op)

@@ -66,9 +66,6 @@ class Pocket(SketchOp):
             child_element = cad.GetNextXmlChild()
         SketchOp.ReadXml(self)
 
-    def CallsObjListReadXml(self):
-        return False
-
     def ReadDefaultValues(self):
         SketchOp.ReadDefaultValues(self)
         config = HeeksConfig()

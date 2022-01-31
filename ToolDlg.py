@@ -47,8 +47,10 @@ class ToolDlg(HeeksObjDlg):
     def AddRightControls(self):            
         self.txtTitle = wx.TextCtrl(self, wx.ID_ANY)
         self.MakeLabelAndControl('Title', self.txtTitle).AddToSizer(self.sizerRight)
+        self.txtTitle.Bind(wx.EVT_TEXT, self.OnTitleEdited )
         self.cmbTitleType = wx.ComboBox(self, choices = ["Leave manually assigned title", "Automatically Generate Title"])
         self.MakeLabelAndControl("Title Type", self.cmbTitleType).AddToSizer(self.sizerRight)
+        self.cmbTitleType.Bind(wx.EVT_COMBOBOX, self.OnTitleType )
         
         HeeksObjDlg.AddRightControls(self)
             
@@ -185,6 +187,8 @@ class ToolDlg(HeeksObjDlg):
     def SetTitleFromControls(self):
         if self.ignore_event_functions:
             return
+        if self.cmbTitleType.GetSelection() == 0:
+            return
         save_object = self.object
         self.object = self.object.MakeACopy()
         self.GetData()
@@ -196,3 +200,16 @@ class ToolDlg(HeeksObjDlg):
             
     def OnDiamChange(self, e):
         self.SetTitleFromControls()
+        
+    def OnTitleEdited(self, event):
+        if self.ignore_event_functions:
+            return
+        # if the user starts typing in the title, change type to manually assigned
+        self.ignore_event_functions = True
+        self.cmbTitleType.SetSelection(0)
+        self.ignore_event_functions = False
+        
+    def OnTitleType(self, event):
+        if self.ignore_event_functions:
+            return
+        self.SetTitleFromControls()        

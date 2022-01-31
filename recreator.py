@@ -1,11 +1,11 @@
-import nc
+import nc.nc
 
 units = 1.0
 
-class Redirector(nc.Creator):
+class Redirector(nc.nc.Creator):
 
     def __init__(self, original):
-        nc.Creator.__init__(self)
+        nc.nc.Creator.__init__(self)
 
         self.original = original
         self.x = None

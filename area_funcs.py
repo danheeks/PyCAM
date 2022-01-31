@@ -392,6 +392,11 @@ def pocket(a,tool_radius, extra_offset, stepover, depthparams, from_center, keep
                 current_offset = current_offset + stepover
                 a_offset = geom.Area(a)
                 a_offset.Offset(current_offset)
+                
+        for area in arealist:
+            geom.set_accuracy(0.01)
+            area.FitArcs()
+                
         curve_list = get_curve_list(arealist, cut_mode == 'climb')
             
     depths = depthparams.get_depths()

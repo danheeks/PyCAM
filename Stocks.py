@@ -29,6 +29,9 @@ class Stocks(CamObject):
         object = Stocks()
         object.CopyFrom(self)
         return object
+    
+    def CallsObjListReadXml(self):
+        return True
         
     def GetBoxWithInvisibles(self):
         import geom

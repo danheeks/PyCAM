@@ -113,9 +113,6 @@ class Drilling(DepthOp):
         self.internal_coolant_on = object.internal_coolant_on
         self.rapid_to_clearance = object.rapid_to_clearance
 
-    def CallsObjListReadXml(self):
-        return False
-
     def GetProperties(self):
         properties = []
 

@@ -29,3 +29,6 @@ class Surfaces(CamObject):
         object = Surfaces()
         object.CopyFrom(self)
         return object
+    
+    def CallsObjListReadXml(self):
+        return True

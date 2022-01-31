@@ -6,6 +6,7 @@ from Object import PyChoiceProperty
 from Object import PyProperty
 from Object import PyPropertyLength
 from nc.nc import *
+import Tools
 
 type = 0
 
@@ -85,6 +86,12 @@ class Tool(CamObject):
         self.title = object.title
             
         CamObject.CopyFrom(self, object)
+        
+    def CanAddTo(self, owner):
+        return owner.GetType() == Tools.type
+    
+    def PreferredPasteTarget(self):
+        return wx.GetApp().program.tools
     
     def ResetParametersToReasonableValues(self):
         if self.type != TOOL_TYPE_TURNINGTOOL:
@@ -241,9 +248,9 @@ class Tool(CamObject):
         properties = []
         properties.append(PyProperty("Tool Number", 'tool_number', self))
         properties.append(PyChoiceProperty("Automatic Title", 'automatically_generate_title', ['Leave manually assigned title', 'Automatically generate title'], self))
-        properties.append(PyChoiceProperty("Material", 'material', ['High Speed Steel', 'Carbide'], self))
-        properties.append(PyChoiceProperty("Type", 'type', GetToolTypeNames(), self, GetToolTypeValues()))
-        properties.append(PyPropertyLength("Diameter", 'diameter', self))
+        properties.append(PyChoiceProperty("Material", 'material', ['High Speed Steel', 'Carbide'], self, recalculate = self.ResetTitle))
+        properties.append(PyChoiceProperty("Type", 'type', GetToolTypeNames(), self, GetToolTypeValues(), recalculate = self.ResetTitle))
+        properties.append(PyPropertyLength("Diameter", 'diameter', self, recalculate = self.ResetTitle))
         properties.append(PyPropertyLength("Tool Length Offset", 'tool_length_offset', self))
         properties.append(PyPropertyLength("Flat Radius", 'flat_radius', self))
         properties.append(PyPropertyLength("Corner Radius", 'corner_radius', self))
@@ -303,9 +310,6 @@ class Tool(CamObject):
         cad.EndXmlChild()
         
         CamObject.WriteXml(self)
-        
-    def CallsObjListReadXml(self):
-        return False
             
     def DoGCodeCalls(self):
         params = {
@@ -368,6 +372,18 @@ class Tool(CamObject):
             return radius / wx.GetApp().program.units
         else:
             return radius
+    
+    def OCLDefinition(self, surface):
+        import ocl
+        if self.type == TOOL_TYPE_BALLENDMILL:
+            return ocl.BallCutter(self.diameter + surface.material_allowance * 2, 1000)
+        elif self.type == TOOL_TYPE_CHAMFER or self.type == TOOL_TYPE_ENGRAVER:
+            return ocl.CylConeCutter(self.flat_radius * 2 + surface.material_allowance, self.diameter + surface.material_allowance * 2, self.cutting_edge_angle * math.pi/360)
+        else:
+            if self.corner_radius > 0.000000001:
+                return ocl.BullCutter(self.diameter + surface.material_allowance * 2, self.corner_radius, 1000)
+            else:
+                return ocl.CylCutter(self.diameter + surface.material_allowance * 2, 1000)
 
 def GetToolTypeNames():
     choices = []

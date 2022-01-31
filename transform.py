@@ -4,7 +4,7 @@
 # NC code creator for attaching Z coordinates to a surface
 #
 
-import nc
+import nc.nc
 import area
 import recreator
 
@@ -260,11 +260,11 @@ def transform_begin(matrix_list):
     global transformed
     if transformed == True:
         transform_end()
-    nc.creator = Creator(nc.creator, matrix_list)
+    nc.nc.creator = Creator(nc.nc.creator, matrix_list)
     transformed = True
 
 def transform_end():
     global transformed
-    nc.creator.DoAllCommands()
-    nc.creator = nc.creator.original
+    nc.nc.creator.DoAllCommands()
+    nc.nc.creator = nc.nc.creator.original
     transformed = False

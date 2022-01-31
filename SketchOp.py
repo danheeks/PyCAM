@@ -34,11 +34,11 @@ class SketchOp(DepthOp):
             if object != None:
                 cad.Material(cad.Color(255, 255, 0)).glMaterial(1.0)
                 cad.DrawEnableLighting()
-                cad.DrawDisableDepthTesting()
+                #cad.DrawDisableDepthTesting()
                 cad.DrawEnableCullFace()
                 cad.Sketch.RenderAsExtrusion(object, self.start_depth, self.final_depth)
                 cad.DrawDisableCullFace()
-                cad.DrawEnableDepthTesting()
+                #cad.DrawEnableDepthTesting()
                 cad.DrawDisableLighting()
     
     def DoEachSketch(self, callback, data):

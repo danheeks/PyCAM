@@ -12,6 +12,7 @@ class SketchOpDlg(DepthOpDlg):
         self.cmbSketch = HTypeObjectDropDown(self, cad.OBJECT_TYPE_SKETCH, cad.GetApp(), self.OnSketchCombo)
         self.btnSketchPick = wx.Button(self, wx.ID_ANY, 'Pick')
         self.MakeLabelAndControl('Sketches', self.cmbSketch, self.btnSketchPick).AddToSizer(self.sizerLeft)
+        self.btnSketchPick.Bind(wx.EVT_BUTTON, self.OnSketchPick )
                 
         DepthOpDlg.AddLeftControls(self)
         
@@ -31,7 +32,7 @@ class SketchOpDlg(DepthOpDlg):
         
     def PickSketch(self):
         cad.ClearSelection()
-        cad.PickObjects('Pick a sketch', cad.MARKING_FILTER_SKETCH_GROUP, True)
+        wx.GetApp().PickObjects('Pick a sketch', cad.OBJECT_TYPE_SKETCH, True)
         
         self.cmbSketch.Recreate()
         self.Fit()

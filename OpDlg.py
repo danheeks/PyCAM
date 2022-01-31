@@ -3,6 +3,8 @@ from HDialog import HTypeObjectDropDown
 from HDialog import HControl
 import wx
 import Tool
+import Pattern
+import Surface
 
 def GetToolNumber(object):
     return object.tool_number
@@ -18,13 +20,9 @@ class OpDlg(HeeksObjDlg):
             self.cmbTool = HTypeObjectDropDown(self, Tool.type, wx.GetApp().program.tools, self.OnComboOrCheck, GetToolNumber)
             self.MakeLabelAndControl('Tool', self.cmbTool).AddToSizer(self.sizerLeft)
             
-        #temporary code
-        PatternType = 0
-        SurfaceType = 0
-            
-        self.cmbPattern = HTypeObjectDropDown(self, PatternType, wx.GetApp().program.patterns, self.OnComboOrCheck)
+        self.cmbPattern = HTypeObjectDropDown(self, Pattern.type, wx.GetApp().program.patterns, self.OnComboOrCheck)
         self.MakeLabelAndControl('Pattern', self.cmbPattern).AddToSizer(self.sizerLeft)
-        self.cmbSurface = HTypeObjectDropDown(self, SurfaceType, wx.GetApp().program.surfaces, self.OnComboOrCheck)
+        self.cmbSurface = HTypeObjectDropDown(self, Surface.type, wx.GetApp().program.surfaces, self.OnComboOrCheck)
         self.MakeLabelAndControl('Surface', self.cmbSurface).AddToSizer(self.sizerLeft)
         
         HeeksObjDlg.AddLeftControls(self)

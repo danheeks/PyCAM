@@ -57,6 +57,9 @@ class Tools(CamObject):
         object = Tools()
         object.CopyFrom(self)
         return object
+    
+    def CallsObjListReadXml(self):
+        return True
         
     def FindAllTools(self):
         tools = []

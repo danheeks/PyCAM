@@ -65,9 +65,6 @@ class NcCode(CamObject):
     
     def CopyFrom(self, object):
         self.nc_code.CopyFrom(object.nc_code)
-    
-    def CallsObjListReadXml(self):
-        return False
 
     def ReadXml(self):
         self.nc_code.ReadXml()
@@ -164,9 +161,12 @@ class NcCodeWriter:
         self.oldp = geom.Point3D(0,0,50)
         self.current_block = None
         self.current_path = None
+        self.next_line_number = 0
 
     def begin_ncblock(self):
         self.current_block = cam.NewNcCodeBlock()
+        self.current_block.line_number = self.next_line_number
+        self.next_line_number += 1
 
     def end_ncblock(self):
         self.nccode.nc_code.AddBlock(self.current_block)

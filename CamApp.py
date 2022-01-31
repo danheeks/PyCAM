@@ -127,7 +127,8 @@ class CamApp(SolidApp):
                 tool_change( id = tool_number)
                 
             if self.attached_to_surface:
-                nc.creator.set_ocl_cutter(tool.OCLDefinition(self.attached_to_surface))
+                import nc.nc
+                nc.nc.creator.set_ocl_cutter(tool.OCLDefinition(self.attached_to_surface))
 
         self.tool_number = tool_number
         
@@ -278,7 +279,7 @@ class CamApp(SolidApp):
     def EditAndAddOp(self, op):
         if op.Edit():
             cad.StartHistory()
-            cad.AddUndoably(op, self.program.operations, None)
+            cad.AddUndoably(op, op.PreferredPasteTarget(), None)
             cad.EndHistory()
             
     def NewDrillingOp(self, e):
@@ -300,6 +301,7 @@ class CamApp(SolidApp):
 
     def NewSurface(self, e):
         new_object = Surface.Surface()
+        new_object.ReadDefaultValues()
         new_object.SetID(cad.GetNextID(Surface.type))
         self.EditAndAddOp(new_object)
 
@@ -349,14 +351,20 @@ class CamApp(SolidApp):
             a.Run()
         
     def OnCreateGCode(self, e):
-        self.program.MakeGCode()
-        self.program.BackPlot()
+        try:
+            self.program.MakeGCode()
+            self.program.BackPlot()
+        except Exception as e:
+            import traceback
+            print(traceback.format_exc())
+            wx.MessageBox('error during Create G-Code: ' + str(e))
+        
         
     def OnSetupSheet(self, e):
-        temporaary_filepath = str((wx.StandardPaths.Get().GetTempDir() + "/setup_sheet.pdf").replace('\\', '/'))
-        self.program.MakeSetupSheet(temporaary_filepath)
+        temporary_filepath = str((wx.StandardPaths.Get().GetTempDir() + "/setup_sheet.pdf").replace('\\', '/'))
+        self.program.MakeSetupSheet(temporary_filepath)
         import webbrowser
-        webbrowser.open_new(temporaary_filepath)
+        webbrowser.open_new(temporary_filepath)
 
     def OnOpenGCodeFile(self, e):
         import wx
@@ -378,25 +386,27 @@ class CamApp(SolidApp):
         e.Check(self.aui_manager.GetPane(self.output_window).IsShown())
     
     def OnLeftClick(self, event):
-        # check for nc code block clicked
-        filter = cad.Filter()
-        filter.AddType(cam.GetNcCodeBlockType())
-        objects = cad.ObjectsUnderWindow(cad.IRect(self.select_mode.button_down_point.x, self.select_mode.button_down_point.y), False, True, filter, False)
-        if len(objects):
-            block = objects[0]
-            cad.ClearSelection()
-            cad.Select(block)
-            block.__class__ = cam.NcCodeBlock
-            self.output_window.viewport.SelectLine(block.line_number, True)
-            wx.GetApp().frame.graphics_canvas.Refresh()
-            self.output_window.Refresh()
-            return            
-        
-        program = wx.GetApp().program
-        if program != None:
-            nccode = program.nccode
-            if nccode != None:
-                nccode.nc_code.SetHighlightedBlock(None)
+        if not event.controlDown:
+            # check for nc code block clicked
+            if self.select_mode.filter.IsTypeInFilter(cam.GetNcCodeBlockType()):
+                mask = cad.Filter()
+                mask.AddType(cam.GetNcCodeBlockType())
+                objects = cad.ObjectsUnderWindow(cad.IRect(self.select_mode.button_down_point.x, self.select_mode.button_down_point.y), False, True, mask, False)
+                if len(objects):
+                    block = objects[0]
+                    cad.ClearSelection()
+                    cad.Select(block)
+                    block.__class__ = cam.NcCodeBlock
+                    self.output_window.viewport.SelectLine(block.line_number, True)
+                    wx.GetApp().frame.graphics_canvas.Refresh()
+                    self.output_window.Refresh()
+                    return            
+                
+                program = wx.GetApp().program
+                if program != None:
+                    nccode = program.nccode
+                    if nccode != None:
+                        nccode.nc_code.SetHighlightedBlock(None)
         
         # do the default click behaviour
         SolidApp.OnLeftClick(self, event)

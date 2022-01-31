@@ -29,3 +29,6 @@ class Patterns(CamObject):
         object = Patterns()
         object.CopyFrom(self)
         return object
+    
+    def CallsObjListReadXml(self):
+        return True

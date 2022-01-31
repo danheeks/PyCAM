@@ -34,3 +34,6 @@ class Operations(CamObject):
         object = Operations()
         object.CopyFrom(self)
         return object
+    
+    def CallsObjListReadXml(self):
+        return True

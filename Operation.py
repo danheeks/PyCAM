@@ -7,6 +7,7 @@ from Object import PyProperty
 from Object import PyPropertyLength
 from Object import PyChoiceProperty
 import Tool
+import Operations
 
 class PyToolProperty(PyChoiceProperty):
     def __init__(self, op):
@@ -76,6 +77,12 @@ class Operation(CamObject):
         self.tool_number = object.tool_number
         self.pattern = object.pattern
         self.surface = object.surface
+        
+    def CanAddTo(self, owner):
+        return owner.GetType() == Operations.type
+    
+    def PreferredPasteTarget(self):
+        return wx.GetApp().program.operations
         
     def WriteXml(self):
         if len(self.comment) > 0: cad.SetXmlValue('comment', self.comment)
