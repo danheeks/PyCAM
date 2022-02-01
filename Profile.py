@@ -13,6 +13,7 @@ from HeeksConfig import HeeksConfig
 import Tags
 import Tag
 import math
+from Drawing import Drawing
 
 PROFILE_RIGHT_OR_INSIDE = -1
 PROFILE_ON = 0
@@ -418,22 +419,22 @@ class Profile(SketchOp):
                 object = self.tags.GetNextChild()
         SketchOp.OnGlCommands(self, select, marked, no_color)
 
-class TagDrawing(cad.Drawing):
+class TagDrawing(Drawing):
     def __init__(self):
-        cad.Drawing.__init__(self)
+        Drawing.__init__(self)
         self.profile = None
 
     # cad.InputMode's overridden method
     def GetTitle(self):
         return "Tag Drawing"
 
-    def IsAnAddLevel(self, level):
+    def is_an_add_level(self, level):
         return True
 
-    def NumberOfSteps(self):
+    def number_of_steps(self):
         return 1
 
-    def CalculateItem(self, end):
+    def calculate_item(self, end):
         if end.type == cad.DigitizeType.DIGITIZE_NO_ITEM_TYPE:
             return False
 
