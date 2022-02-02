@@ -134,7 +134,7 @@ class CamApp(SolidApp):
         
     def AddTags(self, object):
         Profile.tag_drawing.profile = object
-        cad.SetInputMode(Profile.tag_drawing)
+        self.SetInputMode(Profile.tag_drawing)
         
     def RepositionTag(self, object):
         pos = self.PickPosition('Pick New Tag Position')

@@ -424,7 +424,6 @@ class TagDrawing(Drawing):
         Drawing.__init__(self)
         self.profile = None
 
-    # cad.InputMode's overridden method
     def GetTitle(self):
         return "Tag Drawing"
 
