@@ -17,6 +17,7 @@ class DrillingDlg(DepthOpDlg):
         # add all the controls to the left side
         self.idsPoints = ObjectIdsCtrl(self)
         self.btnPointsPick = wx.Button(self, wx.ID_ANY, 'Pick')
+        self.btnPointsPick.Bind(wx.EVT_BUTTON, self.OnPointsPick )
         self.MakeLabelAndControl("Points", self.idsPoints, self.btnPointsPick).AddToSizer(self.sizerLeft)
         self.dblDwell = DoubleCtrl(self)
         self.MakeLabelAndControl("Dwell", self.dblDwell).AddToSizer(self.sizerLeft)
@@ -83,16 +84,21 @@ class DrillingDlg(DepthOpDlg):
         else:
             DepthOpDlg.SetPictureByWindow(self, w)
         
+    def OnPointsPick(self, event):
+        self.EndModal(self.btnPointsPick.GetId())
+        
     def PickPoints(self):
         cad.ClearSelection()
-        cad.PickObjects('Pick a sketch', cad.MARKING_FILTER_SKETCH_GROUP, False)
+        wx.GetApp().PickObjects('Pick points to drill', cad.Filter(cad.OBJECT_TYPE_POINT), False)
         
-        self.cmbSketch.Recreate()
+        ids = []
+        for object in cad.GetSelectedObjects():
+            if object.GetType() == cad.OBJECT_TYPE_POINT:
+                ids.append(object.GetID())
+
+        self.idsPoints.SetFromIdList(ids)
+        
         self.Fit()
-        
-        id = 0
-        if cad.GetNumSelected() > 0: id = cad.GetSelectedObjects()[0].GetID()
-        self.cmbSketch.SelectById(id)
         
 def Do(object):
     dlg = DrillingDlg(object)
@@ -104,7 +110,7 @@ def Do(object):
             dlg.GetData()
             return True
         elif result == dlg.btnPointsPick.GetId():
-            dlg.PickSketch()
+            dlg.PickPoints()
         else:
             return False
 
