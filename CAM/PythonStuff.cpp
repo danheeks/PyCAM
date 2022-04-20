@@ -72,6 +72,10 @@ boost::python::list CncCodeGetBlocks(CNCCode& object) {
 	return return_list;
 }
 
+unsigned int NcCodeGetNumBLocks(const CNCCode& object) {
+	return object.m_blocks.size();
+}
+
 void CNCCodeAddBlock(CNCCode& object, CNCCodeBlock& block)
 {
 	object.m_blocks.push_back(&block);
@@ -178,6 +182,7 @@ void AddPathObject(ColouredPath& path, PathObject& path_object)
 			.def("GetHighlightedBlock", &CNCCode::GetHighlightedBlock, boost::python::return_value_policy<boost::python::reference_existing_object>())
 			.def("SetHighlightedBlock", &CNCCode::SetHighlightedBlock)
 			.def("GetBlocks", &CncCodeGetBlocks)
+			.def("GetNumBlocks", &NcCodeGetNumBLocks)
 			.def("DestroyGLLists", &CNCCode::DestroyGLLists)
 			.def("AddBlock", &CNCCodeAddBlock)
 			;

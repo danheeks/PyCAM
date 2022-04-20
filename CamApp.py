@@ -154,6 +154,13 @@ class CamApp(SolidApp):
                 
         if len(to_delete)>0:
             cad.DeleteObjectsUndoably(to_delete)
+            
+    def ClearToolpath(self):
+        cad.StartHistory('Clear Toolpath')
+        blank_nc = NcCode.NcCode()
+        cad.PyIncref(blank_nc)
+        wx.GetApp().CopyUndoablyWithChildren(wx.GetApp().program.nccode, blank_nc)
+        self.EndHistory()
         
     def GetObjectTools(self, object, control_pressed, from_tree_canvas = False):
         tools = SolidApp.GetObjectTools(self, object, control_pressed, from_tree_canvas)
@@ -163,6 +170,8 @@ class CamApp(SolidApp):
             tools.append(CamContextTool.CamObjectContextTool(object, "Pick new position", "tagpos", self.RepositionTag))
         if object.GetType() == Program.type or object.GetType() == Tools.type:
             tools.append(CamContextTool.CamObjectContextTool(self.program, "Clear Unused Tools", "optoolclear", self.ClearUnusedTools))
+        if object.GetType() == NcCode.type:
+            tools.append(CamContextTool.CamContextTool("Clear Toolpath", "toolpathclear", self.ClearToolpath))        
         return tools
         
     def AddExtraRibbonPages(self, ribbon):
@@ -228,7 +237,7 @@ class CamApp(SolidApp):
     
     def EditAndAddSketchOp(self, new_object, sketches):
         if new_object.Edit():
-            cad.StartHistory()
+            cad.StartHistory('Add ' + new_object.GetTitle())
             cad.AddUndoably(new_object, self.program.operations, None)
             
             first = True
@@ -240,7 +249,7 @@ class CamApp(SolidApp):
                     copy.sketch = sketch
                     cad.AddUndoably(copy, self.program.operations, None)
             
-            cad.EndHistory()
+            self.EndHistory()
     
     def NewProfileOp(self, e):
         sketches = self.GetSelectedSketches()
@@ -274,13 +283,13 @@ class CamApp(SolidApp):
         new_object.SetID(cad.GetNextID(Stock.type))
         if new_object.Edit():
             cad.AddUndoably(new_object, self.program.stocks, None)
-            cad.EndHistory()
+            self.EndHistory()
         
     def EditAndAddOp(self, op):
         if op.Edit():
-            cad.StartHistory()
+            cad.StartHistory('Add ' + op.GetTitle())
             cad.AddUndoably(op, op.PreferredPasteTarget(), None)
-            cad.EndHistory()
+            self.EndHistory()
             
     def NewDrillingOp(self, e):
         new_object = Drilling.Drilling()
@@ -307,9 +316,9 @@ class CamApp(SolidApp):
 
     def EditAndAddTool(self, tool):
         if tool.Edit():
-            cad.StartHistory()
+            cad.StartHistory('Add Tool')
             cad.AddUndoably(tool, self.program.tools, None)
-            cad.EndHistory()
+            self.EndHistory()
         
     def AddNewTool(self, tool_type):
         # find next available tool number

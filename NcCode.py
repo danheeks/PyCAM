@@ -152,6 +152,12 @@ class NcCode(CamObject):
                 self.nc_code.SetHighlightedBlock(block)
                 break
         self.nc_code.DestroyGLLists()
+        
+    def GetProperties(self):
+        properties = []
+        properties.append(cad.PropertyStringReadOnly('number of lines', str(self.nc_code.GetNumBlocks())))
+        properties += CamObject.GetProperties(self)
+        return properties
     
 class NcCodeWriter:
     # this fills out an NcCode object with path, used in backplotting, instead of the old hxml_writer

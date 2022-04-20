@@ -253,6 +253,8 @@ class Program(CamObject):
             # write a transform redirector
             import transform
             transform.transform_begin(pattern.GetMatrices())
+            return True
+        return False
 
     def ApplySurfaceToText(self, surface, surfaces_written):
         if not surface in surfaces_written:
@@ -321,11 +323,11 @@ class Program(CamObject):
                 surface_apply_before_pattern = (surface != None) and not surface.same_for_each_pattern_position 
                 surface_apply_after_pattern = (surface != None) and surface.same_for_each_pattern_position 
                 if surface_apply_before_pattern: self.ApplySurfaceToText(surface, surfaces_written)
-                self.ApplyPatternToText(op.pattern, patterns_written)
+                tranform_begun = self.ApplyPatternToText(op.pattern, patterns_written)
                 if surface_apply_after_pattern: self.ApplySurfaceToText(surface, surfaces_written)
                 failure = op.DoGCodeCalls()
                 if surface_apply_after_pattern: attach.attach_end()
-                if op.pattern != 0: transform.transform_end()
+                if tranform_begun: transform.transform_end()
                 if surface_apply_before_pattern: attach.attach_end()
                 wx.GetApp().attached_to_surface = None
                 if failure:
