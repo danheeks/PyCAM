@@ -172,6 +172,8 @@ class CamApp(SolidApp):
             tools.append(CamContextTool.CamObjectContextTool(self.program, "Clear Unused Tools", "optoolclear", self.ClearUnusedTools))
         if object.GetType() == NcCode.type:
             tools.append(CamContextTool.CamContextTool("Clear Toolpath", "toolpathclear", self.ClearToolpath))        
+        if object.GetType() == Stocks.type:
+            tools.append(CamContextTool.CamContextTool("New Stock", "stock", self.NewStock2))        
         return tools
         
     def AddExtraRibbonPages(self, ribbon):
@@ -271,6 +273,9 @@ class CamApp(SolidApp):
         new_object.SetID(cad.GetNextID(Pocket.type))
         
         self.EditAndAddSketchOp(new_object, sketches)
+        
+    def NewStock2(self):
+        self.NewStock(None)
         
     def NewStock(self, e):
         solids = []
