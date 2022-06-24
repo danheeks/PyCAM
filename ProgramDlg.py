@@ -26,7 +26,11 @@ class ProgramDlg(HeeksObjDlg):
         self.cmbUnits = wx.ComboBox(self, choices = ["mm", "inch"])
         self.MakeLabelAndControl('Units', self.cmbUnits).AddToSizer(self.sizerLeft)
         
-        # to do "Raw Material" and "Brinell Hardness of raw material"
+        self.chkAddComments = wx.CheckBox(self, wx.ID_ANY, 'Add Comments')
+        HControl(wx.ALL, self.chkAddComments).AddToSizer(self.sizerLeft)
+ 
+        self.txtMaterial = wx.TextCtrl(self, wx.ID_ANY)
+        self.MakeLabelAndControl('Material', self.txtMaterial).AddToSizer(self.sizerLeft)
 
     def SetDefaultFocus(self):
         self.cmbMachine.SetFocus()
@@ -52,6 +56,9 @@ class ProgramDlg(HeeksObjDlg):
             self.object.units = 25.4
         else:
             self.object.units = 1.0
+            
+        self.object.add_comments = self.chkAddComments.GetValue()
+        self.object.material = self.txtMaterial.GetValue()
 
     def SetFromDataRaw(self):
         self.cmbMachine.SetValue(self.object.machine.description)
@@ -64,3 +71,6 @@ class ProgramDlg(HeeksObjDlg):
             self.cmbUnits.SetValue("inch")
         else:
             self.cmbUnits.SetValue("mm")
+            
+        self.chkAddComments.SetValue(self.object.add_comments)
+        self.txtMaterial.SetValue(self.object.material)

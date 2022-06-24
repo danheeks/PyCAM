@@ -4,7 +4,6 @@ import Patterns
 import Surfaces
 import Stocks
 import NcCode
-from RawMaterial import RawMaterial
 from Machine import Machine
 from HeeksConfig import HeeksConfig
 from consts import *
@@ -17,6 +16,7 @@ import Surface
 import Pattern
 import cam
 import geom
+import math
 
 type = 0
 
@@ -25,7 +25,7 @@ class Program(CamObject):
         CamObject.__init__(self, type)
         self.units = 1.0 # set to 25.4 for inches
         self.alternative_machines_file = ""
-        self.raw_material = RawMaterial()    #// for material hardness - to determine feeds and speeds.
+        self.material = 'Alu Alloy'
         self.machine = self.GetMachine("LinuxCNC")
         import wx
         self.output_file = str((wx.StandardPaths.Get().GetTempDir() + "/test.tap").replace('\\', '/')) #  // NOTE: Only relevant if the filename does NOT follow the data file's name.
@@ -33,6 +33,7 @@ class Program(CamObject):
         self.path_control_mode = PATH_CONTROL_UNDEFINED
         self.motion_blending_tolerance = 0.0001   # Only valid if m_path_control_mode == eBestPossibleSpeed
         self.naive_cam_tolerance = 0.0001        # Only valid if m_path_control_mode == eBestPossibleSpeed
+        self.add_comments = True
         self.ReadDefaultValues()
         self.tools = None
         self.patterns = None
@@ -51,7 +52,8 @@ class Program(CamObject):
         self.path_control_mode = config.ReadInt("ProgramPathControlMode", self.path_control_mode)
         self.motion_blending_tolerance = config.ReadFloat("ProgramMotionBlendingTolerance", self.motion_blending_tolerance)
         self.naive_cam_tolerance = config.ReadFloat("ProgramNaiveCamTolerance", self.naive_cam_tolerance)
-
+        self.add_comments = config.ReadBool('AddCommentsOp', self.add_comments)        
+        self.material = config.Read('Material', self.material)        
         
     def WriteDefaultValues(self):
         config = HeeksConfig()
@@ -63,6 +65,8 @@ class Program(CamObject):
         config.WriteInt("ProgramPathControlMode", self.path_control_mode)
         config.WriteFloat("ProgramMotionBlendingTolerance", self.motion_blending_tolerance)
         config.WriteFloat("ProgramNaiveCamTolerance", self.naive_cam_tolerance)
+        config.WriteBool('AddCommentsOp', self.add_comments)
+        config.Write('Material', self.material)
         
     def TypeName(self):
         return "Program"
@@ -187,6 +191,8 @@ class Program(CamObject):
         properties.append(PyProperty("output file name follows data file name", "output_file_name_follows_data_file_name", self))
         properties.append(PropertyOutputFile(self))    
         properties.append(PropertyProgramUnits(self))
+        properties.append(PyProperty("add comments", "add_comments", self))
+        properties.append(PyProperty("material", "material", self))
         properties += CamObject.GetBaseProperties(self)
         return properties
         
@@ -198,6 +204,8 @@ class Program(CamObject):
         cad.SetXmlValue('ProgramPathControlMode', self.path_control_mode)
         cad.SetXmlValue('ProgramMotionBlendingTolerance', self.motion_blending_tolerance)
         cad.SetXmlValue('ProgramNaiveCamTolerance', self.naive_cam_tolerance)
+        cad.SetXmlValue('AddComments', self.add_comments)
+        cad.SetXmlValue('Material', self.material)
         CamObject.WriteXml(self)
 
     def ReadXml(self):
@@ -208,6 +216,8 @@ class Program(CamObject):
         self.path_control_mode = cad.GetXmlInt('ProgramPathControlMode')
         self.motion_blending_tolerance = cad.GetXmlFloat('ProgramMotionBlendingTolerance')
         self.naive_cam_tolerance = cad.GetXmlFloat('ProgramNaiveCamTolerance')
+        self.add_comments = cad.GetXmlBool('AddComments')
+        self.material = cad.GetXmlValue('Material', self.material)        
         
         CamObject.ReadXml(self)
         
@@ -285,6 +295,35 @@ class Program(CamObject):
             nc.nc.creator.material_allowance = surface.material_allowance
 
         wx.GetApp().attached_to_surface = surface
+    
+    def AddComments(self):
+        multiple = False
+        box = None
+        if self.stocks.GetNumChildren() == 1:
+            stock = self.stocks.GetFirstChild()
+            if len(stock.solids) > 1:
+                multiple = True
+            else:
+                object = cad.GetObjectFromId(cad.OBJECT_TYPE_STL_SOLID, stock.solids[0])
+                box = object.GetBox()
+                comment(str(box.Width()) + "mm x " + str(box.Height()) + "mm x " + str(box.Depth()) + "mm " + self.material)
+        elif self.stocks.GetNumChildren() > 1:
+            multiple = True
+        else:
+            comment('no stock has been defined')
+        if multiple:
+            comment('multiple stocks were defined')
+                    
+        # list tools
+        for object in self.tools.GetChildren():
+            comment('T' + str(object.tool_number) + " " + object.GetTitle())
+
+        if box != None:         
+            comment('X0 Y0 at bottom left')    
+            comment('or X' + str(box.Width() * 0.5) + " Y" + str(box.Height() * 0.5) + ' in middle')
+            if math.fabs(box.MaxZ()) < 0.001: 
+                comment('Z0 on top of metal')    
+                comment(' ')    
 
     def MakeGCode(self):
         wx.GetApp().attached_to_surface = None
@@ -297,6 +336,9 @@ class Program(CamObject):
         importlib.reload(machine_module)
         output(self.GetOutputFileName())
         program_begin(self.GetID(), self.GetTitle())
+
+        if self.add_comments:
+            self.AddComments()
 
         absolute()
         
