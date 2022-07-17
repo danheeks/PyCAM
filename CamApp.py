@@ -174,6 +174,9 @@ class CamApp(SolidApp):
             tools.append(CamContextTool.CamContextTool("Clear Toolpath", "toolpathclear", self.ClearToolpath))        
         if object.GetType() == Stocks.type:
             tools.append(CamContextTool.CamContextTool("New Stock", "stock", self.NewStock2))        
+        if object.GetType() == Tools.type:
+            tools.append(CamContextTool.CamContextTool("Import Tools", "imptools", self.ImportTools))        
+            tools.append(CamContextTool.CamContextTool("Import Tools", "imptools", self.ImportTools))        
         return tools
         
     def AddExtraRibbonPages(self, ribbon):

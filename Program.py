@@ -369,7 +369,9 @@ class Program(CamObject):
                 if surface_apply_after_pattern: self.ApplySurfaceToText(surface, surfaces_written)
                 failure = op.DoGCodeCalls()
                 if surface_apply_after_pattern: attach.attach_end()
-                if tranform_begun: transform.transform_end()
+                if tranform_begun:
+                    import transform
+                    transform.transform_end()
                 if surface_apply_before_pattern: attach.attach_end()
                 wx.GetApp().attached_to_surface = None
                 if failure:
