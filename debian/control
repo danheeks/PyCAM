@@ -4,7 +4,7 @@ Version: 0.0.1
 Section: editors
 Priority: extra
 Maintainer: Dan Heeks <danheeks@gmail.com>
-Build-Depends: debhelper (>= 9.0.0), cmake, python3-dev, freeglut3-dev, libboost-python-dev, cad
+Build-Depends: debhelper (>= 9.0.0), cmake, python3-dev, freeglut3-dev, libboost-python-dev, cad-dev
 Standards-Version: 3.9.3
 Homepage: https://github.com/danheeks/PyCAM
 Vcs-Git: https://github.com/danheeks/PyCAM.git
