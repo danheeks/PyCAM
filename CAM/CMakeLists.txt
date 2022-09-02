@@ -43,33 +43,35 @@ if (NOT WIN32)
     include_directories(OPENGL_INCLUDE_DIR)
 endif (NOT WIN32)
 
-include_directories("../../PyCAD/Geom")
-include_directories("../../PyCAD/CAD")
+set(PYCAD_SRC /usr/share/PyCAD)
+
+include_directories("$(PYCAD_SRC)/Geom")
+include_directories("$(PYCAD_SRC)/CAD")
 
 # this defines the source-files for library
 set(CAM_SRC
-    ../../PyCAD/Geom/Arc.cpp
-    ../../PyCAD/Geom/Area.cpp
-    ../../PyCAD/Geom/AreaClipper.cpp
-    ../../PyCAD/Geom/AreaOrderer.cpp
-    ../../PyCAD/Geom/AreaPocket.cpp
-    ../../PyCAD/Geom/Circle.cpp
-    ../../PyCAD/Geom/clipper.cpp
-    ../../PyCAD/Geom/Construction.cpp
-    ../../PyCAD/Geom/Curve.cpp
-    ../../PyCAD/Geom/Finite.cpp
-    ../../PyCAD/Geom/Matrix.cpp
-    ../../PyCAD/Geom/Offset.cpp
-    ../../PyCAD/CAD/HeeksColor.cpp
-    ../../PyCAD/CAD/HeeksFont.cpp
-    ../../PyCAD/CAD/HeeksObj.cpp
-    ../../PyCAD/CAD/Picking.cpp
-    ../../PyCAD/CAD/Property.cpp
-    ../../PyCAD/CAD/strconv.cpp
-    ../../PyCAD/CAD/tinystr.cpp
-    ../../PyCAD/CAD/tinyxml.cpp
-    ../../PyCAD/CAD/tinyxmlerror.cpp
-    ../../PyCAD/CAD/tinyxmlparser.cpp
+    $(PYCAD_SRC)/Geom/Arc.cpp
+    $(PYCAD_SRC)/Geom/Area.cpp
+    $(PYCAD_SRC)/Geom/AreaClipper.cpp
+    $(PYCAD_SRC)/Geom/AreaOrderer.cpp
+    $(PYCAD_SRC)/Geom/AreaPocket.cpp
+    $(PYCAD_SRC)/Geom/Circle.cpp
+    $(PYCAD_SRC)/Geom/clipper.cpp
+    $(PYCAD_SRC)/Geom/Construction.cpp
+    $(PYCAD_SRC)/Geom/Curve.cpp
+    $(PYCAD_SRC)/Geom/Finite.cpp
+    $(PYCAD_SRC)/Geom/Matrix.cpp
+    $(PYCAD_SRC)/Geom/Offset.cpp
+    $(PYCAD_SRC)/CAD/HeeksColor.cpp
+    $(PYCAD_SRC)/CAD/HeeksFont.cpp
+    $(PYCAD_SRC)/CAD/HeeksObj.cpp
+    $(PYCAD_SRC)/CAD/Picking.cpp
+    $(PYCAD_SRC)/CAD/Property.cpp
+    $(PYCAD_SRC)/CAD/strconv.cpp
+    $(PYCAD_SRC)/CAD/tinystr.cpp
+    $(PYCAD_SRC)/CAD/tinyxml.cpp
+    $(PYCAD_SRC)/CAD/tinyxmlerror.cpp
+    $(PYCAD_SRC)/CAD/tinyxmlparser.cpp
     NCCode.cpp
     PythonStuff.cpp
 )
