@@ -12,5 +12,5 @@ Vcs-Browser: https://github.com/danheeks/PyCAM
 
 Package: cam
 Architecture: any
-Depends: ${shlibs:Depends}, cad, python3-wxgtk4.0
+Depends: ${shlibs:Depends}, cad-dev, python3-wxgtk4.0
 Description: CAD software using CAD ( from Heeks2 project )
