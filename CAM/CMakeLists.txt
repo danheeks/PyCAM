@@ -48,6 +48,9 @@ set(PYCAD_SRC /usr/share/PyCAD)
 include_directories("$(PYCAD_SRC)/Geom")
 include_directories("$(PYCAD_SRC)/CAD")
 
+message(STATUS "PYCAD_SRC = ${PYCAD_SRC}")
+
+
 # this defines the source-files for library
 set(CAM_SRC
     $(PYCAD_SRC)/Geom/Arc.cpp
