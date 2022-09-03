@@ -43,43 +43,37 @@ if (NOT WIN32)
     include_directories(OPENGL_INCLUDE_DIR)
 endif (NOT WIN32)
 
-set(PYCAD_SRC /usr/share/PyCAD)
-
-include_directories("$(PYCAD_SRC)/Geom")
-include_directories("$(PYCAD_SRC)/CAD")
-
-message(STATUS "PYCAD_SRC = ${PYCAD_SRC}")
+include_directories("/usr/share/PyCAD/Geom")
+include_directories("/usr/share/PyCAD/CAD")
 
 
 # this defines the source-files for library
 set(CAM_SRC
-    $("/usr/share/PyCAD/Geom/Arc.cpp
-    $(PYCAD_SRC)/Geom/Area.cpp
-    $(PYCAD_SRC)/Geom/AreaClipper.cpp
-    $(PYCAD_SRC)/Geom/AreaOrderer.cpp
-    $(PYCAD_SRC)/Geom/AreaPocket.cpp
-    $(PYCAD_SRC)/Geom/Circle.cpp
-    $(PYCAD_SRC)/Geom/clipper.cpp
-    $(PYCAD_SRC)/Geom/Construction.cpp
-    $(PYCAD_SRC)/Geom/Curve.cpp
-    $(PYCAD_SRC)/Geom/Finite.cpp
-    $(PYCAD_SRC)/Geom/Matrix.cpp
-    $(PYCAD_SRC)/Geom/Offset.cpp
-    $(PYCAD_SRC)/CAD/HeeksColor.cpp
-    $(PYCAD_SRC)/CAD/HeeksFont.cpp
-    $(PYCAD_SRC)/CAD/HeeksObj.cpp
-    $(PYCAD_SRC)/CAD/Picking.cpp
-    $(PYCAD_SRC)/CAD/Property.cpp
-    $(PYCAD_SRC)/CAD/strconv.cpp
-    $(PYCAD_SRC)/CAD/tinystr.cpp
-    $(PYCAD_SRC)/CAD/tinyxml.cpp
-    $(PYCAD_SRC)/CAD/tinyxmlerror.cpp
-    $(PYCAD_SRC)/CAD/tinyxmlparser.cpp
+    /usr/share/PyCAD/Geom/Arc.cpp
+    /usr/share/PyCAD/Geom/Area.cpp
+    /usr/share/PyCAD/Geom/AreaClipper.cpp
+    /usr/share/PyCAD/Geom/AreaOrderer.cpp
+    /usr/share/PyCAD/Geom/AreaPocket.cpp
+    /usr/share/PyCAD/Geom/Circle.cpp
+    /usr/share/PyCAD/Geom/clipper.cpp
+    /usr/share/PyCAD/Geom/Construction.cpp
+    /usr/share/PyCAD/Geom/Curve.cpp
+    /usr/share/PyCAD/Geom/Finite.cpp
+    /usr/share/PyCAD/Geom/Matrix.cpp
+    /usr/share/PyCAD/Geom/Offset.cpp
+    /usr/share/PyCAD/CAD/HeeksColor.cpp
+    /usr/share/PyCAD/CAD/HeeksFont.cpp
+    /usr/share/PyCAD/CAD/HeeksObj.cpp
+    /usr/share/PyCAD/CAD/Picking.cpp
+    /usr/share/PyCAD/CAD/Property.cpp
+    /usr/share/PyCAD/CAD/strconv.cpp
+    /usr/share/PyCAD/CAD/tinystr.cpp
+    /usr/share/PyCAD/CAD/tinyxml.cpp
+    /usr/share/PyCAD/CAD/tinyxmlerror.cpp
+    /usr/share/PyCAD/CAD/tinyxmlparser.cpp
     NCCode.cpp
-    PythonStuff.cpp") 
-)
-
-message(STATUS "CAM_SRC = ${CAM_SRC}")
+    PythonStuff.cpp
+    )
 
 # this defines the headers
 if(DEFINED INCLUDE_INSTALL_DIR)
