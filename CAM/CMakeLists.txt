@@ -79,6 +79,7 @@ set(CAM_SRC
     PythonStuff.cpp
 )
 
+message(STATUS "CAM_SRC = ${PYCAD_SRC}")
 
 # this defines the headers
 if(DEFINED INCLUDE_INSTALL_DIR)
