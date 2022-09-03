@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Exec=/usr/bin/heeks2.sh
+Icon=Heeks2
+Terminal=false
+Name=Heeks2
+GenericName=Heeks2
+Comment=CAD-CAM Software using wxPython
+Categories=Graphics;Engineering;3DGraphics;
