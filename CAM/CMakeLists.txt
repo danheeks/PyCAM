@@ -53,7 +53,7 @@ message(STATUS "PYCAD_SRC = ${PYCAD_SRC}")
 
 # this defines the source-files for library
 set(CAM_SRC
-    $(PYCAD_SRC)/Geom/Arc.cpp
+    /usr/share/PyCAD/Geom/Arc.cpp
     $(PYCAD_SRC)/Geom/Area.cpp
     $(PYCAD_SRC)/Geom/AreaClipper.cpp
     $(PYCAD_SRC)/Geom/AreaOrderer.cpp
