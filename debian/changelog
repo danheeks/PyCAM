@@ -69,3 +69,9 @@ cam (0.0.11) unstable; urgency=low
   * New upstream version
 
  -- Dan Heeks <danheeks@gmail.com>  Sat, 3 Sep 2022 12:00:40 +0100
+  
+cam (0.0.12) unstable; urgency=low
+
+  * New upstream version
+
+ -- Dan Heeks <danheeks@gmail.com>  Sat, 3 Sep 2022 13:00:40 +0100
