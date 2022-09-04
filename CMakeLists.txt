@@ -1,5 +1,6 @@
 project( cam )
 cmake_minimum_required( VERSION 2.6 )
+install( FILES "${CMAKE_CURRENT_SOURCE_DIR}/cam.py" DESTINATION "PyCAM" )
 install( DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bitmaps" DESTINATION "PyCAM" )
 install( DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/icons" DESTINATION "PyCAM" )
 install( FILES "${CMAKE_CURRENT_SOURCE_DIR}/heekscnc.png" DESTINATION "PyCAM" )
