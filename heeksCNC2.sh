@@ -1,1 +1,1 @@
-python3 /usr/PyCAM/cam.py
+python3 /usr/PyCAM/Heeks2.py
