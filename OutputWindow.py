@@ -94,7 +94,7 @@ class OutputWindow(glcanvas.GLCanvas):
         self.SwapBuffers()
         
     def SetScrollBarToCurrentLine(self):
-        self.SetScrollbar(wx.VERTICAL, self.viewport.GetCurrentLine() * 100, self.viewport.GetLinesPerPage() * 100, self.viewport.GetNumberOfLines() * 100)
+        self.SetScrollbar(wx.VERTICAL, int(self.viewport.GetCurrentLine() * 100), int(self.viewport.GetLinesPerPage() * 100), int(self.viewport.GetNumberOfLines() * 100))
         
     def SetNcCodeObject(self, nccode):
         self.viewport.SetNcCode(nccode)
