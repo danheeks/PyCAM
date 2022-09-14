@@ -119,6 +119,13 @@ class CamApp(SolidApp):
 
 #         if open == False:
 #             self.frame.OnOpenFilepath('c:/users/dan heeks/downloads/two points.heeks', False)
+
+    def GetAboutText(self):
+        return '''Open source CAM software ( Computer Aided Manufacturing ), source code here:
+https://github.com/danheeks/PyCAM
+
+built on wxPython based CAD Software:
+''' + SolidApp.GetAboutText(self) 
             
     def SetTool(self, tool_number):
         tool = Tool.FindTool(tool_number)
