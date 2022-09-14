@@ -12,6 +12,7 @@ import kurve_funcs
 import area_funcs
 from HeeksConfig import HeeksConfig
 import math
+from consts import *
 
 type = 0
 
@@ -78,6 +79,7 @@ class Pocket(SketchOp):
         self.zig_angle = config.ReadFloat("ZigAngle", 0.0)
         self.zig_unidirectional = config.ReadBool("ZigUnidirectional", False)
         self.entry_move = config.ReadInt("DecentStrategy", ENTRY_STYLE_PLUNGE)
+        self.SetDefaultTool(TOOL_TYPE_SLOTCUTTER)
 
     def WriteDefaultValues(self):
         SketchOp.WriteDefaultValues(self)

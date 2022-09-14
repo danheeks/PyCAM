@@ -203,6 +203,7 @@ class Profile(SketchOp):
         self.extend_at_end = config.ReadFloat("ExtendAtEnd", 0.0)
         self.lead_in_line_len = config.ReadFloat("LeadInLineLen", 0.0)
         self.lead_out_line_len = config.ReadFloat("LeadOutLineLen", 0.0)
+        self.SetDefaultTool(TOOL_TYPE_SLOTCUTTER)
 
     def WriteDefaultValues(self):
         SketchOp.WriteDefaultValues(self)

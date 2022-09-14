@@ -62,6 +62,12 @@ class Operation(CamObject):
         config.WriteInt("Tool", self.tool_number)
         config.WriteInt("Pattern", self.pattern)
         config.WriteInt("Surface", self.surface)
+
+    def SetDefaultTool(self, tool_type):        
+        if self.tool_number == 0:
+            t = wx.GetApp().program.tools.FindFirstTool(tool_type)
+            if t != None:
+                self.tool_number = t.tool_number 
         
     def DoGCodeCalls(self):
         if len(self.comment) > 0:

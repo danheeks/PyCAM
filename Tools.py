@@ -69,7 +69,7 @@ class Tools(CamObject):
         return tools
     
     def FindFirstTool(self, type):
-        for child in self.children:
+        for child in self.GetChildren():
             if child.type == type:
                 return child
         return None                

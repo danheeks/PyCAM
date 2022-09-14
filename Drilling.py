@@ -9,6 +9,7 @@ import wx
 from nc.nc import *
 from HeeksConfig import HeeksConfig
 import math
+from consts import TOOL_TYPE_DRILL
 
 type = 0
 
@@ -71,6 +72,7 @@ class Drilling(DepthOp):
         self.spindle_mode = config.ReadInt("spindle_mode", 0)
         self.internal_coolant_on = config.ReadBool("internal_coolant_on", False)
         self.rapid_to_clearance = config.ReadBool("rapid_to_clearance", True)
+        self.SetDefaultTool(TOOL_TYPE_DRILL)
 
     def WriteDefaultValues(self):
         DepthOp.WriteDefaultValues(self)
