@@ -6,5 +6,13 @@ Dan Heeks's experimental CAD/CAM software built on Dan's PyCAD for the Raspberry
 ### Heeks2 ###
 If I get it all working, I'll be calling it Heeks2, but I don't plan to change the source code projects names
 
-I have made some binaries for Ubuntu 64-bit
-https://heekscnc.blogspot.com/2021/08/heeks2.html
+I have made an automatic build for Ubuntu 22.04.  
+https://code.launchpad.net/~danheeks/+recipe/cam-daily  
+To install for Ubuntu 22.04 type in a terminal:
+```
+sudo add-apt-repository ppa:danheeks/ppa
+sudo apt-get install cam
+```
+
+you should then get a launch icon labelled HeeksCNC  
+( screenshot from Ubuntu to follow... )
