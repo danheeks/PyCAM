@@ -413,10 +413,13 @@ class Profile(SketchOp):
         self.Add(self.tags)
         
     def OnGlCommands(self, select, marked, no_color):
-        if self.tags and marked:
+        if self.tags:
+            if cad.ObjectMarked(self.tags):
+                marked = True
             object = self.tags.GetFirstChild()
             while object:
-                object.OnGlCommands(select, marked, no_color)
+                object_marked = cad.ObjectMarked(object)
+                object.OnGlCommands(select, marked or object_marked, no_color)
                 object = self.tags.GetNextChild()
         SketchOp.OnGlCommands(self, select, marked, no_color)
 
