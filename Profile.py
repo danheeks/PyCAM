@@ -14,6 +14,7 @@ import Tags
 import Tag
 import math
 from Drawing import Drawing
+from consts import *
 
 PROFILE_RIGHT_OR_INSIDE = -1
 PROFILE_ON = 0
