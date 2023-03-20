@@ -306,7 +306,7 @@ class Program(CamObject):
             else:
                 object = cad.GetObjectFromId(cad.OBJECT_TYPE_STL_SOLID, stock.solids[0])
                 box = object.GetBox()
-                comment(str(box.Width()) + "mm x " + str(box.Height()) + "mm x " + str(box.Depth()) + "mm " + self.material)
+                comment("%.1f" % box.Width() + "mm x " + "%.1f" % box.Height() + "mm x " + "%.1f" % box.Depth() + "mm " + self.material)
         elif self.stocks.GetNumChildren() > 1:
             multiple = True
         else:
@@ -320,9 +320,9 @@ class Program(CamObject):
 
         if box != None:         
             comment('X0 Y0 at bottom left')    
-            comment('or X' + str(box.Width() * 0.5) + " Y" + str(box.Height() * 0.5) + ' in middle')
+            comment('or X' + "%.1f" % (box.Width() * 0.5) + " Y" + "%.1f" % (box.Height() * 0.5) + ' in middle')
             if math.fabs(box.MaxZ()) < 0.001: 
-                comment('Z0 on top of metal')    
+                comment('Z0 on top of stock')    
                 comment(' ')    
 
     def MakeGCode(self):
