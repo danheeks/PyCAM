@@ -265,10 +265,10 @@ class Tool(CamObject):
     def Edit(self):
         import ToolDlg
         dlg = ToolDlg.ToolDlg(self)
-        res = dlg.ShowModal()
-        if res == wx.ID_OK:
+        if dlg.ShowModal() == wx.ID_OK:
             dlg.GetData()
-        return res
+            return True
+        return False
         
     def ReadXml(self):
         self.tool_number = cad.GetXmlInt('tool_number')
