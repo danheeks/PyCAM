@@ -58,6 +58,9 @@ def CreateTag(): return Tag.Tag()
 def CreateScriptOp(): return ScriptOp.ScriptOp()
 def CreatePattern(): return Pattern.Pattern()
 
+def ImportTooltable():
+    cad.OpenXmlFile(cad.GetFilePathForImportExport())
+
 class CamApp(SolidApp):
     def __init__(self):
         self.cam_dir = cam_dir
@@ -90,6 +93,8 @@ class CamApp(SolidApp):
         Tags.type = cad.RegisterObjectType("Tags", CreateTags)
         Tag.type = cad.RegisterObjectType("Tag", CreateTag)
         ScriptOp.type = cad.RegisterObjectType("ScriptOp", CreateScriptOp)
+        
+        self.RegisterImportFileTypes(['tooltable'], 'Tooltable Files', ImportTooltable)
         
         ReadNCCodeColorsFromConfig()
 
@@ -182,7 +187,6 @@ built on wxPython based CAD Software:
         if object.GetType() == Stocks.type:
             tools.append(CamContextTool.CamContextTool("New Stock", "stock", self.NewStock2))        
         if object.GetType() == Tools.type:
-            tools.append(CamContextTool.CamContextTool("Import Tools", "imptools", self.ImportTools))        
             tools.append(CamContextTool.CamContextTool("Import Tools", "imptools", self.ImportTools))        
         return tools
         
@@ -299,6 +303,18 @@ built on wxPython based CAD Software:
         if new_object.Edit():
             cad.AddUndoably(new_object, self.program.stocks, None)
             self.EndHistory()
+            
+    def ImportTools(self):
+        config = HeeksConfig()
+        dialog = wx.FileDialog(self.frame, 'Import Tools', config.Read('ImportToolsDirectory', self.GetDefaultDir()), 'default.tooltable', 'Tool Table files |*.tooltable;*.TOOLTABLE')
+        dialog.CenterOnParent()
+        
+        if dialog.ShowModal() == wx.ID_OK:
+            filepath = dialog.GetPath()
+            res = cad.Import(filepath)
+            if res:
+                config.Write('ImportToolsDirectory', dialog.GetDirectory())
+                self.Repaint()
         
     def EditAndAddOp(self, op):
         if op.Edit():
