@@ -34,7 +34,7 @@ class Tool(CamObject):
         self.tool_number = tool_number
         self.type = type
         self.diameter = diameter
-        self.material = TOOL_MATERIAL_UNDEFINED
+        self.material = TOOL_MATERIAL_CARBIDE
         self.tool_length_offset = 0.0
         self.corner_radius = 0.0
         self.flat_radius = 0.0
