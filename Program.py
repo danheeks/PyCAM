@@ -252,6 +252,8 @@ class Program(CamObject):
         self.path_control_mode = o.path_control_mode
         self.motion_blending_tolerance = o.motion_blending_tolerance
         self.naive_cam_tolerance = o.naive_cam_tolerance
+        self.material = o.material
+        self.add_comments = o.add_comments
         CamObject.CopyFrom(self, o)
     
     def AutoExpand(self):
