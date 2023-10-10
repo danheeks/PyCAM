@@ -50,10 +50,12 @@ class OutputWindow(glcanvas.GLCanvas):
             
             new_lines_per_page = self.viewport.GetLinesPerPage()
             lines_shift = (new_lines_per_page - old_lines_per_page) * (float(event.GetY()) / self.viewport.GetHeight())
-            self.viewport.SetCurrentLine(self.viewport.GetCurrentLine() - lines_shift)            
-            
-            if self.viewport.GetCurrentLine() > self.GetLastLineToScrollTo():
-                self.viewport.SetCurrentLine(self.GetLastLineToScrollTo())
+            new_current_line = self.viewport.GetCurrentLine() - lines_shift
+            if new_current_line > self.GetLastLineToScrollTo():
+                new_current_line = self.GetLastLineToScrollTo()
+            elif new_current_line < 0:
+                new_current_line = 0
+            self.viewport.SetCurrentLine(new_current_line)
         else:
             line_number = self.viewport.GetCurrentLine()
             translation = 20 / self.viewport.GetPixelsPerLine()
