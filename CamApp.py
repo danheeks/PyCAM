@@ -189,6 +189,12 @@ built on wxPython based CAD Software:
         if object.GetType() == Tools.type:
             tools.append(CamContextTool.CamContextTool("Import Tools", "imptools", self.ImportTools))        
         return tools
+    
+    def AddExtraMachiningPanels(self, ribbon, page):
+        pass
+
+    def AddExtraOtherOperations(self, toolbar):
+        pass
         
     def AddExtraRibbonPages(self, ribbon):
         SolidApp.AddExtraRibbonPages(self, ribbon)
@@ -204,6 +210,8 @@ built on wxPython based CAD Software:
         Ribbon.AddToolBarTool(toolbar, 'Profile', 'opprofile', 'Add a Profile Operation', self.NewProfileOp)
         Ribbon.AddToolBarTool(toolbar, 'Pocket', 'pocket', 'Add a Pocket Operation', self.NewPocketOp)
         Ribbon.AddToolBarTool(toolbar, 'Drilling', 'drilling', 'Add a Drilling Operation', self.NewDrillingOp)
+        
+        self.AddExtraMachiningPanels(ribbon, page)
 
         panel = RB.RibbonPanel(page, wx.ID_ANY, 'Other Operations', ribbon.Image('ops'))
         toolbar = RB.RibbonButtonBar(panel)
@@ -211,6 +219,8 @@ built on wxPython based CAD Software:
         Ribbon.AddToolBarTool(toolbar, 'Pattern', 'pattern', 'Add a Pattern', self.NewPattern)
         Ribbon.AddToolBarTool(toolbar, 'Surface', 'surface', 'Add a Surface', self.NewSurface)
         Ribbon.AddToolBarTool(toolbar, 'Stock', 'stock', 'Add a Stock', self.NewStock)
+        
+        self.AddExtraOtherOperations(toolbar)
 
         panel = RB.RibbonPanel(page, wx.ID_ANY, 'Tools', ribbon.Image('tools'))
         toolbar = RB.RibbonButtonBar(panel)
