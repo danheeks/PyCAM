@@ -29,6 +29,7 @@ import ScriptOp
 import Tags
 import Tag
 import Pattern
+import SerialNums
 import CamContextTool
 from HeeksConfig import HeeksConfig
 from OutputWindow import OutputWindow
@@ -53,6 +54,7 @@ def CreateNcCodeBlock(): return cam.NcCodeBlock()
 def CreateProfile(): return Profile.Profile()
 def CreatePocket(): return Pocket.Pocket()
 def CreateDrilling(): return Drilling.Drilling()
+def CreateSerialNums(): return SerialNums.SerialNums()
 def CreateTags(): return Tags.Tags()
 def CreateTag(): return Tag.Tag()
 def CreateScriptOp(): return ScriptOp.ScriptOp()
@@ -93,6 +95,7 @@ class CamApp(SolidApp):
         Tags.type = cad.RegisterObjectType("Tags", CreateTags)
         Tag.type = cad.RegisterObjectType("Tag", CreateTag)
         ScriptOp.type = cad.RegisterObjectType("ScriptOp", CreateScriptOp)
+        SerialNums.type = cad.RegisterObjectType("SerialNums", CreateSerialNums)
         
         self.RegisterImportFileTypes(['tooltable'], 'Tooltable Files', ImportTooltable)
         
@@ -210,6 +213,7 @@ built on wxPython based CAD Software:
         Ribbon.AddToolBarTool(toolbar, 'Profile', 'opprofile', 'Add a Profile Operation', self.NewProfileOp)
         Ribbon.AddToolBarTool(toolbar, 'Pocket', 'pocket', 'Add a Pocket Operation', self.NewPocketOp)
         Ribbon.AddToolBarTool(toolbar, 'Drilling', 'drilling', 'Add a Drilling Operation', self.NewDrillingOp)
+        Ribbon.AddToolBarTool(toolbar, 'Serial Numbers', 'opprofile', 'Add a Serial Numbers Operation', self.NewSerialNums)
         
         self.AddExtraMachiningPanels(ribbon, page)
 
@@ -297,6 +301,13 @@ built on wxPython based CAD Software:
         new_object.SetID(cad.GetNextID(Pocket.type))
         
         self.EditAndAddSketchOp(new_object, sketches)
+        
+    def NewSerialNums(self, e):
+        new_object = SerialNums.SerialNums()
+        new_object.ReadDefaultValues()
+        new_object.SetID(cad.GetNextID(SerialNums.type))
+        
+        self.EditAndAddOp(new_object)
         
     def NewStock2(self):
         self.NewStock(None)
