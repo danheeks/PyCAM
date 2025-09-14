@@ -29,16 +29,6 @@ class SpeedOp(Operation):
         config.WriteFloat("SpeedOpHFeedrate", self.horizontal_feed_rate)
         config.WriteFloat("SpeedOpVFeedrate", self.vertical_feed_rate)
         config.WriteFloat("SpeedOpSpindleSpeed", self.spindle_speed)
-        
-    def AppendTextToProgram(self):
-        Operation.AppendTextToProgram(self)
-
-        if self.spindle_speed != 0.0:
-            wx.GetApp().program.python_program += "spindle(" + str(self.spindle_speed) + ")\n"
-
-        wx.GetApp().program.python_program += "feedrate_hv(" + str(self.horizontal_feed_rate / wx.GetApp().program.units) + ", "
-        wx.GetApp().program.python_program += str(self.vertical_feed_rate / wx.GetApp().program.units) + ")\n"
-        wx.GetApp().program.python_program += "flush_nc()\n"
 
     def CopyFrom(self, object):
         Operation.CopyFrom(self, object)

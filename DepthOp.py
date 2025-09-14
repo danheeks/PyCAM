@@ -40,25 +40,6 @@ class DepthOp(SpeedOp):
         config.WriteFloat("ZFinish", self.z_finish_depth)
         config.WriteFloat("ZThru", self.z_thru_depth)
         
-    def AppendTextToProgram(self):
-        SpeedOp.AppendTextToProgram(self)
-
-        wx.GetApp().program.python_program += "clearance = float(" + str(self.clearance_height / wx.GetApp().program.units) + ")\n"
-        wx.GetApp().program.python_program += "rapid_safety_space = float(" + str(self.rapid_safety_space / wx.GetApp().program.units) + ")\n"
-        wx.GetApp().program.python_program += "start_depth = float(" + str(self.start_depth / wx.GetApp().program.units) + ")\n"
-        wx.GetApp().program.python_program += "step_down = float(" + str(self.step_down / wx.GetApp().program.units) + ")\n"
-        wx.GetApp().program.python_program += "final_depth = float(" + str(self.final_depth / wx.GetApp().program.units) + ")\n"
-
-        tool = wx.GetApp().program.tools.FindTool(self.tool_number)
-        if tool != None:
-            wx.GetApp().program.python_program += "tool_diameter = float(" + str(tool.diameter) + ")\n"
-
-        if self.abs_mode == ABS_MODE_ABSOLUTE:
-            wx.GetApp().program.python_program += "#absolute() mode\n"
-        else:
-            wx.GetApp().program.python_program += "rapid(z=clearance)\n"
-            wx.GetApp().program.python_program += "incremental()\n"
-        
     def CopyFrom(self, object):
         SpeedOp.CopyFrom(self, object)
         self.clearance_height = object.clearance_height
