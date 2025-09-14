@@ -60,7 +60,6 @@ class SerialNums(DepthOp):
 
     def ReadXml(self):
         self.start_number = cad.GetXmlValue('start_number', self.start_number)
-        print('self.start_number = ' + self.start_number)
         self.quantity = cad.GetXmlInt('quantity', self.quantity)
         self.height = cad.GetXmlFloat('height', self.height)
         DepthOp.ReadXml(self)
