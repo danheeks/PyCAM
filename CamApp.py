@@ -213,7 +213,7 @@ built on wxPython based CAD Software:
         Ribbon.AddToolBarTool(toolbar, 'Profile', 'opprofile', 'Add a Profile Operation', self.NewProfileOp)
         Ribbon.AddToolBarTool(toolbar, 'Pocket', 'pocket', 'Add a Pocket Operation', self.NewPocketOp)
         Ribbon.AddToolBarTool(toolbar, 'Drilling', 'drilling', 'Add a Drilling Operation', self.NewDrillingOp)
-        Ribbon.AddToolBarTool(toolbar, 'Serial Numbers', 'opprofile', 'Add a Serial Numbers Operation', self.NewSerialNums)
+        Ribbon.AddToolBarTool(toolbar, 'Serial Numbers', 'serialnums', 'Add a Serial Numbers Operation', self.NewSerialNums)
         
         self.AddExtraMachiningPanels(ribbon, page)
 

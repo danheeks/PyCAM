@@ -6,7 +6,7 @@
    height="1052.3622047"
    id="svg2"
    sodipodi:version="0.32"
-   inkscape:version="1.1 (c68e22c387, 2021-05-23)"
+   inkscape:version="1.2.2 (732a01da63, 2022-12-09)"
    sodipodi:docname="bitmaps.svg"
    inkscape:output_extension="org.inkscape.output.svg.inkscape"
    version="1.1"
@@ -28,19 +28,21 @@
      objecttolerance="10"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="2.9831927"
-     inkscape:cx="570.69729"
-     inkscape:cy="547.90292"
+     inkscape:zoom="16.875486"
+     inkscape:cx="92.20475"
+     inkscape:cy="192.35001"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
-     showgrid="false"
-     inkscape:window-width="1920"
-     inkscape:window-height="1017"
-     inkscape:window-x="-8"
+     showgrid="true"
+     inkscape:window-width="1280"
+     inkscape:window-height="953"
+     inkscape:window-x="1912"
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
      inkscape:snap-global="true"
-     inkscape:pagecheckerboard="0">
+     inkscape:pagecheckerboard="0"
+     inkscape:showpageshadow="2"
+     inkscape:deskcolor="#d1d1d1">
     <inkscape:grid
        id="grid2383"
        type="xygrid" />
@@ -11541,6 +11543,23 @@
          sodipodi:nodetypes="ccccccccc" />
     </g>
     <g
+       inkscape:export-ydpi="46.919231"
+       inkscape:export-xdpi="46.919231"
+       inkscape:label="#g3159"
+       transform="matrix(0.2023123,0,0,0.2294553,54.455695,129.94953)"
+       id="opprofile-7"
+       inkscape:export-filename="C:\Users\Dan\HeeksCAD\HeeksCNC\icons\profile.png">
+      <path
+         style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="M 110,152.36218 V 62.362183 h 90 v 89.999997 0"
+         id="path2385-8" />
+      <path
+         style="fill:none;fill-rule:evenodd;stroke:#00ff00;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 80,182.36218 c 10,0 20,-10 20,-30 V 62.362183 c -0.06863,-7.585783 4.77583,-9.030218 10,-10 h 90 c 3.92877,1.54701 8.74757,0.42397 10,10 v 89.999997 c -1.01654,20.18639 9.4675,29.96434 20,30 v 0"
+         id="path3157-7"
+         sodipodi:nodetypes="ccccccccc" />
+    </g>
+    <g
        inkscape:export-ydpi="278.70969"
        inkscape:export-xdpi="278.70969"
        inkscape:label="#g3189"
@@ -14821,6 +14840,29 @@
          d="m 497.49397,523.33023 c 1.668,1.7556 3.14003,3.83668 4.76224,5.92305 -2.10491,2.23053 -3.71942,4.98778 -4.76224,8.3637 2.0743,-2.54529 4.07045,-4.76976 6.04209,-6.78621 2.15705,2.59378 4.67881,5.07717 8.24465,6.78621 -2.31571,-2.57283 -4.39747,-5.56899 -6.77132,-8.25952 2.26066,-2.21022 4.49679,-4.17 6.77132,-6.02723 -3.10903,1.09603 -5.84587,2.59327 -8.12559,4.58367 -1.79406,-1.83691 -3.77932,-3.45205 -6.16115,-4.58367 z"
          style="fill:#f08080;fill-opacity:1;fill-rule:evenodd;stroke:#900000;stroke-width:0.95245;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
          inkscape:connector-curvature="0" />
+    </g>
+    <g
+       id="g5287"
+       inkscape:export-filename="..\icons\serialnums.png"
+       inkscape:export-xdpi="49.812908"
+       inkscape:export-ydpi="49.812908">
+      <rect
+         style="fill:none;stroke:#000000;stroke-width:1.00157;stroke-linecap:round;stroke-linejoin:round"
+         id="rect5176"
+         width="29.833809"
+         height="20.426559"
+         x="74.752129"
+         y="179.84088" />
+      <text
+         xml:space="preserve"
+         style="font-size:17.3333px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';fill:#000000;stroke:none;stroke-width:1.00157;stroke-linecap:round;stroke-linejoin:round"
+         x="77.786697"
+         y="196.24777"
+         id="text5232"><tspan
+           sodipodi:role="line"
+           id="tspan5230"
+           x="77.786697"
+           y="196.24777">SN</tspan></text>
     </g>
   </g>
 </svg>
