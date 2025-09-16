@@ -115,12 +115,10 @@ class SerialNums(DepthOp):
         sm.Scale(self.height)
         
         from TextCurve import GetTextCurves
+
+        DepthOp.DoGCodeCalls(self)
         
         for i in range(0, self.quantity):
-            wx.GetApp().tool_number = 0 # force a new tool change command for each serial number
-            
-            DepthOp.DoGCodeCalls(self)
-            
             text = precedor
             number = str(inumber)
             for i in range(len(number), number_length):
@@ -134,3 +132,15 @@ class SerialNums(DepthOp):
                 curve.Transform(sm) # scale by text height
                 # profile the kurve
                 kurve_funcs.profile(curve, depthparams = depthparams)
+            
+            # stop the spindle
+            spindle(0)
+            
+            # rapid up a bit ( to do add an edit box for this height )
+            rapid(z = 20)
+            
+            # pause
+            write('M0\n')
+            
+            # restart the spindle
+            DepthOp.DoGCodeCalls(self)

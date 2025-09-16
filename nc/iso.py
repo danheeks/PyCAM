@@ -150,6 +150,7 @@ class Creator(nc.nc.Creator):
 
     def SPINDLE_CW(self): return('M03')
     def SPINDLE_CCW(self): return('M04')
+    def SPINDLE_OFF(self): return('M05')
     def COOLANT_OFF(self): return('M09')
     def COOLANT_MIST(self): return('M07')
     def COOLANT_FLOOD(self): return('M08')
@@ -536,10 +537,13 @@ class Creator(nc.nc.Creator):
             self.f.set(self.fh)
 
     def spindle(self, s, clockwise):
-        if clockwise == True:
-            self.s.set(s, self.SPINDLE_CW(), self.SPINDLE_CCW())
+        if s == 0:
+            self.m.append(self.SPINDLE_OFF())
         else:
-            self.s.set(s, self.SPINDLE_CCW(), self.SPINDLE_CW())
+            if clockwise == True:
+                self.s.set(s, self.SPINDLE_CW(), self.SPINDLE_CCW())
+            else:
+                self.s.set(s, self.SPINDLE_CCW(), self.SPINDLE_CW())
 
     def coolant(self, mode=0):
         if (mode <= 0) : self.m.append(self.COOLANT_OFF())
