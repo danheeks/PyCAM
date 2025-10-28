@@ -21,6 +21,8 @@ class SerialNums(DepthOp):
         self.start_number = '' # can have letters but must end in a number, eg. SNZ0001, or 1G3r1
         self.quantity = 0# must be greater than 0, if greater than 1, then number will be incremented, SNZ0001 will become SNZ0002, 1G3r1 will become 1G3r2
         self.height = 0.0# the height in mm of the character '0'
+        self.x = 0.0 # x position
+        self.y = 0.0 # y position
 
     def TypeName(self):
         return "SerialNums"
@@ -56,12 +58,17 @@ class SerialNums(DepthOp):
         cad.SetXmlValue('start_number', self.start_number)
         cad.SetXmlValue('quantity', self.quantity)
         cad.SetXmlValue('height', self.height)
+        cad.SetXmlValue('x', self.x)
+        cad.SetXmlValue('y', self.y)
         DepthOp.WriteXml(self)
 
     def ReadXml(self):
         self.start_number = cad.GetXmlValue('start_number', self.start_number)
+        print('self.start_number = ' + self.start_number)
         self.quantity = cad.GetXmlInt('quantity', self.quantity)
         self.height = cad.GetXmlFloat('height', self.height)
+        self.x = cad.GetXmlFloat('x', self.x)
+        self.y = cad.GetXmlFloat('y', self.y)
         DepthOp.ReadXml(self)
 
     def ReadDefaultValues(self):
@@ -71,6 +78,8 @@ class SerialNums(DepthOp):
         self.start_number = config.Read("SerialStart", 'SN0001')
         self.quantity = config.ReadInt("SNQuantity", 1)
         self.height = config.ReadFloat("SNTextHeight", 6.0)
+        self.x = config.ReadFloat("SNXPosition", 0.0)
+        self.y = config.ReadFloat("SNYPosition", 0.0)
 
     def WriteDefaultValues(self):
         DepthOp.WriteDefaultValues(self)
@@ -78,6 +87,8 @@ class SerialNums(DepthOp):
         config.Write("SerialStart", self.start_number)
         config.WriteInt("SNQuantity", self.quantity)
         config.WriteFloat("SNTextHeight", self.height)
+        config.WriteFloat("SNXPosition", self.x)
+        config.WriteFloat("SNYPosition", self.y)
 
     def GetProperties(self):
         properties = []
@@ -85,10 +96,22 @@ class SerialNums(DepthOp):
         properties.append(PyProperty("Start Number", 'start_number', self))
         properties.append(PyProperty("Quantity", 'quantity', self))
         properties.append(PyProperty("Text Height", 'height', self))
+        properties.append(PyPropertyLength("X Position", 'x', self))
+        properties.append(PyPropertyLength("Y Position", 'y', self))
 
         properties += DepthOp.GetProperties(self)
 
         return properties
+
+    def GetBox(self):
+        box = geom.Box3D(self.x, self.y, 0.0, self.x + 20.0, self.y + self.height, 0.0)
+        return box
+
+    def Transform(self, mat):
+        p = geom.Point3D(self.x, self.y, 0.0)
+        p.Transform(mat)
+        self.x = p.x
+        self.y = p.y
 
     def DoGCodeCalls(self):
         if self.quantity < 1:
@@ -113,6 +136,7 @@ class SerialNums(DepthOp):
         
         sm = geom.Matrix()
         sm.Scale(self.height)
+        sm.Translate(geom.Point3D(self.x, self.y, 0.0))
         
         from TextCurve import GetTextCurves
 
