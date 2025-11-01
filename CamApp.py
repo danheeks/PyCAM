@@ -487,3 +487,7 @@ def ReadNCCodeColorsFromConfig():
     cam.AddNcCodeColor('axis', cad.Color(int(config.Read('ColorAxisType', str(cad.Color(128,0,255).ref())))))
     cam.AddNcCodeColor('rapid', cad.Color(int(config.Read('ColorRapidType', str(cad.Color(222,0,0).ref())))))
     cam.AddNcCodeColor('feed', cad.Color(int(config.Read('ColorFeedType', str(cad.Color(0,179,0).ref())))))
+    
+if __name__ == "__main__":
+    app = CamApp()
+    app.MainLoop()

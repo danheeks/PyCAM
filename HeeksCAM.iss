@@ -1,24 +1,19 @@
 ; HeeksCAM, derived from HeeksCAD, has everything from HeeksCAD plus machining and simulation
-#include "../PyCAD/HeeksCAD.iss"
 
-[Setup]
-; NOTE: The value of AppId uniquely identifies this application.
-; Do not use the same AppId value in installers for other applications.
-; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
-AppId={{1ADA7A8A-6931-4810-9EF1-1BB8BD42A1E2}
-AppName=Heeks CAM
-AppVerName=Heeks CAM 2.0.1
-DefaultDirName={pf}\HeeksCAM
-DefaultGroupName=Heeks CAM
-OutputBaseFilename=Heeks CAM 2.0.1
+#ifndef NAMES_DEFINED
+#define NAMES_DEFINED
+#define APP_ID "1ADA7A8A-6931-4810-9EF1-1BB8BD42A1E2"
+#define APP_SUB_NAME "Cam"
+#define EXE_FOLDER "PyCAM"
+#endif
+
+#include "../PyCAD/HeeksCAD.iss"
 
 [Files]
 Source: "C:\Dev\dsim\sim.pyd"; DestDir: "{app}\dsim"; Flags: ignoreversion
 Source: "C:\Dev\dsim\SimApp.py"; DestDir: "{app}\dsim"; Flags: ignoreversion; Permissions: users-modify
 Source: "C:\Dev\dsim\Toolpath.py"; DestDir: "{app}\dsim"; Flags: ignoreversion; Permissions: users-modify
 Source: "C:\Dev\dsim\bitmaps\*.png"; DestDir: "{app}\dsim\bitmaps"; Flags: ignoreversion; Permissions: users-modify
-
-Source: "C:\Dev\PyCAM\HeeksCAM.bat"; DestDir: "{app}\PyCAM"; Flags: ignoreversion; Permissions: users-modify
 Source: "C:\Dev\PyCAM\*.py"; DestDir: "{app}\PyCAM"; Flags: ignoreversion; Permissions: users-modify
 Source: "C:\Dev\PyCAM\*.pyd"; DestDir: "{app}\PyCAM"; Flags: ignoreversion
 Source: "C:\Dev\PyCAM\*.png"; DestDir: "{app}\PyCAM"; Flags: ignoreversion; Permissions: users-modify
@@ -37,9 +32,4 @@ Source: "C:\Dev\PyCAM\icons\*.png"; DestDir: "{app}\PyCAM\icons"; Flags: ignorev
 Source: "C:\Dev\PyCAM\nc\*.py"; DestDir: "{app}\PyCAM\nc"; Flags: ignoreversion; Permissions: users-modify
 Source: "C:\Dev\PyCAM\nc\machines.xml"; DestDir: "{app}\PyCAM\nc"; Flags: ignoreversion; Permissions: users-modify
 
-; NOTE: Don't use "Flags: ignoreversion" on any shared system files
-
-[Icons]
-Name: "{group}\Heeks CAM"; Filename: "{app}\PyCAM\HeeksCAM.bat"; WorkingDir: "{app}\PyCAM"
-Name: "{commondesktop}\Heeks CAM"; Filename: "{app}\PyCAM\HeeksCAM.bat"; WorkingDir: "{app}\PyCAM"; Tasks: desktopicon
 
