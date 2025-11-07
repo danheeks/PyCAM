@@ -222,7 +222,6 @@ void AddPathObject(ColouredPath& path, PathObject& path_object)
 		boost::python::class_<PathArc, boost::python::bases<PathObject>, boost::noncopyable>("PathArc")
 			.def(boost::python::init<PathArc>())
 			.def_readwrite("c", &PathArc::m_c)
-			.def_readwrite("radius", &PathArc::m_radius)
 			.def_readwrite("dir", &PathArc::m_dir)
 			;
 

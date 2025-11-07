@@ -8,15 +8,16 @@
 #include <stdafx.h>
 #include <math.h>
 #include "NCCode.h"
-#include "geometry.h"
 #include "strconv.h"
-#include "Curve.h"
 #include "Picking.h"
 #include "HeeksFont.h"
 #include "GripData.h"
 
 #include <memory>
 #include <sstream>
+
+double TOLERANCE = 1.0e-06;
+
 
 int CNCCode::s_arc_interpolation_count = 20;
 int CNCCode::m_type = 0;
@@ -87,32 +88,31 @@ void PathArc::GetBox(CBox &box)
 	if (CNCCode::prev_point_valid)
 	{
 		double dist = Point(m_point.x, m_point.y).dist(Point(CNCCode::prev_point.x, CNCCode::prev_point.y));
-		if (dist > TOLERANCE)
+		if (dist > 1.0e-06)
 		{
-			if (IsIncluded(Point3d(0, 1, 0)))
-				box.Insert(CNCCode::prev_point.x + m_c.x, CNCCode::prev_point.y + m_c.y + m_radius, 0);
-			if (IsIncluded(Point3d(0, -1, 0)))
-				box.Insert(CNCCode::prev_point.x + m_c.x, CNCCode::prev_point.y + m_c.y - m_radius, 0);
-			if (IsIncluded(Point3d(1, 0, 0)))
-				box.Insert(CNCCode::prev_point.x + m_c.x + m_radius, CNCCode::prev_point.y + m_c.y, 0);
-			if (IsIncluded(Point3d(-1, 0, 0)))
-				box.Insert(CNCCode::prev_point.x + m_c.x - m_radius, CNCCode::prev_point.y + m_c.y, 0);
+			double radius = 0.0;
+			if (IsIncluded(Point3d(0, 1, 0), radius))
+				box.Insert(CNCCode::prev_point.x + m_c.x, CNCCode::prev_point.y + m_c.y + radius, 0);
+			if (IsIncluded(Point3d(0, -1, 0), radius))
+				box.Insert(CNCCode::prev_point.x + m_c.x, CNCCode::prev_point.y + m_c.y - radius, 0);
+			if (IsIncluded(Point3d(1, 0, 0), radius))
+				box.Insert(CNCCode::prev_point.x + m_c.x + radius, CNCCode::prev_point.y + m_c.y, 0);
+			if (IsIncluded(Point3d(-1, 0, 0), radius))
+				box.Insert(CNCCode::prev_point.x + m_c.x - radius, CNCCode::prev_point.y + m_c.y, 0);
 		}
 	}
 
 	PathObject::GetBox(box);
 }
 
-bool PathArc::IsIncluded(const Point3d &pnt)
+bool PathArc::IsIncluded(const Point3d &pnt, double &radius)
 {
 	double sx = -m_c.x;
 	double sy = -m_c.y;
 	// e = cs + se = -c + e - s
 	double ex = -m_c.x + m_point.x - CNCCode::prev_point.x;
 	double ey = -m_c.y + m_point.y - CNCCode::prev_point.y;
-	double rs = sqrt(sx * sx + sy * sy);
-	// double re = sqrt(ex * ex + ey * ey);
-	m_radius = rs;
+	radius = sqrt(sx * sx + sy * sy);
 
 	double start_angle = atan2(sy, sx);
 	double end_angle = atan2(ey, ex);
@@ -151,76 +151,18 @@ void PathArc::WriteXML(TiXmlNode *root)
 void PathArc::ReadFromXMLElement(TiXmlElement* pElem)
 {
 	// get the attributes
-	bool radius_set = false;
-	if (pElem->Attribute("r"))
-	{
-		pElem->Attribute("r", &m_radius);
-		m_radius *= CNCCodeBlock::multiplier;
-		radius_set = true;
-	}
-	else
-	{
-		if (pElem->Attribute("i")) pElem->Attribute("i", &m_c.x);
-		if (pElem->Attribute("j")) pElem->Attribute("j", &m_c.y);
-		if (pElem->Attribute("k")) pElem->Attribute("k", &m_c.z);
-		if (pElem->Attribute("d")) pElem->Attribute("d", &m_dir);
+	if (pElem->Attribute("i")) pElem->Attribute("i", &m_c.x);
+	if (pElem->Attribute("j")) pElem->Attribute("j", &m_c.y);
+	if (pElem->Attribute("k")) pElem->Attribute("k", &m_c.z);
+	if (pElem->Attribute("d")) pElem->Attribute("d", &m_dir);
 
-		m_c.x *= CNCCodeBlock::multiplier;
-		m_c.y *= CNCCodeBlock::multiplier;
-		m_c.z *= CNCCodeBlock::multiplier;
-	}
+	m_c.x *= CNCCodeBlock::multiplier;
+	m_c.y *= CNCCodeBlock::multiplier;
+	m_c.z *= CNCCodeBlock::multiplier;
 
 	PathObject::ReadFromXMLElement(pElem);
-
-	if(radius_set)
-	{
-		// set ij and direction from radius
-		SetFromRadius();
-	}
 }
 
-static CCurve MakeCircleCurveAtPoint(const Point& centre, double radius)
-{
-	Point p0 = centre + Point(radius, 0.0);
-	Point p1 = centre + Point(-radius, 0.0);
-	CCurve curve;
-	curve.append(p0);
-	curve.append(CVertex(1, p1, centre));
-	curve.append(CVertex(1, p0, centre));
-	return curve;
-}
-
-void PathArc::SetFromRadius()
-{
-	// make a circle at start point and end point
-	Point3d ps = CNCCode::prev_point;
-	Point3d pe = m_point;
-	double r = fabs(m_radius);
-	CCurve c1 = MakeCircleCurveAtPoint(Point(CNCCode::prev_point.x, CNCCode::prev_point.y), r);
-	CCurve c2 = MakeCircleCurveAtPoint(Point(m_point.x, m_point.y), r);
-	std::list<Point> plist;
-	c1.CurveIntersections(c2, plist);
-	if(plist.size() == 2)
-	{
-		Point3d p1(plist.front().x, plist.front().y, ps.z);
-		Point3d p2(plist.back().x, plist.back().y, ps.z);
-		Point3d along(ps, pe);
-		Point3d right = Point3d(0, 0, 1) ^ along;
-		Point3d vc(p1, p2);
-		bool left = (vc * right) < 0;
-		if((m_radius < 0) == left)
-		{
-			m_c = p1 - ps;
-			this->m_dir = 1;
-		}
-		else
-		{
-			m_c = p2 - ps;
-			this->m_dir = -1;
-		}
-		m_radius = r;
-	}
-}
 
 void PathArc::glVertices()
 {

@@ -13,7 +13,6 @@
 
 #include "HeeksObj.h"
 #include "HeeksColor.h"
-#include "geometry.h"
 
 #include <list>
 #include <map>
@@ -79,7 +78,6 @@ public:
 class PathArc : public PathObject{
 public:
 	Point3d m_c; // defined relative to previous point ( span start point )
-	double m_radius;
 	int m_dir; // 1 - anti-clockwise, -1 - clockwise
 	PathArc(){m_c = Point3d(0,0,0); m_dir = 1;}
 	int GetType(){return int(PathObject::eArc);}
@@ -91,8 +89,7 @@ public:
 	PathObject *MakeACopy(void)const{return new PathArc(*this);}
 
 	void GetBox(CBox &box);
-	bool IsIncluded(const Point3d &pnt);
-	void SetFromRadius();
+	bool IsIncluded(const Point3d &pnt, double &radius);
 };
 
 class ColouredPath

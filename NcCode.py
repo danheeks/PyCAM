@@ -246,6 +246,9 @@ class NcCodeWriter:
         
     def add_arc(self, x, y, z, i, j, k, r = None, d = None):
         arc = cam.NewPathArc()
+        
+        prev_p = geom.Point3D(self.oldp)
+        
         arc.c = geom.Point3D(self.oldp)
         if i != None: arc.c.x = float(i) - self.oldp.x
         if j != None: arc.c.y = float(j) - self.oldp.y
@@ -254,8 +257,28 @@ class NcCodeWriter:
         if y != None: self.oldp.y = float(y)
         if z != None: self.oldp.z = float(z)
         arc.point = geom.Point3D(self.oldp)
-        if r != None: arc.radius = float(r)
         if d != None: arc.dir = int(d)
+        if r != None:
+            radius = float(r)
+            # make a circle at start point and end point
+            ps = prev_p
+            pe = arc.point
+            c1 = geom.MakeCircleCurveAtPoint(Point(prev_p.x, prev_p.y), radius)
+            c2 = geom.MakeCircleCurveAtPoint(Point(arc.point.x, arc.point.y), radius)
+            plist = Intersections(c2)
+            if len(plist) == 2:
+                p1 = geom.Point3D(plist[0].x, plist[0].y, ps.z)
+                p2 = geom.Point3D(plist[1].x, plist[1].y, ps.z)
+                along = pe - ps
+                roght = geom.Point3D(0, 0, 1) ^ along
+                vc = p2 - p1
+                left = (vc * right) < 0
+                if (radius < 0) == left:
+                    arc.c = p1 - ps
+                    arc.dir = 1
+                else:
+                    arc.c = p2 - ps
+                    arc.dir = -1
         self.current_path.AddPathObject(arc)
         
     
